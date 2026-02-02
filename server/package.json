@@ -5,7 +5,9 @@
   "scripts": {
     "start": "cross-env ENVIROMENT=DEV nodemon",
     "prod": "cross-env ENVIROMENT=PROD nodemon",
-    "build": "tsup ./src/index.ts",
+    "build": "prisma generate && tsup ./src/index.ts",
+    "vercel-build": "prisma generate",
+    "postinstall": "prisma generate",
     "seed": "tsx ./src/.scripts/runSeeder.ts",
     "create:router": "tsx ./src/.scripts/createRouter.ts",
     "create:controller": "tsx ./src/.scripts/createController.ts",
