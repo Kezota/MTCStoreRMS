@@ -1,11 +1,12 @@
 import { Router } from "express";
+import authRoutes from "./authRoutes";
 
 const router = Router();
 
 // API Welcome Message
 router.get("/", (_, response) => {
   response.send({
-    message: "My-API-Name v0.0.1",
+    message: "MTC Store RMS API v1.0.0",
   });
 });
 
@@ -13,5 +14,6 @@ router.get("/", (_, response) => {
  * Insert your router here
  * @example router.use("/example", exampleRouter)
  */
+router.use("/auth", authRoutes);
 
 export default router;

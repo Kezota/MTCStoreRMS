@@ -5,6 +5,66 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "mysql"
   url      = env("DATABASE_URL")
+}
+
+// Users table for authentication
+model User {
+  id        Int      @id @default(autoincrement())
+  username  String   @unique @db.VarChar(50)
+  password  String   @db.VarChar(255)
+  nama      String   @db.VarChar(100)
+  role      Role     @default(STAFF)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("users")
+}
+
+enum Role {
+  ADMIN
+  STAFF
+}
+
+// Inventory HP table
+model InventoryHP {
+  id           Int      @id @default(autoincrement())
+  tanggalMasuk DateTime @map("tanggal_masuk") @db.Date
+  imei         String   @unique @db.VarChar(20)
+  brand        String   @db.VarChar(50)
+  namaHP       String   @map("nama_hp") @db.VarChar(100)
+  warna        String?  @db.VarChar(50)
+  modalAwal    Decimal  @map("modal_awal") @db.Decimal(15, 2)
+  cashback     Decimal? @db.Decimal(15, 2)
+  modalFinal   Decimal  @map("modal_final") @db.Decimal(15, 2)
+  status       Status   @default(READY)
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  // Relations
+  penjualan Penjualan[]
+
+  @@map("inventory_hp")
+}
+
+enum Status {
+  READY
+  TERJUAL
+}
+
+// Penjualan table (Sales)
+model Penjualan {
+  id          Int      @id @default(autoincrement())
+  tanggal     DateTime @db.Date
+  inventoryId Int      @map("inventory_id")
+  hargaJual   Decimal  @map("harga_jual") @db.Decimal(15, 2)
+  diskon      Decimal? @db.Decimal(15, 2)
+  profit      Decimal  @db.Decimal(15, 2)
+  metodeBayar String   @map("metode_bayar") @db.VarChar(50)
+  keterangan  String?  @db.Text
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  // Relations
+  inventory InventoryHP @relation(fields: [inventoryId], references: [id], onDelete: Cascade)
+
+  @@map("penjualan")
 }
