@@ -33,6 +33,8 @@ export const getAllInventory = async (
       status,
       brand,
       search,
+      imei,
+      namaHP,
       warna,
       minModalAwal,
       maxModalAwal,
@@ -54,23 +56,40 @@ export const getAllInventory = async (
       where.status = status;
     }
 
-    // Brand filter
+    // Brand filter - support multiple brands (comma-separated)
     if (brand) {
-      where.brand = { contains: brand };
+      const brands = brand.split(",").map((b) => b.trim());
+      if (brands.length > 1) {
+        where.OR = (where.OR || []).concat(
+          brands.map((b) => ({ brand: { contains: b } })),
+        );
+      } else {
+        where.brand = { contains: brands[0] };
+      }
     }
 
-    // Color filter
+    // Color filter (single warna)
     if (warna) {
       where.warna = { contains: warna };
     }
 
+    // IMEI filter (exact column search)
+    if (imei) {
+      where.imei = { contains: imei };
+    }
+
+    // Nama HP filter (exact column search)
+    if (namaHP) {
+      where.namaHP = { contains: namaHP };
+    }
+
     // Search filter (IMEI, nama HP, or brand)
     if (search) {
-      where.OR = [
+      where.OR = (where.OR || []).concat([
         { imei: { contains: search } },
         { namaHP: { contains: search } },
         { brand: { contains: search } },
-      ];
+      ]);
     }
 
     // Price range filters
@@ -341,7 +360,7 @@ export const updateInventory = async (
         where: { id: parseInt(id) },
         data: updateData,
       });
-      
+
       // If modalAwal or modalFinal changed, update profit for related penjualan
       if (
         (modalAwal !== undefined && modalAwal !== null) ||

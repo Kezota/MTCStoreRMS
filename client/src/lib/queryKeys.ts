@@ -12,4 +12,10 @@ export const QUERY_KEYS = {
     all: ["users"] as const,
     list: () => [...QUERY_KEYS.users.all, "list"] as const,
   },
+  inventory: {
+    all: ["inventory"] as const,
+    list: () => [...QUERY_KEYS.inventory.all, "list"] as const,
+  },
 };
+
+export const queryKeys = QUERY_KEYS;

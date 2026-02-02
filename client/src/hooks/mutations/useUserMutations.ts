@@ -14,7 +14,7 @@ export const useCreateUserMutation = () => {
   return useMutation<SuccessResponse<User>, unknown, CreateUserRequest>({
     mutationFn: async (payload) => {
       const response = await API.post<SuccessResponse<User>>(
-        "/api/auth/users",
+        "/auth/users",
         payload,
       );
       return response.data;
@@ -35,7 +35,7 @@ export const useUpdateUserMutation = () => {
   >({
     mutationFn: async ({ id, payload }) => {
       const response = await API.patch<SuccessResponse<User>>(
-        `/api/auth/users/${id}`,
+        `/auth/users/${id}`,
         payload,
       );
       return response.data;
@@ -52,7 +52,7 @@ export const useDeleteUserMutation = () => {
   return useMutation<SuccessResponse<null>, unknown, number>({
     mutationFn: async (id) => {
       const response = await API.delete<SuccessResponse<null>>(
-        `/api/auth/users/${id}`,
+        `/auth/users/${id}`,
       );
       return response.data;
     },

@@ -7,7 +7,7 @@ export const useGetUsers = () => {
   return useQuery<User[]>({
     queryKey: QUERY_KEYS.users.list(),
     queryFn: async () => {
-      const response = await API.get<UsersResponse>("/api/auth/users");
+      const response = await API.get<UsersResponse>("/auth/users");
       return response.data.data;
     },
     staleTime: 2 * 60 * 1000,

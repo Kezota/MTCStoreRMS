@@ -132,6 +132,8 @@ export const inventoryQuerySchema = z.object({
   status: z.enum(["READY", "TERJUAL"]).optional(),
   brand: z.string().optional(),
   search: z.string().optional(),
+  imei: z.string().optional(),
+  namaHP: z.string().optional(),
   warna: z.string().optional(),
   minModalAwal: z.string().optional(),
   maxModalAwal: z.string().optional(),

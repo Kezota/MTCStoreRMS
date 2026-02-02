@@ -1,6 +1,12 @@
 import AppLayout from "./pages/AppLayout";
 import HomePage from "./pages/HomePage";
-import { LoginPage, DashboardLayout, DashboardPage, StaffPage } from "./pages";
+import {
+  LoginPage,
+  DashboardLayout,
+  DashboardPage,
+  StaffPage,
+  InventoryPage,
+} from "./pages";
 import { ProtectedRoute, AdminRoute } from "./components";
 
 export const routes = [
@@ -40,6 +46,11 @@ export const routes = [
                 <StaffPage />
               </AdminRoute>
             ),
+          },
+          {
+            path: "inventory",
+            handle: { title: "Inventory" },
+            element: <InventoryPage />,
           },
         ],
       },

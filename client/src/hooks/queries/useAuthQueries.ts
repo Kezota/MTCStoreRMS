@@ -7,7 +7,7 @@ export const useGetCurrentUser = (enabled = true) => {
   return useQuery<User>({
     queryKey: QUERY_KEYS.auth.currentUser(),
     queryFn: async () => {
-      const response = await API.get<AuthResponse>("/api/auth/me");
+      const response = await API.get<AuthResponse>("/auth/me");
       return response.data.data;
     },
     enabled,

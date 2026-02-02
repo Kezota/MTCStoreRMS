@@ -70,6 +70,67 @@ export interface DashboardResponse {
   data: DashboardStats;
 }
 
+// Inventory Types
+export interface InventoryItem {
+  id: number;
+  tanggalMasuk: string;
+  imei: string;
+  brand: string;
+  namaHP: string;
+  warna?: string;
+  modalAwal: string;
+  cashback?: string;
+  modalFinal: string;
+  status: "READY" | "TERJUAL";
+  createdAt: string;
+  penjualan?: Array<{
+    id: number;
+    tanggal: string;
+    hargaJual: string;
+    diskon?: string;
+    profit: string;
+    metodeBayar: string;
+    keterangan?: string;
+    createdAt: string;
+  }>;
+}
+
+export interface InventoryResponse {
+  status: string;
+  results: number;
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    pages: number;
+  };
+  data: InventoryItem[];
+}
+
+export interface CreateInventoryRequest {
+  tanggalMasuk: string;
+  imei: string;
+  brand: string;
+  namaHP: string;
+  warna?: string;
+  modalAwal: number;
+  cashback?: number;
+  modalFinal: number;
+  status?: "READY" | "TERJUAL";
+}
+
+export interface UpdateInventoryRequest {
+  tanggalMasuk?: string;
+  imei?: string;
+  brand?: string;
+  namaHP?: string;
+  warna?: string;
+  modalAwal?: number;
+  cashback?: number;
+  modalFinal?: number;
+  status?: "READY" | "TERJUAL";
+}
+
 export interface ErrorResponse {
   status: string;
   message: string;
