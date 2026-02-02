@@ -20,6 +20,26 @@ export interface User {
   createdAt: string;
 }
 
+export interface UsersResponse {
+  status: string;
+  results: number;
+  data: User[];
+}
+
+export interface CreateUserRequest {
+  username: string;
+  password: string;
+  nama: string;
+  role: "ADMIN" | "STAFF";
+}
+
+export interface UpdateUserRequest {
+  username?: string;
+  password?: string;
+  nama?: string;
+  role?: "ADMIN" | "STAFF";
+}
+
 export interface LoginRequest {
   username: string;
   password: string;

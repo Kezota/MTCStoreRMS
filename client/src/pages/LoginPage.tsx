@@ -29,7 +29,7 @@ export const LoginPage = () => {
       {
         onSuccess: (data) => {
           showToast.success(
-            data.message || `Selamat datang, ${data.data.nama}!`,
+            data.message || `Selamat datang, ${data.data.user.nama}!`,
           );
           setTimeout(() => navigate("/"), 500);
         },

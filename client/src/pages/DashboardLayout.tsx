@@ -2,11 +2,13 @@ import { Link, useNavigate, useLocation, Outlet } from "react-router-dom";
 import { LogOut, Smartphone, Menu, X } from "lucide-react";
 import { showToast } from "../lib/toast";
 import { useState } from "react";
+import { useGetCurrentUser } from "../hooks/queries";
 
 export const DashboardLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { data: currentUser } = useGetCurrentUser(true);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -21,6 +23,11 @@ export const DashboardLayout = () => {
     { name: "Laporan", path: "/dashboard/laporan" },
     { name: "Staff", path: "/dashboard/staff" },
   ];
+
+  const visibleNavLinks =
+    currentUser?.role === "ADMIN"
+      ? navLinks
+      : navLinks.filter((link) => link.path !== "/dashboard/staff");
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -38,7 +45,7 @@ export const DashboardLayout = () => {
 
             {/* Navigation Links - Desktop */}
             <div className="hidden md:flex items-center gap-1">
-              {navLinks.map((link) => {
+              {visibleNavLinks.map((link) => {
                 const isActive = location.pathname === link.path;
                 return (
                   <Link
@@ -85,7 +92,7 @@ export const DashboardLayout = () => {
           {isMobileMenuOpen && (
             <div className="md:hidden pb-3 border-t border-gray-200 pt-3">
               <div className="flex flex-col gap-1">
-                {navLinks.map((link) => {
+                {visibleNavLinks.map((link) => {
                   const isActive = location.pathname === link.path;
                   return (
                     <Link

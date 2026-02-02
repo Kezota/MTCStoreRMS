@@ -8,4 +8,8 @@ export const QUERY_KEYS = {
     all: ["dashboard"] as const,
     stats: () => [...QUERY_KEYS.dashboard.all, "stats"] as const,
   },
+  users: {
+    all: ["users"] as const,
+    list: () => [...QUERY_KEYS.users.all, "list"] as const,
+  },
 };

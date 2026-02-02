@@ -1,7 +1,7 @@
 import AppLayout from "./pages/AppLayout";
 import HomePage from "./pages/HomePage";
-import { LoginPage, DashboardLayout, DashboardPage } from "./pages";
-import { ProtectedRoute } from "./components";
+import { LoginPage, DashboardLayout, DashboardPage, StaffPage } from "./pages";
+import { ProtectedRoute, AdminRoute } from "./components";
 
 export const routes = [
   {
@@ -31,6 +31,15 @@ export const routes = [
             index: true,
             handle: { title: "Dashboard" },
             element: <DashboardPage />,
+          },
+          {
+            path: "staff",
+            handle: { title: "Staff" },
+            element: (
+              <AdminRoute>
+                <StaffPage />
+              </AdminRoute>
+            ),
           },
         ],
       },
