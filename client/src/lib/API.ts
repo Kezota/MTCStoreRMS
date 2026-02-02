@@ -3,7 +3,7 @@ import type { InternalAxiosRequestConfig } from "axios";
 import { API_URL } from "./config.ts";
 
 export const API = axios.create({
-  baseURL: API_URL,
+  baseURL: `${API_URL}`,
 });
 
 API.interceptors.request.use(
@@ -15,5 +15,5 @@ API.interceptors.request.use(
 
     return request;
   },
-  () => Promise.reject()
+  () => Promise.reject(),
 );

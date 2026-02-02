@@ -36,6 +36,15 @@ export interface InventoryResponse {
   };
 }
 
+export interface InventoryModalsResponse {
+  status: string;
+  results: number;
+  data: {
+    namaHP: string;
+    modals: string[];
+  };
+}
+
 interface GetInventoryParams {
   page?: number;
   limit?: number;
@@ -62,6 +71,20 @@ export const useGetInventory = (params: GetInventoryParams = {}) => {
       const response = await API.get("/inventory", { params });
       return response.data;
     },
+    staleTime: 2 * 60 * 1000,
+  });
+};
+
+export const useGetInventoryModalsByNamaHP = (namaHP?: string) => {
+  return useQuery<InventoryModalsResponse>({
+    queryKey: queryKeys.inventory.modalsByNama(namaHP || ""),
+    queryFn: async () => {
+      const response = await API.get("/inventory/by-nama", {
+        params: { namaHP },
+      });
+      return response.data;
+    },
+    enabled: Boolean(namaHP && namaHP.trim()),
     staleTime: 2 * 60 * 1000,
   });
 };

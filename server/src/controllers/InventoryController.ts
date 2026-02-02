@@ -183,6 +183,56 @@ export const getAllInventory = async (
 };
 
 /**
+ * Get modalAwal list by namaHP
+ */
+export const getInventoryModalsByNamaHP = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const schema = z.object({ namaHP: z.string().min(1) });
+    const validation = schema.safeParse(req.query);
+
+    if (!validation.success) {
+      throw new AppError(
+        validation.error.issues.map((e) => e.message).join(", "),
+        400,
+      );
+    }
+
+    const { namaHP } = validation.data;
+
+    const items = await prisma.inventoryHP.findMany({
+      where: {
+        namaHP: { contains: namaHP },
+      },
+      select: {
+        modalAwal: true,
+      },
+      orderBy: {
+        modalAwal: "asc",
+      },
+    });
+
+    const modals = Array.from(
+      new Set(items.map((item) => String(item.modalAwal))),
+    );
+
+    res.json({
+      status: "success",
+      results: modals.length,
+      data: {
+        namaHP,
+        modals,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
  * Get single inventory item by ID
  */
 export const getInventoryById = async (

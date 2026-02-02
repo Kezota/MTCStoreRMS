@@ -5,6 +5,7 @@ import {
   createInventory,
   updateInventory,
   deleteInventory,
+  getInventoryModalsByNamaHP,
 } from "../controllers/InventoryController";
 import { protect, restrictTo } from "../middleware/authMiddleware";
 
@@ -15,6 +16,9 @@ router.use(protect);
 
 // Get all inventory items (with optional filters)
 router.get("/", getAllInventory);
+
+// Get modalAwal list by namaHP
+router.get("/by-nama", getInventoryModalsByNamaHP);
 
 // Get single inventory item by ID
 router.get("/:id", getInventoryById);

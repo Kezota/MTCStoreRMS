@@ -4,3 +4,8 @@ export {
   useUpdateUserMutation,
   useDeleteUserMutation,
 } from "./useUserMutations";
+export {
+  useCreateInventoryMutation,
+  useUpdateInventoryMutation,
+  useDeleteInventoryMutation,
+} from "./useInventoryMutations";

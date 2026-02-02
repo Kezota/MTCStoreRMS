@@ -1,5 +1,7 @@
 import { useState, useMemo } from "react";
 import { useGetInventory } from "@/hooks/queries/useInventoryQueries";
+import { useDeleteInventoryMutation } from "@/hooks/mutations/useInventoryMutations";
+import { InventoryFormModal } from "@/components/InventoryFormModal";
 import {
   Table,
   TableBody,
@@ -32,6 +34,7 @@ import {
 } from "lucide-react";
 import { brandsList } from "@/lib/constants";
 import { getBrandColor } from "@/lib/utils";
+import type { InventoryItem } from "@/lib/types";
 
 interface FilterState {
   search: string;
@@ -74,6 +77,12 @@ export const InventoryPage = () => {
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [brandDropdownOpen, setBrandDropdownOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editingItem, setEditingItem] = useState<InventoryItem | null>(null);
+
+  const deleteMutation = useDeleteInventoryMutation();
+
   const searchValue = filters.search.trim();
   const isNumericSearch = searchValue.length > 0 && /^\d+$/.test(searchValue);
 
@@ -165,7 +174,26 @@ export const InventoryPage = () => {
     ]);
   };
 
+  const handleOpenCreate = () => {
+    setIsEditMode(false);
+    setEditingItem(null);
+    setIsFormOpen(true);
+  };
+
+  const handleOpenEdit = (item: InventoryItem) => {
+    setIsEditMode(true);
+    setEditingItem(item);
+    setIsFormOpen(true);
+  };
+
+  const handleDeleteInventory = async (id: number) => {
+    const confirmed = window.confirm("Hapus inventory ini?");
+    if (!confirmed) return;
+    await deleteMutation.mutateAsync(id);
+  };
+
   const inventory = data?.data || [];
+
   const imeiOptions = useMemo(
     () =>
       Array.from(new Set(inventory.map((item) => item.imei))).filter(Boolean),
@@ -187,7 +215,10 @@ export const InventoryPage = () => {
             Total: {data?.pagination.total || 0} item
           </p>
         </div>
-        <button className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium">
+        <button
+          onClick={handleOpenCreate}
+          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium"
+        >
           <Plus className="w-4 h-4" />
           Tambah Inventory
         </button>
@@ -413,6 +444,33 @@ export const InventoryPage = () => {
         </button>
       </div>
 
+      {isFormOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="w-full max-w-3xl rounded-lg bg-white shadow-lg">
+            <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3">
+              <h2 className="text-base font-semibold text-slate-900">
+                {isEditMode ? "Edit Inventory" : "Tambah Inventory"}
+              </h2>
+              <button
+                type="button"
+                onClick={() => setIsFormOpen(false)}
+                className="rounded p-1 text-slate-500 hover:bg-slate-100"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Form Modal */}
+      <InventoryFormModal
+        isOpen={isFormOpen}
+        onClose={() => setIsFormOpen(false)}
+        isEditMode={isEditMode}
+        item={editingItem}
+      />
+
       {/* Loading & Error States */}
       {isLoading && (
         <div className="text-center py-8 text-slate-600">Loading...</div>
@@ -527,11 +585,17 @@ export const InventoryPage = () => {
                     </TableCell>
                     <TableCell className="px-6 py-3 text-sm border-l border-slate-200/70">
                       <div className="flex items-center justify-end gap-1">
-                        <button className="inline-flex items-center gap-0.5 px-2 py-1 text-blue-600 hover:bg-blue-50 rounded text-xs transition">
+                        <button
+                          onClick={() => handleOpenEdit(item)}
+                          className="inline-flex items-center gap-0.5 px-2 py-1 text-blue-600 hover:bg-blue-50 rounded text-xs transition"
+                        >
                           <Edit2 className="w-3 h-3" />
                           Edit
                         </button>
-                        <button className="inline-flex items-center gap-0.5 px-2 py-1 text-red-600 hover:bg-red-50 rounded text-xs transition">
+                        <button
+                          onClick={() => handleDeleteInventory(item.id)}
+                          className="inline-flex items-center gap-0.5 px-2 py-1 text-red-600 hover:bg-red-50 rounded text-xs transition"
+                        >
                           <Trash2 className="w-3 h-3" />
                           Hapus
                         </button>
@@ -639,11 +703,17 @@ export const InventoryPage = () => {
                     </TableCell>
                     <TableCell className="px-1.5 py-1 text-[10px] border-l border-slate-200/70">
                       <div className="flex items-center justify-end gap-0.5">
-                        <button className="inline-flex items-center gap-0.5 px-1 py-0.5 text-blue-600 hover:bg-blue-50 rounded text-[8px] transition">
+                        <button
+                          onClick={() => handleOpenEdit(item)}
+                          className="inline-flex items-center gap-0.5 px-1 py-0.5 text-blue-600 hover:bg-blue-50 rounded text-[8px] transition"
+                        >
                           <Edit2 className="w-2 h-2" />
                           Edit
                         </button>
-                        <button className="inline-flex items-center gap-0.5 px-1 py-0.5 text-red-600 hover:bg-red-50 rounded text-[8px] transition">
+                        <button
+                          onClick={() => handleDeleteInventory(item.id)}
+                          className="inline-flex items-center gap-0.5 px-1 py-0.5 text-red-600 hover:bg-red-50 rounded text-[8px] transition"
+                        >
                           <Trash2 className="w-2 h-2" />
                           Hapus
                         </button>
