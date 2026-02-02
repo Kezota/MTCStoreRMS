@@ -233,6 +233,9 @@ export const createInventory = async (
       throw new AppError("IMEI already exists in inventory", 400);
     }
 
+    // Sync modalAwal and modalFinal to be the same
+    const modalValue = modalFinal && modalFinal !== 0 ? modalFinal : modalAwal;
+
     const inventory = await prisma.inventoryHP.create({
       data: {
         tanggalMasuk: new Date(tanggalMasuk),
@@ -240,9 +243,9 @@ export const createInventory = async (
         brand,
         namaHP,
         warna: warna || null,
-        modalAwal,
+        modalAwal: modalValue,
         cashback: cashback || null,
-        modalFinal: modalFinal ?? modalAwal,
+        modalFinal: modalValue,
       },
     });
 
@@ -270,8 +273,6 @@ export const updateInventory = async (
     // Validate request body
     const validation = updateInventorySchema.safeParse(req.body);
 
-    console.log("req.body:", req.body);
-
     if (!validation.success) {
       throw new AppError(
         validation.error.issues.map((e) => e.message).join(", "),
@@ -290,8 +291,6 @@ export const updateInventory = async (
       modalFinal,
       status,
     } = validation.data;
-
-    console.log("Validated data:", validation.data);
 
     // Check if inventory exists
     const existingInventory = await prisma.inventoryHP.findUnique({
@@ -321,23 +320,63 @@ export const updateInventory = async (
     if (brand) updateData.brand = brand;
     if (namaHP) updateData.namaHP = namaHP;
     if (warna !== undefined && warna !== null) updateData.warna = warna;
-    if (modalAwal !== undefined && modalAwal !== null)
+
+    // Sync modalAwal and modalFinal - always keep them the same
+    if (modalFinal !== undefined) {
+      updateData.modalAwal = modalFinal;
+      updateData.modalFinal = modalFinal;
+    } else if (modalAwal !== undefined && modalAwal !== null) {
       updateData.modalAwal = modalAwal;
+      updateData.modalFinal = modalAwal;
+    }
+
     if (cashback !== undefined && cashback !== null)
       updateData.cashback = cashback;
-    if (modalFinal !== undefined && modalFinal !== null)
-      updateData.modalFinal = modalFinal;
     if (status) updateData.status = status;
 
-    console.log("Update Data:", updateData);
-    console.log("ID:", id);
+    // Update inventory and recalculate penjualan profit if modalAwal or modalFinal changed
+    const inventory = await prisma.$transaction(async (tx) => {
+      // Update inventory
+      const updatedInventory = await tx.inventoryHP.update({
+        where: { id: parseInt(id) },
+        data: updateData,
+      });
+      
+      // If modalAwal or modalFinal changed, update profit for related penjualan
+      if (
+        (modalAwal !== undefined && modalAwal !== null) ||
+        (modalFinal !== undefined && modalFinal !== null)
+      ) {
+        // Find all penjualan for this inventory
+        const penjualanList = await tx.penjualan.findMany({
+          where: { inventoryId: parseInt(id) },
+        });
 
-    const inventory = await prisma.inventoryHP.update({
-      where: { id: parseInt(id) },
-      data: updateData,
+        // Recalculate profit for each penjualan
+        for (const penjualan of penjualanList) {
+          let newModalBase =
+            modalFinal !== undefined && modalFinal !== null
+              ? parseFloat(String(modalFinal))
+              : parseFloat(String(updatedInventory.modalAwal));
+
+          if (!newModalBase || newModalBase === 0) {
+            newModalBase = parseFloat(String(updatedInventory.modalAwal));
+          }
+
+          const newProfit =
+            parseFloat(String(penjualan.hargaJual)) -
+            (penjualan.diskon ? parseFloat(String(penjualan.diskon)) : 0) -
+            newModalBase;
+
+          await tx.penjualan.update({
+            where: { id: penjualan.id },
+            data: { profit: newProfit },
+          });
+        }
+      }
+
+      return updatedInventory;
     });
-
-    console.log("Updated inventory:", inventory);
 
     res.json({
       status: "success",

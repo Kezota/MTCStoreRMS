@@ -1,6 +1,7 @@
 import { Router } from "express";
 import authRoutes from "./authRoutes";
 import inventoryRoutes from "./inventoryRoutes";
+import penjualanRoutes from "./penjualanRoutes";
 
 const router = Router();
 
@@ -17,5 +18,6 @@ router.get("/", (_, response) => {
  */
 router.use("/auth", authRoutes);
 router.use("/inventory", inventoryRoutes);
+router.use("/penjualan", penjualanRoutes);
 
 export default router;
