@@ -11,20 +11,49 @@ import type {
 export const useCreateInventoryMutation = () => {
   const queryClient = useQueryClient();
 
-  return useMutation<SuccessResponse<InventoryItem>, unknown, CreateInventoryRequest>(
-    {
-      mutationFn: async (payload) => {
-        const response = await API.post<SuccessResponse<InventoryItem>>(
-          "/inventory",
-          payload,
-        );
-        return response.data;
-      },
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: QUERY_KEYS.inventory.list() });
-      },
+  return useMutation<
+    SuccessResponse<InventoryItem>,
+    unknown,
+    CreateInventoryRequest
+  >({
+    mutationFn: async (payload) => {
+      const response = await API.post<SuccessResponse<InventoryItem>>(
+        "/inventory",
+        payload,
+      );
+      return response.data;
     },
-  );
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: QUERY_KEYS.inventory.list(),
+        exact: false,
+      });
+    },
+  });
+};
+
+export const useCreateBulkInventoryMutation = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation<
+    SuccessResponse<InventoryItem[]>,
+    unknown,
+    { items: CreateInventoryRequest[] }
+  >({
+    mutationFn: async (payload) => {
+      const response = await API.post<SuccessResponse<InventoryItem[]>>(
+        "/inventory/bulk",
+        payload,
+      );
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: QUERY_KEYS.inventory.list(),
+        exact: false,
+      });
+    },
+  });
 };
 
 export const useUpdateInventoryMutation = () => {
@@ -43,7 +72,10 @@ export const useUpdateInventoryMutation = () => {
       return response.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.inventory.list() });
+      queryClient.invalidateQueries({
+        queryKey: QUERY_KEYS.inventory.list(),
+        exact: false,
+      });
     },
   });
 };
@@ -59,7 +91,10 @@ export const useDeleteInventoryMutation = () => {
       return response.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.inventory.list() });
+      queryClient.invalidateQueries({
+        queryKey: QUERY_KEYS.inventory.list(),
+        exact: false,
+      });
     },
   });
 };

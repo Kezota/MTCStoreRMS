@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { useGetInventory } from "@/hooks/queries/useInventoryQueries";
 import { useDeleteInventoryMutation } from "@/hooks/mutations/useInventoryMutations";
 import { InventoryFormModal } from "@/components/InventoryFormModal";
@@ -174,17 +174,17 @@ export const InventoryPage = () => {
     ]);
   };
 
-  const handleOpenCreate = () => {
+  const handleOpenCreate = useCallback(() => {
     setIsEditMode(false);
     setEditingItem(null);
     setIsFormOpen(true);
-  };
+  }, []);
 
-  const handleOpenEdit = (item: InventoryItem) => {
+  const handleOpenEdit = useCallback((item: InventoryItem) => {
     setIsEditMode(true);
     setEditingItem(item);
     setIsFormOpen(true);
-  };
+  }, []);
 
   const handleDeleteInventory = async (id: number) => {
     const confirmed = window.confirm("Hapus inventory ini?");
@@ -197,6 +197,12 @@ export const InventoryPage = () => {
   const imeiOptions = useMemo(
     () =>
       Array.from(new Set(inventory.map((item) => item.imei))).filter(Boolean),
+    [inventory],
+  );
+
+  const namaHPOptions = useMemo(
+    () =>
+      Array.from(new Set(inventory.map((item) => item.namaHP))).filter(Boolean),
     [inventory],
   );
   const namaOptions = useMemo(
@@ -303,7 +309,7 @@ export const InventoryPage = () => {
               }
               className="w-full px-2 sm:px-3 py-1.5 sm:py-2 border border-slate-200 rounded text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none pr-8"
             >
-              <option value="">Status</option>
+              <option value="">Semua Status</option>
               <option value="READY">Ready</option>
               <option value="TERJUAL">Terjual</option>
             </select>
@@ -315,7 +321,7 @@ export const InventoryPage = () => {
                     filters.status === "READY" ? "#16a34a" : "#dc2626",
                 }}
               >
-                {filters.status === "READY" ? "🟢" : "🔴"}
+                {filters.status === "READY" ? " " : " "}
               </span>
             )}
           </div>
@@ -327,7 +333,7 @@ export const InventoryPage = () => {
               className="w-full px-2 sm:px-3 py-1.5 sm:py-2 border border-slate-200 rounded text-xs sm:text-sm text-left focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
             >
               {filters.brands.length === 0
-                ? "Brand"
+                ? "Semua Brand"
                 : `${filters.brands.length} Brand Terpilih`}
             </button>
             {brandDropdownOpen && (
@@ -469,6 +475,7 @@ export const InventoryPage = () => {
         onClose={() => setIsFormOpen(false)}
         isEditMode={isEditMode}
         item={editingItem}
+        namaHPOptions={namaHPOptions}
       />
 
       {/* Loading & Error States */}

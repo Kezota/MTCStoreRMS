@@ -66,7 +66,7 @@ interface GetInventoryParams {
 
 export const useGetInventory = (params: GetInventoryParams = {}) => {
   return useQuery<InventoryResponse>({
-    queryKey: [queryKeys.inventory.list, params],
+    queryKey: [...queryKeys.inventory.list(), params],
     queryFn: async () => {
       const response = await API.get("/inventory", { params });
       return response.data;
@@ -85,6 +85,24 @@ export const useGetInventoryModalsByNamaHP = (namaHP?: string) => {
       return response.data;
     },
     enabled: Boolean(namaHP && namaHP.trim()),
+    staleTime: 2 * 60 * 1000,
+  });
+};
+
+export const useGetNamaHPByBrand = (brand?: string) => {
+  return useQuery<{
+    status: string;
+    results: number;
+    data: { brand: string; namaHPs: string[] };
+  }>({
+    queryKey: ["inventory", "namaByBrand", brand],
+    queryFn: async () => {
+      const response = await API.get("/inventory/nama-by-brand", {
+        params: { brand },
+      });
+      return response.data;
+    },
+    enabled: Boolean(brand && brand.trim()),
     staleTime: 2 * 60 * 1000,
   });
 };

@@ -1,305 +1,704 @@
-import { useState, useEffect, type FormEvent } from "react";
-import { X } from "lucide-react";
+import {
+  useState,
+  useEffect,
+  useMemo,
+  useCallback,
+  type FormEvent,
+} from "react";
+import { Plus, Trash2, Check, ChevronsUpDown } from "lucide-react";
 import { brandsList } from "@/lib/constants";
 import {
   useCreateInventoryMutation,
+  useCreateBulkInventoryMutation,
   useUpdateInventoryMutation,
 } from "@/hooks/mutations/useInventoryMutations";
-import { useGetInventoryModalsByNamaHP } from "@/hooks/queries/useInventoryQueries";
+import {
+  useGetInventoryModalsByNamaHP,
+  useGetNamaHPByBrand,
+} from "@/hooks/queries/useInventoryQueries";
 import type { InventoryItem } from "@/lib/types";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import { getBrandColor, cn } from "@/lib/utils";
 
 interface InventoryFormModalProps {
   isOpen: boolean;
   onClose: () => void;
   isEditMode: boolean;
   item?: InventoryItem | null;
+  namaHPOptions?: string[];
 }
+
+interface PhoneVariant {
+  id: number;
+  imei: string;
+  warna: string;
+}
+
+const FORM_STORAGE_KEY = "inventory_form_draft";
+
+interface FormData {
+  tanggalMasuk: string;
+  brand: string;
+  namaHP: string;
+  modalAwal: string;
+  cashback: string;
+  modalFinal: string;
+  status: "READY" | "TERJUAL";
+}
+
+const saveFormToStorage = (formData: FormData, variants: PhoneVariant[]) => {
+  try {
+    localStorage.setItem(
+      FORM_STORAGE_KEY,
+      JSON.stringify({ form: formData, variants }),
+    );
+  } catch (error) {
+    console.error("Failed to save form to localStorage:", error);
+  }
+};
+
+const loadFormFromStorage = () => {
+  try {
+    const saved = localStorage.getItem(FORM_STORAGE_KEY);
+    return saved ? JSON.parse(saved) : null;
+  } catch (error) {
+    console.error("Failed to load form from localStorage:", error);
+    return null;
+  }
+};
+
+const clearFormStorage = () => {
+  try {
+    localStorage.removeItem(FORM_STORAGE_KEY);
+  } catch (error) {
+    console.error("Failed to clear form from localStorage:", error);
+  }
+};
 
 export const InventoryFormModal = ({
   isOpen,
   onClose,
   isEditMode,
   item,
+  namaHPOptions = [],
 }: InventoryFormModalProps) => {
   const [form, setForm] = useState({
     tanggalMasuk: "",
-    imei: "",
     brand: "",
     namaHP: "",
-    warna: "",
     modalAwal: "",
     cashback: "",
     modalFinal: "",
     status: "READY" as "READY" | "TERJUAL",
   });
 
-  const createMutation = useCreateInventoryMutation();
-  const updateMutation = useUpdateInventoryMutation();
-  const { data: modalData } = useGetInventoryModalsByNamaHP(form.namaHP);
-  const modalOptions = modalData?.data.modals ?? [];
+  const [phoneVariants, setPhoneVariants] = useState<PhoneVariant[]>([
+    { id: 1, imei: "", warna: "" },
+  ]);
 
-  // Initialize form when modal opens or item changes
+  const [brandOpen, setBrandOpen] = useState(false);
+  const [namaHPOpen, setNamaHPOpen] = useState(false);
+
+  const createMutation = useCreateInventoryMutation();
+  const createBulkMutation = useCreateBulkInventoryMutation();
+  const updateMutation = useUpdateInventoryMutation();
+
+  // Only fetch modal options when there's a namaHP value AND modal is open
+  const shouldFetchModals = isOpen && form.namaHP.trim().length > 2;
+  const { data: modalData } = useGetInventoryModalsByNamaHP(
+    shouldFetchModals ? form.namaHP : undefined,
+  );
+  const modalOptions = useMemo(() => modalData?.data.modals ?? [], [modalData]);
+
+  // Fetch nama HP options filtered by brand
+  const shouldFetchNamaHP = isOpen && form.brand.trim().length > 0;
+  const { data: namaHPByBrandData } = useGetNamaHPByBrand(
+    shouldFetchNamaHP ? form.brand : undefined,
+  );
+  const filteredNamaHPOptions = useMemo(() => {
+    if (namaHPByBrandData?.data?.namaHPs) {
+      return namaHPByBrandData.data.namaHPs;
+    }
+    return namaHPOptions;
+  }, [namaHPByBrandData, namaHPOptions]);
+
+  // Initialize form when opening create mode - restore from localStorage if available
+  useEffect(() => {
+    if (isOpen && !isEditMode) {
+      const saved = loadFormFromStorage();
+      if (saved && saved.form && saved.variants) {
+        setForm(saved.form);
+        setPhoneVariants(saved.variants);
+      } else {
+        setForm({
+          tanggalMasuk: new Date().toISOString().slice(0, 10),
+          brand: "",
+          namaHP: "",
+          modalAwal: "",
+          cashback: "",
+          modalFinal: "",
+          status: "READY" as "READY" | "TERJUAL",
+        });
+        setPhoneVariants([{ id: 1, imei: "", warna: "" }]);
+      }
+    }
+  }, [isOpen, isEditMode]);
+
+  // Initialize form when editing
   useEffect(() => {
     if (isOpen && isEditMode && item) {
+      // Clear any draft when editing
+      clearFormStorage();
       setForm({
         tanggalMasuk: new Date(item.tanggalMasuk).toISOString().slice(0, 10),
-        imei: item.imei,
         brand: item.brand,
         namaHP: item.namaHP,
-        warna: item.warna || "",
         modalAwal: String(item.modalAwal ?? ""),
         cashback: item.cashback ? String(item.cashback) : "",
         modalFinal: String(item.modalFinal ?? ""),
         status: item.status,
       });
-    } else if (isOpen && !isEditMode) {
+      setPhoneVariants([{ id: 1, imei: item.imei, warna: item.warna || "" }]);
+    }
+  }, [isOpen, isEditMode, item]);
+
+  // Save form to localStorage on every change (only in create mode)
+  useEffect(() => {
+    if (isOpen && !isEditMode) {
+      saveFormToStorage(form, phoneVariants);
+    }
+  }, [form, phoneVariants, isOpen, isEditMode]);
+
+  // Format number to Rupiah display (without Rp prefix)
+  const formatToRupiah = useCallback((value: string): string => {
+    const numbers = value.replace(/\D/g, "");
+    return numbers.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  }, []);
+
+  // Parse Rupiah display back to number
+  const parseFromRupiah = useCallback((value: string): string => {
+    return value.replace(/\./g, "");
+  }, []);
+
+  const handleAddVariant = useCallback(() => {
+    const newId = Math.max(...phoneVariants.map((v) => v.id), 0) + 1;
+    setPhoneVariants([...phoneVariants, { id: newId, imei: "", warna: "" }]);
+  }, [phoneVariants]);
+
+  const handleRemoveVariant = useCallback((id: number) => {
+    setPhoneVariants((prev) => prev.filter((v) => v.id !== id));
+  }, []);
+
+  const handleVariantChange = useCallback(
+    (id: number, field: "imei" | "warna", value: string) => {
+      setPhoneVariants((prev) =>
+        prev.map((v) => (v.id === id ? { ...v, [field]: value } : v)),
+      );
+    },
+    [],
+  );
+
+  const handleSubmitForm = useCallback(
+    async (event: FormEvent) => {
+      event.preventDefault();
+
+      const baseData = {
+        tanggalMasuk: form.tanggalMasuk,
+        brand: form.brand,
+        namaHP: form.namaHP,
+        modalAwal: parseFloat(parseFromRupiah(form.modalAwal)),
+        cashback: form.cashback
+          ? parseFloat(parseFromRupiah(form.cashback))
+          : null,
+        modalFinal: form.modalFinal
+          ? parseFloat(parseFromRupiah(form.modalFinal))
+          : undefined,
+      };
+
+      if (isEditMode && item) {
+        await updateMutation.mutateAsync({
+          id: item.id,
+          payload: {
+            ...baseData,
+            imei: phoneVariants[0].imei,
+            warna: phoneVariants[0].warna || undefined,
+            status: form.status,
+          },
+        });
+      } else {
+        // Create multiple items using bulk API
+        const items = phoneVariants.map((variant) => ({
+          ...baseData,
+          imei: variant.imei,
+          warna: variant.warna || undefined,
+        }));
+
+        await createBulkMutation.mutateAsync({ items });
+      }
+
+      // Reset form after successful submit
+      clearFormStorage();
       setForm({
         tanggalMasuk: "",
-        imei: "",
         brand: "",
         namaHP: "",
-        warna: "",
         modalAwal: "",
         cashback: "",
         modalFinal: "",
         status: "READY",
       });
-    }
-  }, [isOpen, isEditMode, item]);
+      setPhoneVariants([{ id: 1, imei: "", warna: "" }]);
 
-  const handleSubmitForm = async (event: FormEvent) => {
-    event.preventDefault();
+      onClose();
+    },
+    [
+      form,
+      phoneVariants,
+      isEditMode,
+      item,
+      updateMutation,
+      createBulkMutation,
+      parseFromRupiah,
+      onClose,
+    ],
+  );
 
-    const basePayload = {
-      tanggalMasuk: form.tanggalMasuk,
-      imei: form.imei,
-      brand: form.brand,
-      namaHP: form.namaHP,
-      warna: form.warna || undefined,
-      modalAwal: parseFloat(form.modalAwal),
-      cashback: form.cashback ? parseFloat(form.cashback) : undefined,
-      modalFinal: form.modalFinal ? parseFloat(form.modalFinal) : 0,
-    };
-
-    if (isEditMode && item) {
-      await updateMutation.mutateAsync({
-        id: item.id,
-        payload: {
-          ...basePayload,
-          status: form.status,
-        },
-      });
-    } else {
-      await createMutation.mutateAsync(basePayload);
-    }
-
-    onClose();
-  };
-
-  if (!isOpen) return null;
-
-  const isLoading = createMutation.isPending || updateMutation.isPending;
+  const isLoading =
+    createMutation.isPending ||
+    createBulkMutation.isPending ||
+    updateMutation.isPending;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg max-w-2xl w-full max-h-96 overflow-y-auto">
-        <div className="flex items-center justify-between border-b p-4 sticky top-0 bg-white">
-          <h2 className="text-lg font-bold">
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-2xl sm:max-w-4xl max-h-[95vh] p-0 overflow-hidden flex flex-col">
+        <DialogHeader className="px-4 sm:px-6 pt-4 sm:pt-6 pb-3 sm:pb-4 border-b sticky top-0 bg-white z-10 flex-shrink-0">
+          <DialogTitle className="text-lg sm:text-xl">
             {isEditMode ? "Edit Inventory" : "Tambah Inventory"}
-          </h2>
-          <button
-            onClick={onClose}
-            className="text-slate-500 hover:text-slate-700"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
+          </DialogTitle>
+        </DialogHeader>
 
-        <form onSubmit={handleSubmitForm} className="p-4 space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            {/* Tanggal Masuk */}
-            <div>
-              <label className="block text-xs font-medium text-slate-700 mb-1">
-                Tanggal Masuk
-              </label>
-              <input
-                type="date"
-                required
-                value={form.tanggalMasuk}
-                onChange={(e) =>
-                  setForm({ ...form, tanggalMasuk: e.target.value })
-                }
-                className="w-full px-2 py-1.5 border border-slate-200 rounded text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-
-            {/* IMEI */}
-            <div>
-              <label className="block text-xs font-medium text-slate-700 mb-1">
-                IMEI
-              </label>
-              <input
-                type="text"
-                required
-                value={form.imei}
-                onChange={(e) => setForm({ ...form, imei: e.target.value })}
-                className="w-full px-2 py-1.5 border border-slate-200 rounded text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-
-            {/* Brand */}
-            <div>
-              <label className="block text-xs font-medium text-slate-700 mb-1">
-                Brand
-              </label>
-              <select
-                required
-                value={form.brand}
-                onChange={(e) => setForm({ ...form, brand: e.target.value })}
-                className="w-full px-2 py-1.5 border border-slate-200 rounded text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="">-- Pilih Brand --</option>
-                {brandsList.map((brand) => (
-                  <option key={brand} value={brand}>
-                    {brand}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Nama HP */}
-            <div>
-              <label className="block text-xs font-medium text-slate-700 mb-1">
-                Nama HP
-              </label>
-              <input
-                type="text"
-                required
-                value={form.namaHP}
-                onChange={(e) => setForm({ ...form, namaHP: e.target.value })}
-                className="w-full px-2 py-1.5 border border-slate-200 rounded text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-
-            {/* Warna */}
-            <div>
-              <label className="block text-xs font-medium text-slate-700 mb-1">
-                Warna
-              </label>
-              <input
-                type="text"
-                value={form.warna}
-                onChange={(e) => setForm({ ...form, warna: e.target.value })}
-                className="w-full px-2 py-1.5 border border-slate-200 rounded text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-
-            {/* Modal Awal - with combobox for suggestions */}
-            <div>
-              <label className="block text-xs font-medium text-slate-700 mb-1">
-                Modal Awal
-              </label>
-              {modalOptions.length > 0 && (
-                <select
-                  value={form.modalAwal}
-                  onChange={(e) => {
-                    if (e.target.value !== "") {
-                      setForm({ ...form, modalAwal: e.target.value });
-                    } else {
-                      setForm({ ...form, modalAwal: "" });
+        <form
+          onSubmit={handleSubmitForm}
+          className="flex flex-col h-full flex-1 overflow-hidden"
+        >
+          <div className="px-4 sm:px-6 py-3 sm:py-4 overflow-y-auto flex-1">
+            <div className="space-y-4 sm:space-y-6">
+              {/* Common Fields */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                {/* Tanggal Masuk */}
+                <div>
+                  <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-1">
+                    Tanggal Masuk
+                  </label>
+                  <input
+                    type="date"
+                    required
+                    value={form.tanggalMasuk}
+                    onChange={(e) =>
+                      setForm({ ...form, tanggalMasuk: e.target.value })
                     }
-                  }}
-                  className="w-full px-2 py-1.5 border border-slate-200 rounded text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 mb-1"
-                >
-                  <option value="">-- Pilih dari History --</option>
-                  {modalOptions.map((modal) => (
-                    <option key={modal} value={modal}>
-                      Rp {parseFloat(modal).toLocaleString("id-ID")}
-                    </option>
-                  ))}
-                </select>
-              )}
-              <input
-                type="number"
-                required
-                value={form.modalAwal}
-                onChange={(e) =>
-                  setForm({ ...form, modalAwal: e.target.value })
-                }
-                className="w-full px-2 py-1.5 border border-slate-200 rounded text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Atau input manual"
-              />
-            </div>
+                    className="w-full px-2 sm:px-3 py-1.5 sm:py-2 border border-slate-300 rounded-md text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
 
-            {/* Cashback */}
-            <div>
-              <label className="block text-xs font-medium text-slate-700 mb-1">
-                Cashback
-              </label>
-              <input
-                type="number"
-                value={form.cashback}
-                onChange={(e) => setForm({ ...form, cashback: e.target.value })}
-                className="w-full px-2 py-1.5 border border-slate-200 rounded text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
+                {/* Brand */}
+                <div>
+                  <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-1">
+                    Brand
+                  </label>
+                  <Popover open={brandOpen} onOpenChange={setBrandOpen}>
+                    <PopoverTrigger asChild>
+                      <button
+                        type="button"
+                        className={cn(
+                          "w-full px-2 sm:px-3 py-1.5 sm:py-2 border border-slate-300 rounded-md text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-left flex items-center justify-between",
+                          !form.brand && "text-slate-500",
+                        )}
+                      >
+                        <span className="truncate">
+                          {form.brand || "Pilih atau ketik brand..."}
+                        </span>
+                        <ChevronsUpDown className="ml-2 h-3 w-3 sm:h-4 sm:w-4 shrink-0 opacity-50" />
+                      </button>
+                    </PopoverTrigger>
+                    {brandOpen && (
+                      <PopoverContent
+                        className="w-[--radix-popover-trigger-width] p-0"
+                        align="start"
+                      >
+                        <Command>
+                          <CommandInput
+                            placeholder="Cari atau ketik brand baru..."
+                            value={form.brand}
+                            onValueChange={(value) =>
+                              setForm({ ...form, brand: value })
+                            }
+                          />
+                          <CommandList>
+                            <CommandEmpty>
+                              <div className="py-2 px-3 text-xs sm:text-sm">
+                                Ketik untuk menambah brand baru:{" "}
+                                <span className="font-semibold">
+                                  {form.brand}
+                                </span>
+                              </div>
+                            </CommandEmpty>
+                            <CommandGroup>
+                              {brandsList.map((brand) => (
+                                <CommandItem
+                                  key={brand}
+                                  value={brand}
+                                  onSelect={(value) => {
+                                    setForm({ ...form, brand: value });
+                                    setBrandOpen(false);
+                                  }}
+                                  className="flex items-center justify-between"
+                                >
+                                  <div className="flex items-center gap-2">
+                                    <span
+                                      className="inline-block px-2 py-0.5 rounded text-xs font-medium text-white"
+                                      style={{
+                                        backgroundColor: getBrandColor(brand),
+                                      }}
+                                    >
+                                      {brand}
+                                    </span>
+                                  </div>
+                                  <Check
+                                    className={cn(
+                                      "h-3 w-3 sm:h-4 sm:w-4",
+                                      form.brand === brand
+                                        ? "opacity-100"
+                                        : "opacity-0",
+                                    )}
+                                  />
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    )}
+                  </Popover>
+                </div>
 
-            {/* Modal Final */}
-            <div>
-              <label className="block text-xs font-medium text-slate-700 mb-1">
-                Modal Final
-              </label>
-              <input
-                type="number"
-                value={form.modalFinal}
-                onChange={(e) =>
-                  setForm({ ...form, modalFinal: e.target.value })
-                }
-                className="w-full px-2 py-1.5 border border-slate-200 rounded text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
+                {/* Nama HP */}
+                <div>
+                  <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-1">
+                    Nama HP
+                  </label>
+                  <Popover open={namaHPOpen} onOpenChange={setNamaHPOpen}>
+                    <PopoverTrigger asChild>
+                      <button
+                        type="button"
+                        className={cn(
+                          "w-full px-2 sm:px-3 py-1.5 sm:py-2 border border-slate-300 rounded-md text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-left flex items-center justify-between",
+                          !form.namaHP && "text-slate-500",
+                        )}
+                      >
+                        <span className="truncate">
+                          {form.namaHP || "Pilih atau ketik nama HP..."}
+                        </span>
+                        <ChevronsUpDown className="ml-2 h-3 w-3 sm:h-4 sm:w-4 shrink-0 opacity-50" />
+                      </button>
+                    </PopoverTrigger>
+                    {namaHPOpen && (
+                      <PopoverContent
+                        className="w-[--radix-popover-trigger-width] p-0"
+                        align="start"
+                      >
+                        <Command>
+                          <CommandInput
+                            placeholder="Cari atau ketik nama HP..."
+                            value={form.namaHP}
+                            onValueChange={(value) =>
+                              setForm({ ...form, namaHP: value })
+                            }
+                          />
+                          <CommandList>
+                            <CommandEmpty>
+                              <div className="py-2 px-3 text-xs sm:text-sm">
+                                Ketik untuk menambah:{" "}
+                                <span className="font-semibold">
+                                  {form.namaHP}
+                                </span>
+                              </div>
+                            </CommandEmpty>
+                            <CommandGroup>
+                              {filteredNamaHPOptions
+                                .filter(
+                                  (hp) =>
+                                    hp
+                                      .toLowerCase()
+                                      .includes(form.namaHP.toLowerCase()) ||
+                                    form.namaHP === "",
+                                )
+                                .slice(0, 10)
+                                .map((hp) => (
+                                  <CommandItem
+                                    key={hp}
+                                    value={hp}
+                                    onSelect={(value) => {
+                                      setForm({ ...form, namaHP: value });
+                                      setNamaHPOpen(false);
+                                    }}
+                                    className="flex items-center justify-between"
+                                  >
+                                    <span className="truncate">{hp}</span>
+                                    <Check
+                                      className={cn(
+                                        "h-3 w-3 sm:h-4 sm:w-4 shrink-0",
+                                        form.namaHP === hp
+                                          ? "opacity-100"
+                                          : "opacity-0",
+                                      )}
+                                    />
+                                  </CommandItem>
+                                ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    )}
+                  </Popover>
+                </div>
 
-            {/* Status - only on edit */}
-            {isEditMode && (
-              <div>
-                <label className="block text-xs font-medium text-slate-700 mb-1">
-                  Status
-                </label>
-                <select
-                  value={form.status}
-                  onChange={(e) =>
-                    setForm({
-                      ...form,
-                      status: e.target.value as "READY" | "TERJUAL",
-                    })
-                  }
-                  className="w-full px-2 py-1.5 border border-slate-200 rounded text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="READY">Ready</option>
-                  <option value="TERJUAL">Terjual</option>
-                </select>
+                {/* Modal Awal */}
+                <div className="sm:col-span-1">
+                  <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-1">
+                    Modal Awal
+                  </label>
+                  {modalOptions.length > 0 && (
+                    <select
+                      value=""
+                      onChange={(e) => {
+                        if (e.target.value) {
+                          setForm({ ...form, modalAwal: e.target.value });
+                        }
+                      }}
+                      className="w-full px-2 sm:px-3 py-1.5 sm:py-2 border border-slate-300 rounded-md text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 mb-1.5"
+                    >
+                      <option value="">-- Pilih dari History --</option>
+                      {modalOptions.map((modal) => (
+                        <option key={modal} value={modal}>
+                          Rp {parseFloat(modal).toLocaleString("id-ID")}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                  <div className="relative">
+                    <span className="absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs sm:text-sm pointer-events-none">
+                      Rp
+                    </span>
+                    <input
+                      type="text"
+                      required
+                      value={formatToRupiah(form.modalAwal)}
+                      onChange={(e) =>
+                        setForm({
+                          ...form,
+                          modalAwal: parseFromRupiah(e.target.value),
+                        })
+                      }
+                      placeholder="0"
+                      className="w-full pl-7 sm:pl-10 pr-2 sm:pr-3 py-1.5 sm:py-2 border border-slate-300 rounded-md text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+
+                {/* Cashback */}
+                <div className="sm:col-span-1">
+                  <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-1">
+                    Cashback (Opsional)
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs sm:text-sm pointer-events-none">
+                      Rp
+                    </span>
+                    <input
+                      type="text"
+                      value={formatToRupiah(form.cashback)}
+                      onChange={(e) =>
+                        setForm({
+                          ...form,
+                          cashback: parseFromRupiah(e.target.value),
+                        })
+                      }
+                      placeholder="0"
+                      className="w-full pl-7 sm:pl-10 pr-2 sm:pr-3 py-1.5 sm:py-2 border border-slate-300 rounded-md text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+
+                {/* Modal Final */}
+                <div className="sm:col-span-1">
+                  <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-1">
+                    Modal Final (Opsional)
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs sm:text-sm pointer-events-none">
+                      Rp
+                    </span>
+                    <input
+                      type="text"
+                      value={formatToRupiah(form.modalFinal)}
+                      onChange={(e) =>
+                        setForm({
+                          ...form,
+                          modalFinal: parseFromRupiah(e.target.value),
+                        })
+                      }
+                      placeholder="0"
+                      className="w-full pl-7 sm:pl-10 pr-2 sm:pr-3 py-1.5 sm:py-2 border border-slate-300 rounded-md text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+
+                {/* Status - only on edit */}
+                {isEditMode && (
+                  <div className="sm:col-span-1">
+                    <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-1">
+                      Status
+                    </label>
+                    <select
+                      value={form.status}
+                      onChange={(e) =>
+                        setForm({
+                          ...form,
+                          status: e.target.value as "READY" | "TERJUAL",
+                        })
+                      }
+                      className="w-full px-2 sm:px-3 py-1.5 sm:py-2 border border-slate-300 rounded-md text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="READY">Ready</option>
+                      <option value="TERJUAL">Terjual</option>
+                    </select>
+                  </div>
+                )}
               </div>
-            )}
+
+              {/* Phone Variants Section */}
+              <div className="border-t pt-3 sm:pt-4">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-3 mb-2 sm:mb-3">
+                  <label className="block text-xs sm:text-sm font-semibold text-slate-900">
+                    {isEditMode ? "IMEI & Warna" : "Daftar HP (IMEI & Warna)"}
+                  </label>
+                  {!isEditMode && (
+                    <button
+                      type="button"
+                      onClick={handleAddVariant}
+                      className="flex items-center gap-1 px-2.5 sm:px-3 py-1 sm:py-1.5 bg-blue-600 text-white text-xs font-medium rounded hover:bg-blue-700 whitespace-nowrap"
+                    >
+                      <Plus className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                      Tambah HP
+                    </button>
+                  )}
+                </div>
+
+                <div className="max-h-[40vh] overflow-y-auto pr-2 space-y-2 sm:space-y-3 border rounded-lg p-2 sm:p-3 bg-slate-50/50">
+                  {phoneVariants.map((variant, index) => (
+                    <div
+                      key={variant.id}
+                      className="flex flex-col sm:flex-row items-start gap-2 sm:gap-3 p-2 sm:p-3 bg-white rounded-lg border border-slate-200"
+                    >
+                      <div className="flex-1 w-full grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
+                        {/* IMEI */}
+                        <div>
+                          <label className="block text-xs font-medium text-slate-600 mb-0.5 sm:mb-1">
+                            IMEI {!isEditMode && `#${index + 1}`}
+                          </label>
+                          <input
+                            type="text"
+                            required
+                            value={variant.imei}
+                            onChange={(e) =>
+                              handleVariantChange(
+                                variant.id,
+                                "imei",
+                                e.target.value,
+                              )
+                            }
+                            className="w-full px-2 sm:px-3 py-1.5 sm:py-2 border border-slate-300 rounded-md text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          />
+                        </div>
+
+                        {/* Warna */}
+                        <div>
+                          <label className="block text-xs font-medium text-slate-600 mb-0.5 sm:mb-1">
+                            Warna
+                          </label>
+                          <input
+                            type="text"
+                            value={variant.warna}
+                            onChange={(e) =>
+                              handleVariantChange(
+                                variant.id,
+                                "warna",
+                                e.target.value,
+                              )
+                            }
+                            className="w-full px-2 sm:px-3 py-1.5 sm:py-2 border border-slate-300 rounded-md text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Remove button */}
+                      {!isEditMode && phoneVariants.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveVariant(variant.id)}
+                          className="flex-shrink-0 p-1.5 sm:p-2 text-red-600 hover:bg-red-50 rounded transition-colors mt-1 sm:mt-0"
+                          title="Hapus HP ini"
+                        >
+                          <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
           </div>
 
-          <div className="flex gap-2 justify-end border-t pt-4">
+          {/* Footer */}
+          <div className="flex flex-col-reverse sm:flex-row gap-2 sm:gap-3 justify-end px-4 sm:px-6 py-3 sm:py-4 border-t bg-slate-50 flex-shrink-0">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 bg-slate-200 text-slate-700 rounded hover:bg-slate-300 transition text-xs font-medium"
+              className="px-3 sm:px-4 py-1.5 sm:py-2 bg-white border border-slate-300 text-slate-700 rounded-md hover:bg-slate-50 text-xs sm:text-sm font-medium"
             >
-              Cancel
+              Batal
             </button>
             <button
               type="submit"
               disabled={isLoading}
-              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition text-xs font-medium disabled:opacity-50"
+              className="px-3 sm:px-4 py-1.5 sm:py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-xs sm:text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isLoading ? "Loading..." : isEditMode ? "Update" : "Tambah"}
+              {isLoading ? "Menyimpan..." : "Simpan"}
             </button>
           </div>
         </form>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 };
+
+export default InventoryFormModal;

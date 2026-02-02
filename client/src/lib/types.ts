@@ -114,8 +114,8 @@ export interface CreateInventoryRequest {
   namaHP: string;
   warna?: string;
   modalAwal: number;
-  cashback?: number;
-  modalFinal: number;
+  cashback?: number | null;
+  modalFinal?: number;
   status?: "READY" | "TERJUAL";
 }
 
@@ -126,7 +126,7 @@ export interface UpdateInventoryRequest {
   namaHP?: string;
   warna?: string;
   modalAwal?: number;
-  cashback?: number;
+  cashback?: number | null;
   modalFinal?: number;
   status?: "READY" | "TERJUAL";
 }

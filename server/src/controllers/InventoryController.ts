@@ -233,6 +233,51 @@ export const getInventoryModalsByNamaHP = async (
 };
 
 /**
+ * Get unique nama HP filtered by brand
+ */
+export const getNamaHPByBrand = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { brand } = req.query;
+
+    if (!brand || typeof brand !== "string") {
+      throw new AppError("Brand parameter is required", 400);
+    }
+
+    const namaHPList = await prisma.inventoryHP.findMany({
+      where: {
+        brand: {
+          contains: brand,
+        },
+      },
+      select: {
+        namaHP: true,
+      },
+      distinct: ["namaHP"],
+      orderBy: {
+        namaHP: "asc",
+      },
+    });
+
+    const namaHPs = namaHPList.map((item) => item.namaHP);
+
+    res.json({
+      status: "success",
+      results: namaHPs.length,
+      data: {
+        brand,
+        namaHPs,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
  * Get single inventory item by ID
  */
 export const getInventoryById = async (
@@ -451,6 +496,92 @@ export const updateInventory = async (
       status: "success",
       message: "Inventory item updated successfully",
       data: inventory,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Create multiple inventory items at once (bulk create)
+ */
+export const createBulkInventory = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { items } = req.body;
+
+    if (!Array.isArray(items) || items.length === 0) {
+      throw new AppError("Items array is required and must not be empty", 400);
+    }
+
+    // Validate all items
+    const validatedItems = items.map((item, index) => {
+      const validation = createInventorySchema.safeParse(item);
+      if (!validation.success) {
+        throw new AppError(
+          `Item ${index + 1}: ${validation.error.issues.map((e) => e.message).join(", ")}`,
+          400,
+        );
+      }
+      return validation.data;
+    });
+
+    // Check for duplicate IMEIs in the batch
+    const imeis = validatedItems.map((item) => item.imei);
+    const uniqueImeis = new Set(imeis);
+    if (uniqueImeis.size !== imeis.length) {
+      throw new AppError("Duplicate IMEIs found in the batch", 400);
+    }
+
+    // Check if any IMEI already exists in database
+    const existingInventory = await prisma.inventoryHP.findMany({
+      where: {
+        imei: {
+          in: imeis,
+        },
+      },
+    });
+
+    if (existingInventory.length > 0) {
+      const existingImeis = existingInventory
+        .map((item) => item.imei)
+        .join(", ");
+      throw new AppError(
+        `The following IMEIs already exist: ${existingImeis}`,
+        400,
+      );
+    }
+
+    // Create all items
+    const createdItems = await prisma.$transaction(
+      validatedItems.map((item) => {
+        const modalValue =
+          item.modalFinal && item.modalFinal !== 0
+            ? item.modalFinal
+            : item.modalAwal;
+
+        return prisma.inventoryHP.create({
+          data: {
+            tanggalMasuk: new Date(item.tanggalMasuk),
+            imei: item.imei,
+            brand: item.brand,
+            namaHP: item.namaHP,
+            warna: item.warna || null,
+            modalAwal: modalValue,
+            cashback: item.cashback || null,
+            modalFinal: modalValue,
+          },
+        });
+      }),
+    );
+
+    res.status(201).json({
+      status: "success",
+      message: `${createdItems.length} inventory items created successfully`,
+      data: createdItems,
     });
   } catch (error) {
     next(error);
