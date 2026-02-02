@@ -18,6 +18,10 @@ export const QUERY_KEYS = {
     modalsByNama: (namaHP: string) =>
       [...QUERY_KEYS.inventory.all, "modalsByNama", namaHP] as const,
   },
+  penjualan: {
+    all: ["penjualan"] as const,
+    list: () => [...QUERY_KEYS.penjualan.all, "list"] as const,
+  },
 };
 
 export const queryKeys = QUERY_KEYS;

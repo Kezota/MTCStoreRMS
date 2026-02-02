@@ -118,6 +118,10 @@ export const penjualanQuerySchema = z.object({
   inventoryId: z.string().optional(),
   metodeBayar: z.string().optional(),
   search: z.string().optional(), // Search by keterangan or metodeBayar
+  imei: z.string().optional(), // Search by IMEI
+  namaHP: z.string().optional(), // Search by Nama HP
+  brand: z.string().optional(), // Filter by brand (comma-separated)
+  warna: z.string().optional(), // Filter by warna
   minHargaJual: z.string().optional(),
   maxHargaJual: z.string().optional(),
   minProfit: z.string().optional(),

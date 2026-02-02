@@ -32,6 +32,10 @@ export const getAllPenjualan = async (
       inventoryId,
       metodeBayar,
       search,
+      imei,
+      namaHP,
+      brand,
+      warna,
       minHargaJual,
       maxHargaJual,
       minProfit,
@@ -50,6 +54,37 @@ export const getAllPenjualan = async (
     // Inventory ID filter
     if (inventoryId) {
       where.inventoryId = parseInt(inventoryId);
+    }
+
+    // Search by IMEI
+    if (imei) {
+      where.inventory = {
+        imei: { contains: imei },
+      };
+    }
+
+    // Search by Nama HP
+    if (namaHP) {
+      where.inventory = {
+        namaHP: { contains: namaHP },
+      };
+    }
+
+    // Filter by brand
+    if (brand) {
+      const brands = brand.split(",").map((b) => b.trim());
+      where.inventory = {
+        ...where.inventory,
+        brand: { in: brands },
+      };
+    }
+
+    // Filter by warna
+    if (warna) {
+      where.inventory = {
+        ...where.inventory,
+        warna: { contains: warna },
+      };
     }
 
     // Metode bayar filter
@@ -101,12 +136,16 @@ export const getAllPenjualan = async (
       "profit",
       "metodeBayar",
       "createdAt",
+      "brand",
+      "imei",
+      "namaHP",
+      "warna",
     ];
 
     const sortByFields = sortBy.split(",").map((f) => f.trim());
     const sortOrderValues = sortOrder.split(",").map((o) => o.trim());
 
-    // Build orderBy array
+    // Build orderBy array - handle nested inventory fields
     const orderBy: any[] = sortByFields.map((field, index) => {
       if (!allowedSortFields.includes(field)) {
         throw new AppError(`Invalid sort field: ${field}`, 400);
@@ -116,6 +155,11 @@ export const getAllPenjualan = async (
 
       if (order !== "asc" && order !== "desc") {
         throw new AppError(`Invalid sort order: ${order}`, 400);
+      }
+
+      // Handle inventory relation fields
+      if (["brand", "imei", "namaHP", "warna"].includes(field)) {
+        return { inventory: { [field]: order } };
       }
 
       return { [field]: order };

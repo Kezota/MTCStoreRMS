@@ -131,7 +131,48 @@ export interface UpdateInventoryRequest {
   status?: "READY" | "TERJUAL";
 }
 
-export interface ErrorResponse {
+// Penjualan (Sales) Types
+export interface PenjualanItem {
+  id: number;
+  tanggal: string;
+  inventoryId: number;
+  hargaJual: string;
+  diskon?: string;
+  profit: string;
+  metodeBayar: string;
+  keterangan?: string;
+  createdAt: string;
+  inventory: InventoryItem;
+}
+
+export interface PenjualanResponse {
   status: string;
-  message: string;
+  results: number;
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+  data: PenjualanItem[];
+}
+
+export interface CreatePenjualanRequest {
+  tanggal: string;
+  inventoryId: number;
+  hargaJual: number;
+  diskon?: number | null;
+  profit: number;
+  metodeBayar: string;
+  keterangan?: string;
+}
+
+export interface UpdatePenjualanRequest {
+  tanggal?: string;
+  inventoryId?: number;
+  hargaJual?: number;
+  diskon?: number | null;
+  profit?: number;
+  metodeBayar?: string;
+  keterangan?: string;
 }

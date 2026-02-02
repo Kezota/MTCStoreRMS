@@ -61,6 +61,8 @@ const sortFieldOptions = [
 ];
 
 export const InventoryPage = () => {
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
   const [filters, setFilters] = useState<FilterState>({
     search: "",
     status: "",
@@ -89,7 +91,7 @@ export const InventoryPage = () => {
   // Build query params
   const queryParams = useMemo(() => {
     const params: any = {
-      page: 1,
+      page,
       limit: 1000,
     };
 
@@ -118,7 +120,7 @@ export const InventoryPage = () => {
     }
 
     return params;
-  }, [filters, sorts]);
+  }, [filters, sorts, page, limit]);
 
   const { data, isLoading, error } = useGetInventory(queryParams);
 
@@ -502,7 +504,7 @@ export const InventoryPage = () => {
             <Table>
               <TableHeader>
                 <TableRow className="bg-slate-50">
-                  <TableHead className="px-6 py-3 text-sm text-slate-600 w-12">
+                  <TableHead className="px-3 py-2 text-sm text-slate-600 w-12">
                     No.
                   </TableHead>
                   <TableHead className="px-6 py-3 text-sm text-slate-600 border-l border-slate-200/70">
@@ -543,16 +545,16 @@ export const InventoryPage = () => {
                     key={item.id}
                     className="odd:bg-white even:bg-slate-50/70 hover:bg-blue-50/40"
                   >
-                    <TableCell className="px-6 py-3 text-sm font-medium text-slate-600 w-12">
+                    <TableCell className="px-3 py-2 text-sm font-medium text-slate-600 w-12">
                       {index + 1}
                     </TableCell>
-                    <TableCell className="px-6 py-3 text-sm font-medium text-slate-900 border-l border-slate-200/70">
+                    <TableCell className="px-3 py-2 text-sm font-medium text-slate-900 border-l border-slate-200/70">
                       {new Date(item.tanggalMasuk).toLocaleDateString("id-ID")}
                     </TableCell>
-                    <TableCell className="px-6 py-3 text-sm text-slate-600 border-l border-slate-200/70">
+                    <TableCell className="px-3 py-2 text-sm text-slate-600 border-l border-slate-200/70">
                       {item.imei}
                     </TableCell>
-                    <TableCell className="px-6 py-3 text-sm border-l border-slate-200/70">
+                    <TableCell className="px-3 py-2 text-sm border-l border-slate-200/70">
                       <span
                         style={{
                           backgroundColor: getBrandColor(item.brand),
@@ -562,24 +564,24 @@ export const InventoryPage = () => {
                         {item.brand}
                       </span>
                     </TableCell>
-                    <TableCell className="px-6 py-3 text-sm text-slate-600 border-l border-slate-200/70">
+                    <TableCell className="px-3 py-2 text-sm text-slate-600 border-l border-slate-200/70">
                       {item.namaHP}
                     </TableCell>
-                    <TableCell className="px-6 py-3 text-sm text-slate-600 border-l border-slate-200/70">
+                    <TableCell className="px-3 py-2 text-sm text-slate-600 border-l border-slate-200/70">
                       {item.warna || "-"}
                     </TableCell>
-                    <TableCell className="px-6 py-3 text-sm text-slate-600 border-l border-slate-200/70">
+                    <TableCell className="px-3 py-2 text-sm text-slate-600 border-l border-slate-200/70">
                       Rp {parseFloat(item.modalAwal).toLocaleString("id-ID")}
                     </TableCell>
-                    <TableCell className="px-6 py-3 text-sm text-slate-600 border-l border-slate-200/70">
+                    <TableCell className="px-3 py-2 text-sm text-slate-600 border-l border-slate-200/70">
                       {item.cashback && parseFloat(item.cashback) > 0
                         ? `Rp ${parseFloat(item.cashback).toLocaleString("id-ID")}`
                         : "-"}
                     </TableCell>
-                    <TableCell className="px-6 py-3 text-sm text-slate-600 border-l border-slate-200/70">
+                    <TableCell className="px-3 py-2 text-sm text-slate-600 border-l border-slate-200/70">
                       Rp {parseFloat(item.modalFinal).toLocaleString("id-ID")}
                     </TableCell>
-                    <TableCell className="px-6 py-3 text-sm border-l border-slate-200/70">
+                    <TableCell className="px-3 py-2 text-sm border-l border-slate-200/70">
                       <span
                         className={`px-2 py-1 rounded text-xs font-medium ${
                           item.status === "READY"
@@ -590,7 +592,7 @@ export const InventoryPage = () => {
                         {item.status}
                       </span>
                     </TableCell>
-                    <TableCell className="px-6 py-3 text-sm border-l border-slate-200/70">
+                    <TableCell className="px-3 py-2 text-sm border-l border-slate-200/70">
                       <div className="flex items-center justify-end gap-1">
                         <button
                           onClick={() => handleOpenEdit(item)}
@@ -619,34 +621,34 @@ export const InventoryPage = () => {
             <Table>
               <TableHeader>
                 <TableRow className="bg-slate-50">
-                  <TableHead className="px-1.5 py-1 text-[10px] text-slate-600 w-8">
+                  <TableHead className="px-1 py-0.5 text-[10px] text-slate-600 w-8">
                     No.
                   </TableHead>
-                  <TableHead className="px-1.5 py-1 text-[10px] text-slate-600 border-l border-slate-200/70">
+                  <TableHead className="px-1 py-0.5 text-[10px] text-slate-600 border-l border-slate-200/70">
                     Tgl Masuk
                   </TableHead>
-                  <TableHead className="px-1.5 py-1 text-[10px] text-slate-600 border-l border-slate-200/70">
+                  <TableHead className="px-1 py-0.5 text-[10px] text-slate-600 border-l border-slate-200/70">
                     IMEI
                   </TableHead>
-                  <TableHead className="px-1.5 py-1 text-[10px] text-slate-600 border-l border-slate-200/70">
+                  <TableHead className="px-1 py-0.5 text-[10px] text-slate-600 border-l border-slate-200/70">
                     Brand
                   </TableHead>
-                  <TableHead className="px-1.5 py-1 text-[10px] text-slate-600 border-l border-slate-200/70">
+                  <TableHead className="px-1 py-0.5 text-[10px] text-slate-600 border-l border-slate-200/70">
                     Nama
                   </TableHead>
-                  <TableHead className="px-1.5 py-1 text-[10px] text-slate-600 border-l border-slate-200/70">
+                  <TableHead className="px-1 py-0.5 text-[10px] text-slate-600 border-l border-slate-200/70">
                     Warna
                   </TableHead>
-                  <TableHead className="px-1.5 py-1 text-[10px] text-slate-600 border-l border-slate-200/70">
+                  <TableHead className="px-1 py-0.5 text-[10px] text-slate-600 border-l border-slate-200/70">
                     Modal Awal
                   </TableHead>
-                  <TableHead className="px-1.5 py-1 text-[10px] text-slate-600 border-l border-slate-200/70">
+                  <TableHead className="px-1 py-0.5 text-[10px] text-slate-600 border-l border-slate-200/70">
                     Modal Final
                   </TableHead>
-                  <TableHead className="px-1.5 py-1 text-[10px] text-slate-600 border-l border-slate-200/70">
+                  <TableHead className="px-1 py-0.5 text-[10px] text-slate-600 border-l border-slate-200/70">
                     Status
                   </TableHead>
-                  <TableHead className="px-1.5 py-1 text-[10px] text-slate-600 border-l border-slate-200/70">
+                  <TableHead className="px-1 py-0.5 text-[10px] text-slate-600 border-l border-slate-200/70">
                     Aksi
                   </TableHead>
                 </TableRow>
@@ -657,19 +659,19 @@ export const InventoryPage = () => {
                     key={item.id}
                     className="odd:bg-white even:bg-slate-50/70 hover:bg-blue-50/40"
                   >
-                    <TableCell className="px-1.5 py-1 text-[10px] font-medium text-slate-600 w-8">
+                    <TableCell className="px-1 py-0.5 text-[10px] font-medium text-slate-600 w-8">
                       {index + 1}
                     </TableCell>
-                    <TableCell className="px-1.5 py-1 text-[10px] font-medium text-slate-900 border-l border-slate-200/70">
+                    <TableCell className="px-1 py-0.5 text-[10px] font-medium text-slate-900 border-l border-slate-200/70">
                       {new Date(item.tanggalMasuk).toLocaleDateString("id-ID", {
                         month: "2-digit",
                         day: "2-digit",
                       })}
                     </TableCell>
-                    <TableCell className="px-1.5 py-1 text-[10px] text-slate-600 border-l border-slate-200/70">
+                    <TableCell className="px-1 py-0.5 text-[10px] text-slate-600 border-l border-slate-200/70">
                       {item.imei}
                     </TableCell>
-                    <TableCell className="px-1.5 py-1 text-[10px] border-l border-slate-200/70">
+                    <TableCell className="px-1 py-0.5 text-[10px] border-l border-slate-200/70">
                       <span
                         style={{
                           backgroundColor: getBrandColor(item.brand),
@@ -679,25 +681,25 @@ export const InventoryPage = () => {
                         {item.brand}
                       </span>
                     </TableCell>
-                    <TableCell className="px-1.5 py-1 text-[10px] text-slate-600 border-l border-slate-200/70">
+                    <TableCell className="px-1 py-0.5 text-[10px] text-slate-600 border-l border-slate-200/70">
                       {item.namaHP.substring(0, 15)}
                     </TableCell>
-                    <TableCell className="px-1.5 py-1 text-[10px] text-slate-600 border-l border-slate-200/70">
+                    <TableCell className="px-1 py-0.5 text-[10px] text-slate-600 border-l border-slate-200/70">
                       {item.warna?.substring(0, 10) || "-"}
                     </TableCell>
-                    <TableCell className="px-1.5 py-1 text-[10px] text-slate-600 border-l border-slate-200/70">
+                    <TableCell className="px-1 py-0.5 text-[10px] text-slate-600 border-l border-slate-200/70">
                       Rp{" "}
                       {parseFloat(item.modalAwal).toLocaleString("id-ID", {
                         maximumFractionDigits: 0,
                       })}
                     </TableCell>
-                    <TableCell className="px-1.5 py-1 text-[10px] text-slate-600 border-l border-slate-200/70">
+                    <TableCell className="px-1 py-0.5 text-[10px] text-slate-600 border-l border-slate-200/70">
                       Rp{" "}
                       {parseFloat(item.modalFinal).toLocaleString("id-ID", {
                         maximumFractionDigits: 0,
                       })}
                     </TableCell>
-                    <TableCell className="px-1.5 py-1 text-[10px] border-l border-slate-200/70">
+                    <TableCell className="px-1 py-0.5 text-[10px] border-l border-slate-200/70">
                       <span
                         className={`px-0.5 py-0.5 rounded text-[8px] font-medium ${
                           item.status === "READY"
@@ -708,7 +710,7 @@ export const InventoryPage = () => {
                         {item.status}
                       </span>
                     </TableCell>
-                    <TableCell className="px-1.5 py-1 text-[10px] border-l border-slate-200/70">
+                    <TableCell className="px-1 py-0.5 text-[10px] border-l border-slate-200/70">
                       <div className="flex items-center justify-end gap-0.5">
                         <button
                           onClick={() => handleOpenEdit(item)}
@@ -732,6 +734,56 @@ export const InventoryPage = () => {
             </Table>
           </div>
         </>
+      )}
+
+      {/* Pagination */}
+      {data?.pagination && (
+        <div className="flex-shrink-0 px-4 sm:px-6 py-3 sm:py-4 border-t border-slate-200 bg-slate-50/50 flex items-center justify-between">
+          <div className="text-xs sm:text-sm text-slate-600">
+            Showing {(page - 1) * limit + 1} to{" "}
+            {Math.min(page * limit, data.pagination.total)} of{" "}
+            {data.pagination.total} results
+          </div>
+
+          <div className="flex gap-1 sm:gap-2 items-center">
+            <button
+              onClick={() => setPage(Math.max(1, page - 1))}
+              disabled={page === 1}
+              className="px-2 sm:px-3 py-1 border border-slate-200 rounded text-xs disabled:opacity-50 hover:bg-slate-100 transition"
+            >
+              Previous
+            </button>
+
+            <div className="text-xs sm:text-sm text-slate-600">
+              Page {page} of {data.pagination.totalPages}
+            </div>
+
+            <button
+              onClick={() =>
+                setPage(Math.min(data.pagination.totalPages, page + 1))
+              }
+              disabled={page === data.pagination.totalPages}
+              className="px-2 sm:px-3 py-1 border border-slate-200 rounded text-xs disabled:opacity-50 hover:bg-slate-100 transition"
+            >
+              Next
+            </button>
+
+            <select
+              value={limit}
+              onChange={(e) => {
+                setLimit(parseInt(e.target.value));
+                setPage(1);
+              }}
+              className="px-2 py-1 border border-slate-200 rounded text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="10">10</option>
+              <option value="20">20</option>
+              <option value="50">50</option>
+              <option value="100">100</option>
+              <option value="1000">1000</option>
+            </select>
+          </div>
+        </div>
       )}
     </div>
   );

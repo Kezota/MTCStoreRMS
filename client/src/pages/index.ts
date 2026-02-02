@@ -5,3 +5,4 @@ export { DashboardLayout } from "./DashboardLayout";
 export { DashboardPage } from "./DashboardPage";
 export { StaffPage } from "./StaffPage";
 export { InventoryPage } from "./InventoryPage";
+export { default as PenjualanPage } from "./PenjualanPage";
