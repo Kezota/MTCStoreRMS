@@ -1,1 +1,2 @@
-// Queries go here
+export { useGetCurrentUser } from "./useAuthQueries";
+export { useGetDashboardStats } from "./useDashboardQueries";

@@ -1,1 +1,1 @@
-// Components go here
+export { ProtectedRoute } from "./ProtectedRoute";

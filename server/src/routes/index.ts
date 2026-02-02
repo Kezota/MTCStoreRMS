@@ -2,6 +2,7 @@ import { Router } from "express";
 import authRoutes from "./authRoutes";
 import inventoryRoutes from "./inventoryRoutes";
 import penjualanRoutes from "./penjualanRoutes";
+import dashboardRoutes from "./dashboardRoutes";
 
 const router = Router();
 
@@ -16,8 +17,9 @@ router.get("/", (_, response) => {
  * Insert your router here
  * @example router.use("/example", exampleRouter)
  */
-router.use("/auth", authRoutes);
-router.use("/inventory", inventoryRoutes);
-router.use("/penjualan", penjualanRoutes);
+router.use("/api/auth", authRoutes);
+router.use("/api/inventory", inventoryRoutes);
+router.use("/api/penjualan", penjualanRoutes);
+router.use("/api/dashboard", dashboardRoutes);
 
 export default router;
