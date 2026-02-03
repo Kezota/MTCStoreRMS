@@ -123,11 +123,14 @@ export const PenjualanFormModal = ({
   );
 
   // Filter inventory options based on search with smart IMEI prioritization
+  // Only show READY items (not TERJUAL)
   const filteredInventory = useMemo(() => {
-    if (!searchInput.trim()) return inventoryOptions;
+    const readyItems = inventoryOptions.filter((inv) => inv.status === "READY");
+
+    if (!searchInput.trim()) return readyItems;
 
     const search = searchInput.toLowerCase().trim();
-    const filtered = inventoryOptions.filter(
+    const filtered = readyItems.filter(
       (inv) =>
         inv.imei?.toLowerCase().includes(search) ||
         inv.namaHP?.toLowerCase().includes(search) ||
