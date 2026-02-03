@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { API } from "@/lib/API";
 import { queryKeys } from "@/lib/queryKeys";
-import type { PenjualanItem, PenjualanResponse } from "@/lib/types";
+import type { PenjualanResponse } from "@/lib/types";
 
 interface GetPenjualanParams {
   page?: number;
