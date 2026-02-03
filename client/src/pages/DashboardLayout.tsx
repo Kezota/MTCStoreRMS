@@ -34,14 +34,16 @@ export const DashboardLayout = () => {
     <div className="min-h-screen bg-gray-50">
       {/* Navbar */}
       <nav className="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between h-16">
+        <div className="container mx-auto px-2 sm:px-4">
+          <div className="flex items-center justify-between h-12 sm:h-16">
             {/* Logo */}
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center">
-                <Smartphone className="w-5 h-5 text-white" />
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <div className="w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center">
+                <Smartphone className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
               </div>
-              <span className="text-xl font-bold text-gray-900">MTC Store</span>
+              <span className="text-base sm:text-xl font-bold text-gray-900">
+                MTC Store
+              </span>
             </div>
 
             {/* Navigation Links - Desktop */}
@@ -69,21 +71,21 @@ export const DashboardLayout = () => {
               {/* Logout Button */}
               <button
                 onClick={handleLogout}
-                className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition font-medium"
+                className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-1.5 sm:py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition font-medium text-xs sm:text-sm"
               >
-                <LogOut className="w-4 h-4" />
+                <LogOut className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 <span className="hidden sm:inline">Logout</span>
               </button>
 
               {/* Mobile Menu Button */}
               <button
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition"
+                className="md:hidden p-1.5 rounded-lg hover:bg-gray-100 transition"
               >
                 {isMobileMenuOpen ? (
-                  <X className="w-6 h-6 text-gray-700" />
+                  <X className="w-5 h-5 text-gray-700" />
                 ) : (
-                  <Menu className="w-6 h-6 text-gray-700" />
+                  <Menu className="w-5 h-5 text-gray-700" />
                 )}
               </button>
             </div>
@@ -91,8 +93,8 @@ export const DashboardLayout = () => {
 
           {/* Mobile Navigation Menu */}
           {isMobileMenuOpen && (
-            <div className="md:hidden pb-3 border-t border-gray-200 pt-3">
-              <div className="flex flex-col gap-1">
+            <div className="md:hidden pb-2 border-t border-gray-200 pt-2">
+              <div className="flex flex-col gap-0.5">
                 {visibleNavLinks.map((link) => {
                   const isActive = location.pathname === link.path;
                   return (
@@ -100,7 +102,7 @@ export const DashboardLayout = () => {
                       key={link.path}
                       to={link.path}
                       onClick={() => setIsMobileMenuOpen(false)}
-                      className={`px-4 py-2.5 rounded-lg text-sm transition font-medium ${
+                      className={`px-3 py-2 rounded-lg text-xs transition font-medium ${
                         isActive
                           ? "bg-blue-50 text-blue-600 border border-blue-200"
                           : "text-gray-700 hover:bg-gray-100 hover:text-blue-600"
