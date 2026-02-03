@@ -55,14 +55,24 @@ export const MonthlyFinanceTable = ({
         <table className="min-w-full text-xs sm:text-sm lg:text-base">
           <thead>
             <tr className="bg-gradient-to-r from-slate-50 to-slate-100 text-gray-700 border-b-2 border-gray-300">
-              <th className="px-2 sm:px-3 lg:px-4 py-2 sm:py-2.5 lg:py-3 text-left font-semibold">Bulan</th>
-              <th className="px-2 sm:px-3 lg:px-4 py-2 sm:py-2.5 lg:py-3 text-right font-semibold">Pemasukan</th>
-              <th className="px-2 sm:px-3 lg:px-4 py-2 sm:py-2.5 lg:py-3 text-right font-semibold">Modal</th>
-              <th className="px-2 sm:px-3 lg:px-4 py-2 sm:py-2.5 lg:py-3 text-right font-semibold">Laba Kotor</th>
+              <th className="px-2 sm:px-3 lg:px-4 py-2 sm:py-2.5 lg:py-3 text-left font-semibold">
+                Bulan
+              </th>
+              <th className="px-2 sm:px-3 lg:px-4 py-2 sm:py-2.5 lg:py-3 text-right font-semibold">
+                Pemasukan
+              </th>
+              <th className="px-2 sm:px-3 lg:px-4 py-2 sm:py-2.5 lg:py-3 text-right font-semibold">
+                Modal
+              </th>
+              <th className="px-2 sm:px-3 lg:px-4 py-2 sm:py-2.5 lg:py-3 text-right font-semibold">
+                Laba Kotor
+              </th>
               <th className="px-2 sm:px-3 lg:px-4 py-2 sm:py-2.5 lg:py-3 text-right font-semibold">
                 Laba Bersih
               </th>
-              <th className="px-2 sm:px-3 lg:px-4 py-2 sm:py-2.5 lg:py-3 text-right font-semibold">Transaksi</th>
+              <th className="px-2 sm:px-3 lg:px-4 py-2 sm:py-2.5 lg:py-3 text-right font-semibold">
+                Transaksi
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -94,7 +104,9 @@ export const MonthlyFinanceTable = ({
               </tr>
             ))}
             <tr className="bg-gradient-to-r from-amber-50 to-amber-100 border-t-2 border-gray-300 font-semibold">
-              <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-2.5 lg:py-3 font-bold text-gray-900">TOTAL</td>
+              <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-2.5 lg:py-3 font-bold text-gray-900">
+                TOTAL
+              </td>
               <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-2.5 lg:py-3 text-right text-blue-700">
                 {formatRupiah(totals.sales)}
               </td>
