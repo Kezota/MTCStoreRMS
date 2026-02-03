@@ -418,13 +418,6 @@ export const updateInventory = async (
       status,
     } = validation.data;
 
-    console.log("[CONTROLLER] Validated data:", {
-      modalAwal,
-      modalFinal,
-      cashback,
-      status,
-    });
-
     // Check if inventory exists
     const existingInventory = await prisma.inventoryHP.findUnique({
       where: { id: parseInt(id) },
@@ -479,24 +472,12 @@ export const updateInventory = async (
 
     if (status) updateData.status = status;
 
-    console.log(
-      "[CONTROLLER] Update data that will be saved:",
-      JSON.stringify(updateData, null, 2),
-    );
-
     // Update inventory and recalculate penjualan profit if modalAwal or modalFinal changed
     const inventory = await prisma.$transaction(async (tx) => {
       // Update inventory
       const updatedInventory = await tx.inventoryHP.update({
         where: { id: parseInt(id) },
         data: updateData,
-      });
-
-      console.log("[CONTROLLER] Result from DB after update:", {
-        id: updatedInventory.id,
-        modalAwal: updatedInventory.modalAwal.toString(),
-        modalFinal: updatedInventory.modalFinal.toString(),
-        cashback: updatedInventory.cashback?.toString(),
       });
 
       // If modalAwal or modalFinal changed, update profit for related penjualan

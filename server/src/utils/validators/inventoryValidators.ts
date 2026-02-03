@@ -49,11 +49,6 @@ export const createInventorySchema = z.preprocess(
 // Update Inventory Schema
 export const updateInventorySchema = z.preprocess(
   (input) => {
-    console.log(
-      "[VALIDATOR] Raw input from FE:",
-      JSON.stringify(input, null, 2),
-    );
-
     if (input && typeof input === "object") {
       const data = input as Record<string, unknown>;
       const hasKey = (key: string) =>
@@ -88,14 +83,6 @@ export const updateInventorySchema = z.preprocess(
 
       if (hasKey("modalAwal") || hasKey("modal_awal")) {
         const val = emptyToUndefined(data.modalAwal ?? data.modal_awal);
-        console.log(
-          "[VALIDATOR] modalAwal - hasKey:",
-          hasKey("modalAwal"),
-          "raw:",
-          data.modalAwal,
-          "processed:",
-          val,
-        );
         if (val !== undefined) output.modalAwal = val;
       }
 
@@ -106,14 +93,6 @@ export const updateInventorySchema = z.preprocess(
 
       if (hasKey("modalFinal") || hasKey("modal_final")) {
         const val = emptyToUndefined(data.modalFinal ?? data.modal_final);
-        console.log(
-          "[VALIDATOR] modalFinal - hasKey:",
-          hasKey("modalFinal"),
-          "raw:",
-          data.modalFinal,
-          "processed:",
-          val,
-        );
         if (val !== undefined) output.modalFinal = val;
       }
 
@@ -121,11 +100,6 @@ export const updateInventorySchema = z.preprocess(
         const val = emptyToUndefined(data.status);
         if (val !== undefined) output.status = val;
       }
-
-      console.log(
-        "[VALIDATOR] Preprocessed output:",
-        JSON.stringify(output, null, 2),
-      );
       return output;
     }
 
