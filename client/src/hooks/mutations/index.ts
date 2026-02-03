@@ -9,3 +9,8 @@ export {
   useUpdateInventoryMutation,
   useDeleteInventoryMutation,
 } from "./useInventoryMutations";
+export {
+  useCreatePenjualanMutation,
+  useUpdatePenjualanMutation,
+  useDeletePenjualanMutation,
+} from "./usePenjualanMutations";

@@ -1,5 +1,8 @@
 import { useState, useMemo } from "react";
 import { useGetPenjualan } from "@/hooks/queries/usePenjualanQueries";
+import { useDeletePenjualanMutation } from "@/hooks/mutations/usePenjualanMutations";
+import { useGetInventory } from "@/hooks/queries/useInventoryQueries";
+import { PenjualanFormModal } from "@/components/PenjualanFormModal";
 import {
   Table,
   TableBody,
@@ -34,7 +37,7 @@ import {
 } from "lucide-react";
 import { brandsList } from "@/lib/constants";
 import { getBrandColor } from "@/lib/utils";
-import type { PenjualanItem } from "@/lib/types";
+import type { PenjualanItem, InventoryItem } from "@/lib/types";
 
 interface FilterState {
   search: string;
@@ -79,6 +82,9 @@ export const PenjualanPage = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [editingItem, setEditingItem] = useState<PenjualanItem | null>(null);
+
+  const deleteMutation = useDeletePenjualanMutation();
+  const { data: inventoryData } = useGetInventory({ page: 1, limit: 10000 });
 
   const searchValue = filters.search.trim();
   const isNumericSearch = searchValue.length > 0 && /^\d+$/.test(searchValue);
@@ -175,8 +181,12 @@ export const PenjualanPage = () => {
   const handleDeletePenjualan = async (id: number) => {
     const confirmed = window.confirm("Hapus penjualan ini?");
     if (!confirmed) return;
-    // TODO: Implement delete mutation
-    console.log("Delete penjualan:", id);
+    try {
+      await deleteMutation.mutateAsync(id);
+    } catch (error) {
+      console.error("Error deleting penjualan:", error);
+      alert("Gagal menghapus penjualan");
+    }
   };
 
   const formatRupiah = (value: string | number) => {
@@ -207,8 +217,26 @@ export const PenjualanPage = () => {
     [penjualan],
   );
 
+  const inventoryOptions: InventoryItem[] = useMemo(
+    () => inventoryData?.data || [],
+    [inventoryData],
+  );
+
   return (
     <div className="w-full h-full flex flex-col overflow-hidden">
+      {/* Form Modal */}
+      <PenjualanFormModal
+        isOpen={isFormOpen}
+        onClose={() => {
+          setIsFormOpen(false);
+          setIsEditMode(false);
+          setEditingItem(null);
+        }}
+        isEditMode={isEditMode}
+        item={editingItem}
+        inventoryOptions={inventoryOptions}
+      />
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
