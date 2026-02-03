@@ -28,6 +28,10 @@ export const useCreatePenjualanMutation = () => {
         queryKey: QUERY_KEYS.penjualan.list(),
         exact: false,
       });
+      queryClient.invalidateQueries({
+        queryKey: QUERY_KEYS.inventory.list(),
+        exact: false,
+      });
     },
   });
 };
@@ -50,6 +54,10 @@ export const useUpdatePenjualanMutation = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: QUERY_KEYS.penjualan.list(),
+        exact: false,
+      });
+      queryClient.invalidateQueries({
+        queryKey: QUERY_KEYS.inventory.list(),
         exact: false,
       });
     },

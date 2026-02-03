@@ -49,6 +49,11 @@ export const createInventorySchema = z.preprocess(
 // Update Inventory Schema
 export const updateInventorySchema = z.preprocess(
   (input) => {
+    console.log(
+      "[VALIDATOR] Raw input from FE:",
+      JSON.stringify(input, null, 2),
+    );
+
     if (input && typeof input === "object") {
       const data = input as Record<string, unknown>;
       const hasKey = (key: string) =>
@@ -57,34 +62,70 @@ export const updateInventorySchema = z.preprocess(
       const output: Record<string, unknown> = {};
 
       if (hasKey("tanggalMasuk") || hasKey("tanggal_masuk")) {
-        output.tanggalMasuk = emptyToUndefined(
-          data.tanggalMasuk ?? data.tanggal_masuk,
-        );
+        const val = emptyToUndefined(data.tanggalMasuk ?? data.tanggal_masuk);
+        if (val !== undefined) output.tanggalMasuk = val;
       }
 
-      if (hasKey("imei")) output.imei = emptyToUndefined(data.imei);
-      if (hasKey("brand")) output.brand = emptyToUndefined(data.brand);
+      if (hasKey("imei")) {
+        const val = emptyToUndefined(data.imei);
+        if (val !== undefined) output.imei = val;
+      }
+
+      if (hasKey("brand")) {
+        const val = emptyToUndefined(data.brand);
+        if (val !== undefined) output.brand = val;
+      }
 
       if (hasKey("namaHP") || hasKey("nama_hp")) {
-        output.namaHP = emptyToUndefined(data.namaHP ?? data.nama_hp);
+        const val = emptyToUndefined(data.namaHP ?? data.nama_hp);
+        if (val !== undefined) output.namaHP = val;
       }
 
-      if (hasKey("warna")) output.warna = emptyToUndefined(data.warna);
+      if (hasKey("warna")) {
+        const val = emptyToUndefined(data.warna);
+        if (val !== undefined) output.warna = val;
+      }
 
       if (hasKey("modalAwal") || hasKey("modal_awal")) {
-        output.modalAwal = emptyToUndefined(data.modalAwal ?? data.modal_awal);
+        const val = emptyToUndefined(data.modalAwal ?? data.modal_awal);
+        console.log(
+          "[VALIDATOR] modalAwal - hasKey:",
+          hasKey("modalAwal"),
+          "raw:",
+          data.modalAwal,
+          "processed:",
+          val,
+        );
+        if (val !== undefined) output.modalAwal = val;
       }
 
-      if (hasKey("cashback")) output.cashback = emptyToUndefined(data.cashback);
+      if (hasKey("cashback")) {
+        const val = emptyToUndefined(data.cashback);
+        if (val !== undefined) output.cashback = val;
+      }
 
       if (hasKey("modalFinal") || hasKey("modal_final")) {
-        output.modalFinal = emptyToUndefined(
-          data.modalFinal ?? data.modal_final,
+        const val = emptyToUndefined(data.modalFinal ?? data.modal_final);
+        console.log(
+          "[VALIDATOR] modalFinal - hasKey:",
+          hasKey("modalFinal"),
+          "raw:",
+          data.modalFinal,
+          "processed:",
+          val,
         );
+        if (val !== undefined) output.modalFinal = val;
       }
 
-      if (hasKey("status")) output.status = emptyToUndefined(data.status);
+      if (hasKey("status")) {
+        const val = emptyToUndefined(data.status);
+        if (val !== undefined) output.status = val;
+      }
 
+      console.log(
+        "[VALIDATOR] Preprocessed output:",
+        JSON.stringify(output, null, 2),
+      );
       return output;
     }
 
@@ -118,9 +159,14 @@ export const updateInventorySchema = z.preprocess(
     modalFinal: z
       .union([z.number(), z.string()])
       .optional()
+      .nullable()
       .transform((val) => {
-        if (typeof val === "string") return parseFloat(val);
-        return val;
+        if (val === null || val === undefined || val === "") return undefined;
+        if (typeof val === "string") {
+          const parsed = parseFloat(val);
+          return isNaN(parsed) || parsed === 0 ? undefined : parsed;
+        }
+        return val === 0 ? undefined : val;
       }),
     status: z.enum(["READY", "TERJUAL"]).optional(),
   }),

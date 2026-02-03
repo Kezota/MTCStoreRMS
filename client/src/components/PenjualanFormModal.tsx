@@ -122,18 +122,58 @@ export const PenjualanFormModal = ({
     [inventoryOptions, form.inventoryId],
   );
 
-  // Filter inventory options based on search
+  // Filter inventory options based on search with smart IMEI prioritization
   const filteredInventory = useMemo(() => {
     if (!searchInput.trim()) return inventoryOptions;
 
-    const search = searchInput.toLowerCase();
-    return inventoryOptions.filter(
+    const search = searchInput.toLowerCase().trim();
+    const filtered = inventoryOptions.filter(
       (inv) =>
-        inv.imei.toLowerCase().includes(search) ||
-        inv.namaHP.toLowerCase().includes(search) ||
-        inv.brand.toLowerCase().includes(search),
+        inv.imei?.toLowerCase().includes(search) ||
+        inv.namaHP?.toLowerCase().includes(search) ||
+        inv.brand?.toLowerCase().includes(search),
     );
+
+    // Sort: prioritize IMEI ending with search string
+    return filtered.sort((a, b) => {
+      const aImei = a.imei?.toLowerCase() || "";
+      const bImei = b.imei?.toLowerCase() || "";
+      const aEnds = aImei.endsWith(search);
+      const bEnds = bImei.endsWith(search);
+
+      if (aEnds && !bEnds) return -1;
+      if (!aEnds && bEnds) return 1;
+      return 0;
+    });
   }, [inventoryOptions, searchInput]);
+
+  // Calculate profit automatically
+  const calculatedProfit = useMemo(() => {
+    if (!selectedInventory || !form.hargaJual) return 0;
+
+    const hargaJual = parseFloat(parseFromRupiah(form.hargaJual));
+    const diskon = form.diskon ? parseFloat(parseFromRupiah(form.diskon)) : 0;
+    const modal =
+      selectedInventory.modalFinal &&
+      parseFloat(selectedInventory.modalFinal) > 0
+        ? parseFloat(selectedInventory.modalFinal)
+        : selectedInventory.modalAwal
+          ? parseFloat(selectedInventory.modalAwal)
+          : 0;
+
+    // Profit = Harga Jual - Diskon - Modal
+    return hargaJual - diskon - modal;
+  }, [selectedInventory, form.hargaJual, form.diskon, parseFromRupiah]);
+
+  // Update profit whenever it's calculated
+  useEffect(() => {
+    if (selectedInventory && form.hargaJual) {
+      setForm((prev) => ({
+        ...prev,
+        profit: String(Math.round(calculatedProfit)),
+      }));
+    }
+  }, [calculatedProfit, selectedInventory, form.hargaJual]);
 
   const handleSubmitForm = useCallback(
     async (event: FormEvent) => {
@@ -210,7 +250,7 @@ export const PenjualanFormModal = ({
           <div className="px-4 sm:px-6 py-3 sm:py-4 overflow-y-auto flex-1">
             <div className="space-y-4 sm:space-y-6">
               {/* Date & Inventory */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+              <div className="grid grid-cols-2 gap-3 sm:gap-4">
                 {/* Tanggal */}
                 <div>
                   <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-1">
@@ -253,7 +293,7 @@ export const PenjualanFormModal = ({
                       className="w-[--radix-popover-trigger-width] p-0"
                       align="start"
                     >
-                      <Command>
+                      <Command shouldFilter={false}>
                         <CommandInput
                           placeholder="Cari IMEI, Nama HP, atau Brand..."
                           value={searchInput}
@@ -289,11 +329,17 @@ export const PenjualanFormModal = ({
                       </Command>
                     </PopoverContent>
                   </Popover>
+                  {selectedInventory && (
+                    <div className="mt-1 text-[10px] sm:text-xs text-slate-600 truncate">
+                      {selectedInventory.brand} {selectedInventory.namaHP} -{" "}
+                      {selectedInventory.warna || "-"}
+                    </div>
+                  )}
                 </div>
               </div>
 
               {/* Price Fields */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+              <div className="grid grid-cols-2 gap-3 sm:gap-4">
                 {/* Harga Jual */}
                 <div>
                   <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-1">
@@ -335,33 +381,23 @@ export const PenjualanFormModal = ({
                       className="flex-1 px-2 sm:px-3 py-1.5 sm:py-2 border border-slate-300 rounded-md text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
-                </div>
-
-                {/* Profit */}
-                <div>
-                  <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-1">
-                    Profit
-                  </label>
-                  <div className="flex items-center gap-1">
-                    <span className="text-xs text-slate-500">Rp</span>
-                    <input
-                      type="text"
-                      required
-                      value={formatToRupiah(form.profit)}
-                      onChange={(e) =>
-                        setForm({
-                          ...form,
-                          profit: e.target.value,
-                        })
-                      }
-                      className="flex-1 px-2 sm:px-3 py-1.5 sm:py-2 border border-slate-300 rounded-md text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
+                  {selectedInventory && form.hargaJual && (
+                    <div
+                      className={cn(
+                        "mt-1 text-[10px] sm:text-xs font-bold",
+                        calculatedProfit > 0 && "text-green-600",
+                        calculatedProfit < 0 && "text-red-600",
+                        calculatedProfit === 0 && "text-slate-600",
+                      )}
+                    >
+                      Profit: Rp {formatToRupiah(form.profit)}
+                    </div>
+                  )}
                 </div>
               </div>
 
               {/* Metode Bayar & Keterangan */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+              <div className="grid grid-cols-2 gap-3 sm:gap-4">
                 {/* Metode Bayar */}
                 <div>
                   <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-1">

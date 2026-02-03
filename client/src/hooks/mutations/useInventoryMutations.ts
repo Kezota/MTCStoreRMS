@@ -28,6 +28,10 @@ export const useCreateInventoryMutation = () => {
         queryKey: QUERY_KEYS.inventory.list(),
         exact: false,
       });
+      queryClient.invalidateQueries({
+        queryKey: QUERY_KEYS.penjualan.list(),
+        exact: false,
+      });
     },
   });
 };
@@ -50,6 +54,10 @@ export const useCreateBulkInventoryMutation = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: QUERY_KEYS.inventory.list(),
+        exact: false,
+      });
+      queryClient.invalidateQueries({
+        queryKey: QUERY_KEYS.penjualan.list(),
         exact: false,
       });
     },
@@ -76,6 +84,10 @@ export const useUpdateInventoryMutation = () => {
         queryKey: QUERY_KEYS.inventory.list(),
         exact: false,
       });
+      queryClient.invalidateQueries({
+        queryKey: QUERY_KEYS.penjualan.list(),
+        exact: false,
+      });
     },
   });
 };
@@ -93,6 +105,10 @@ export const useDeleteInventoryMutation = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: QUERY_KEYS.inventory.list(),
+        exact: false,
+      });
+      queryClient.invalidateQueries({
+        queryKey: QUERY_KEYS.penjualan.list(),
         exact: false,
       });
     },

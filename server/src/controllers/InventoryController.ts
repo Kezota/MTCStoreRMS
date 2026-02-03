@@ -347,8 +347,20 @@ export const createInventory = async (
       throw new AppError("IMEI already exists in inventory", 400);
     }
 
-    // Sync modalAwal and modalFinal to be the same
-    const modalValue = modalFinal && modalFinal !== 0 ? modalFinal : modalAwal;
+    // Calculate modalFinal and cashback relationship: modalFinal = modalAwal - cashback
+    let finalCashback = cashback || null;
+    let finalModalFinal: number = modalFinal || modalAwal;
+
+    if (cashback && cashback > 0) {
+      // If cashback provided, calculate modalFinal
+      finalModalFinal = modalAwal - cashback;
+    } else if (modalFinal && modalFinal > 0 && modalFinal !== modalAwal) {
+      // If modalFinal provided and different from modalAwal, calculate cashback
+      finalCashback = modalAwal - modalFinal;
+    } else {
+      // Default: modalFinal = modalAwal, cashback = 0 or null
+      finalModalFinal = modalAwal;
+    }
 
     const inventory = await prisma.inventoryHP.create({
       data: {
@@ -357,9 +369,9 @@ export const createInventory = async (
         brand,
         namaHP,
         warna: warna || null,
-        modalAwal: modalValue,
-        cashback: cashback || null,
-        modalFinal: modalValue,
+        modalAwal: modalAwal,
+        cashback: finalCashback,
+        modalFinal: finalModalFinal,
       },
     });
 
@@ -406,6 +418,13 @@ export const updateInventory = async (
       status,
     } = validation.data;
 
+    console.log("[CONTROLLER] Validated data:", {
+      modalAwal,
+      modalFinal,
+      cashback,
+      status,
+    });
+
     // Check if inventory exists
     const existingInventory = await prisma.inventoryHP.findUnique({
       where: { id: parseInt(id) },
@@ -433,20 +452,37 @@ export const updateInventory = async (
     if (imei) updateData.imei = imei;
     if (brand) updateData.brand = brand;
     if (namaHP) updateData.namaHP = namaHP;
-    if (warna !== undefined && warna !== null) updateData.warna = warna;
+    if (warna !== undefined) updateData.warna = warna || null;
 
-    // Sync modalAwal and modalFinal - always keep them the same
-    if (modalFinal !== undefined) {
-      updateData.modalAwal = modalFinal;
-      updateData.modalFinal = modalFinal;
-    } else if (modalAwal !== undefined && modalAwal !== null) {
+    // Get current modalAwal for calculations
+    const currentModalAwal =
+      modalAwal !== undefined && modalAwal !== null && modalAwal > 0
+        ? modalAwal
+        : Number(existingInventory.modalAwal);
+
+    // Update modalAwal if provided
+    if (modalAwal !== undefined && modalAwal !== null && modalAwal > 0) {
       updateData.modalAwal = modalAwal;
-      updateData.modalFinal = modalAwal;
     }
 
-    if (cashback !== undefined && cashback !== null)
+    // Handle cashback and modalFinal relationship: modalFinal = modalAwal - cashback
+    // If cashback is provided, calculate modalFinal
+    if (cashback !== undefined && cashback !== null) {
       updateData.cashback = cashback;
+      updateData.modalFinal = currentModalAwal - cashback;
+    }
+    // If modalFinal is provided, calculate cashback
+    else if (modalFinal !== undefined && modalFinal !== null) {
+      updateData.modalFinal = modalFinal;
+      updateData.cashback = currentModalAwal - modalFinal;
+    }
+
     if (status) updateData.status = status;
+
+    console.log(
+      "[CONTROLLER] Update data that will be saved:",
+      JSON.stringify(updateData, null, 2),
+    );
 
     // Update inventory and recalculate penjualan profit if modalAwal or modalFinal changed
     const inventory = await prisma.$transaction(async (tx) => {
@@ -454,6 +490,13 @@ export const updateInventory = async (
       const updatedInventory = await tx.inventoryHP.update({
         where: { id: parseInt(id) },
         data: updateData,
+      });
+
+      console.log("[CONTROLLER] Result from DB after update:", {
+        id: updatedInventory.id,
+        modalAwal: updatedInventory.modalAwal.toString(),
+        modalFinal: updatedInventory.modalFinal.toString(),
+        cashback: updatedInventory.cashback?.toString(),
       });
 
       // If modalAwal or modalFinal changed, update profit for related penjualan

@@ -755,14 +755,14 @@ export const InventoryPage = () => {
             </button>
 
             <div className="text-xs sm:text-sm text-slate-600">
-              Page {page} of {data.pagination.totalPages}
+              Page {page} of {data.pagination.pages}
             </div>
 
             <button
               onClick={() =>
-                setPage(Math.min(data.pagination.totalPages, page + 1))
+                setPage(Math.min(data.pagination.pages, page + 1))
               }
-              disabled={page === data.pagination.totalPages}
+              disabled={page === data.pagination.pages}
               className="px-2 sm:px-3 py-1 border border-slate-200 rounded text-xs disabled:opacity-50 hover:bg-slate-100 transition"
             >
               Next

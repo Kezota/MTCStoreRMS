@@ -116,6 +116,9 @@ export const InventoryFormModal = ({
 
   const [brandOpen, setBrandOpen] = useState(false);
   const [namaHPOpen, setNamaHPOpen] = useState(false);
+  const [lastEditedField, setLastEditedField] = useState<
+    "cashback" | "modalFinal" | null
+  >(null);
 
   const createMutation = useCreateInventoryMutation();
   const createBulkMutation = useCreateBulkInventoryMutation();
@@ -180,13 +183,6 @@ export const InventoryFormModal = ({
     }
   }, [isOpen, isEditMode, item]);
 
-  // Save form to localStorage on every change (only in create mode)
-  useEffect(() => {
-    if (isOpen && !isEditMode) {
-      saveFormToStorage(form, phoneVariants);
-    }
-  }, [form, phoneVariants, isOpen, isEditMode]);
-
   // Format number to Rupiah display (without Rp prefix)
   const formatToRupiah = useCallback((value: string): string => {
     const numbers = value.replace(/\D/g, "");
@@ -197,6 +193,70 @@ export const InventoryFormModal = ({
   const parseFromRupiah = useCallback((value: string): string => {
     return value.replace(/\./g, "");
   }, []);
+
+  // Save form to localStorage on every change (only in create mode)
+  useEffect(() => {
+    if (isOpen && !isEditMode) {
+      saveFormToStorage(form, phoneVariants);
+    }
+  }, [form, phoneVariants, isOpen, isEditMode]);
+
+  // Auto-calculate modalFinal when cashback changes OR cashback when modalFinal changes
+  useEffect(() => {
+    if (!form.modalAwal) return;
+
+    const modalAwalNum = parseFloat(parseFromRupiah(form.modalAwal));
+    if (isNaN(modalAwalNum) || modalAwalNum === 0) return;
+
+    // User edited cashback -> calculate modalFinal
+    if (lastEditedField === "cashback") {
+      const cashbackStr = form.cashback.trim();
+
+      if (!cashbackStr || cashbackStr === "0") {
+        // Cashback cleared or set to 0 -> modalFinal = modalAwal
+        setForm((prev) => ({
+          ...prev,
+          modalFinal: String(modalAwalNum),
+        }));
+      } else {
+        const cashbackNum = parseFloat(parseFromRupiah(cashbackStr));
+        if (!isNaN(cashbackNum)) {
+          const calculatedModalFinal = modalAwalNum - cashbackNum;
+          setForm((prev) => ({
+            ...prev,
+            modalFinal: String(calculatedModalFinal), // Allow negative if cashback > modalAwal
+          }));
+        }
+      }
+    }
+    // User edited modalFinal -> calculate cashback
+    else if (lastEditedField === "modalFinal") {
+      const modalFinalStr = form.modalFinal.trim();
+
+      if (!modalFinalStr || modalFinalStr === "0") {
+        // ModalFinal cleared or set to 0 -> cashback = modalAwal
+        setForm((prev) => ({
+          ...prev,
+          cashback: String(modalAwalNum),
+        }));
+      } else {
+        const modalFinalNum = parseFloat(parseFromRupiah(modalFinalStr));
+        if (!isNaN(modalFinalNum)) {
+          const calculatedCashback = modalAwalNum - modalFinalNum;
+          setForm((prev) => ({
+            ...prev,
+            cashback: String(calculatedCashback), // Can be negative if modalFinal > modalAwal
+          }));
+        }
+      }
+    }
+  }, [
+    form.modalAwal,
+    form.cashback,
+    form.modalFinal,
+    lastEditedField,
+    parseFromRupiah,
+  ]);
 
   const handleAddVariant = useCallback(() => {
     const newId = Math.max(...phoneVariants.map((v) => v.id), 0) + 1;
@@ -302,7 +362,7 @@ export const InventoryFormModal = ({
           <div className="px-4 sm:px-6 py-3 sm:py-4 overflow-y-auto flex-1">
             <div className="space-y-4 sm:space-y-6">
               {/* Common Fields */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+              <div className="grid grid-cols-2 gap-3 sm:gap-4">
                 {/* Tanggal Masuk */}
                 <div>
                   <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-1">
@@ -536,12 +596,13 @@ export const InventoryFormModal = ({
                     <input
                       type="text"
                       value={formatToRupiah(form.cashback)}
-                      onChange={(e) =>
+                      onChange={(e) => {
+                        setLastEditedField("cashback");
                         setForm({
                           ...form,
                           cashback: parseFromRupiah(e.target.value),
-                        })
-                      }
+                        });
+                      }}
                       placeholder="0"
                       className="w-full pl-7 sm:pl-10 pr-2 sm:pr-3 py-1.5 sm:py-2 border border-slate-300 rounded-md text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
@@ -560,12 +621,13 @@ export const InventoryFormModal = ({
                     <input
                       type="text"
                       value={formatToRupiah(form.modalFinal)}
-                      onChange={(e) =>
+                      onChange={(e) => {
+                        setLastEditedField("modalFinal");
                         setForm({
                           ...form,
                           modalFinal: parseFromRupiah(e.target.value),
-                        })
-                      }
+                        });
+                      }}
                       placeholder="0"
                       className="w-full pl-7 sm:pl-10 pr-2 sm:pr-3 py-1.5 sm:py-2 border border-slate-300 rounded-md text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
@@ -597,7 +659,7 @@ export const InventoryFormModal = ({
 
               {/* Phone Variants Section */}
               <div className="border-t pt-3 sm:pt-4">
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-3 mb-2 sm:mb-3">
+                <div className="flex flex-row items-start sm:items-center justify-between gap-2 sm:gap-3 mb-2 sm:mb-3">
                   <label className="block text-xs sm:text-sm font-semibold text-slate-900">
                     {isEditMode ? "IMEI & Warna" : "Daftar HP (IMEI & Warna)"}
                   </label>
@@ -617,9 +679,9 @@ export const InventoryFormModal = ({
                   {phoneVariants.map((variant, index) => (
                     <div
                       key={variant.id}
-                      className="flex flex-col sm:flex-row items-start gap-2 sm:gap-3 p-2 sm:p-3 bg-white rounded-lg border border-slate-200"
+                      className="flex flex-row items-start gap-2 sm:gap-3 p-2 sm:p-3 bg-white rounded-lg border border-slate-200"
                     >
-                      <div className="flex-1 w-full grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
+                      <div className="flex-1 w-full grid grid-cols-2 gap-2 sm:gap-3">
                         {/* IMEI */}
                         <div>
                           <label className="block text-xs font-medium text-slate-600 mb-0.5 sm:mb-1">
@@ -647,6 +709,7 @@ export const InventoryFormModal = ({
                           </label>
                           <input
                             type="text"
+                            required
                             value={variant.warna}
                             onChange={(e) =>
                               handleVariantChange(
@@ -665,7 +728,7 @@ export const InventoryFormModal = ({
                         <button
                           type="button"
                           onClick={() => handleRemoveVariant(variant.id)}
-                          className="flex-shrink-0 p-1.5 sm:p-2 text-red-600 hover:bg-red-50 rounded transition-colors mt-1 sm:mt-0"
+                          className="flex-shrink-0 p-1.5 sm:p-2 text-red-600 hover:bg-red-50 rounded transition-colors mt-0"
                           title="Hapus HP ini"
                         >
                           <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
