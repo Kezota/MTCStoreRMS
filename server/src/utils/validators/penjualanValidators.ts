@@ -122,6 +122,7 @@ export const penjualanQuerySchema = z.object({
   namaHP: z.string().optional(), // Search by Nama HP
   brand: z.string().optional(), // Filter by brand (comma-separated)
   warna: z.string().optional(), // Filter by warna
+  tanggal: z.string().optional(), // Filter by exact date (YYYY-MM-DD)
   minHargaJual: z.string().optional(),
   maxHargaJual: z.string().optional(),
   minProfit: z.string().optional(),

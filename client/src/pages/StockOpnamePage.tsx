@@ -30,7 +30,18 @@ export const StockOpnamePage = () => {
       | "name-asc"
       | "name-desc"
       | "brand-asc"
-      | "brand-desc",
+      | "brand-desc"
+      | "none",
+  );
+  const [sortOption2, setSortOption2] = useState(
+    "none" as
+      | "scanned-first"
+      | "unscanned-first"
+      | "name-asc"
+      | "name-desc"
+      | "brand-asc"
+      | "brand-desc"
+      | "none",
   );
   const [imeiInput, setImeiInput] = useState("");
   const [scannedImeis, setScannedImeis] = useState<Set<string>>(() => {
@@ -101,53 +112,85 @@ export const StockOpnamePage = () => {
     });
   }, [readyItems, brandFilters, searchValue, isNumericSearch]);
 
+  const getSortValue = (option: string, item: InventoryItem): number => {
+    switch (option) {
+      case "scanned-first":
+        if (lastScanned === item.imei) return 0;
+        if (scannedImeis.has(item.imei)) return 1;
+        return 2;
+      case "unscanned-first":
+        if (!scannedImeis.has(item.imei)) return 0;
+        if (lastScanned === item.imei) return 1;
+        return 2;
+      default:
+        return 0;
+    }
+  };
+
   const sortedItems = useMemo(() => {
-    const rankScannedFirst = (item: InventoryItem) => {
-      if (lastScanned === item.imei) return 0;
-      if (scannedImeis.has(item.imei)) return 1;
-      return 2;
-    };
-
-    const rankUnscannedFirst = (item: InventoryItem) => {
-      if (!scannedImeis.has(item.imei)) return 0;
-      if (lastScanned === item.imei) return 1;
-      return 2;
-    };
-
     const items = [...filteredItems];
 
-    switch (sortOption) {
-      case "name-asc":
-        return items.sort((a, b) => a.namaHP.localeCompare(b.namaHP));
-      case "name-desc":
-        return items.sort((a, b) => b.namaHP.localeCompare(a.namaHP));
-      case "brand-asc":
-        return items.sort((a, b) => {
-          const diff = a.brand.localeCompare(b.brand);
-          if (diff !== 0) return diff;
-          return a.namaHP.localeCompare(b.namaHP);
-        });
-      case "brand-desc":
-        return items.sort((a, b) => {
-          const diff = b.brand.localeCompare(a.brand);
-          if (diff !== 0) return diff;
-          return a.namaHP.localeCompare(b.namaHP);
-        });
-      case "unscanned-first":
-        return items.sort((a, b) => {
-          const diff = rankUnscannedFirst(a) - rankUnscannedFirst(b);
-          if (diff !== 0) return diff;
-          return a.namaHP.localeCompare(b.namaHP);
-        });
-      case "scanned-first":
-      default:
-        return items.sort((a, b) => {
-          const diff = rankScannedFirst(a) - rankScannedFirst(b);
-          if (diff !== 0) return diff;
-          return a.namaHP.localeCompare(b.namaHP);
-        });
-    }
-  }, [filteredItems, scannedImeis, lastScanned, sortOption]);
+    return items.sort((a, b) => {
+      // Primary sort
+      if (sortOption !== "none") {
+        switch (sortOption) {
+          case "scanned-first":
+          case "unscanned-first":
+            const diff1 =
+              getSortValue(sortOption, a) - getSortValue(sortOption, b);
+            if (diff1 !== 0) return diff1;
+            break;
+          case "name-asc":
+            const nameAscDiff = a.namaHP.localeCompare(b.namaHP);
+            if (nameAscDiff !== 0) return nameAscDiff;
+            break;
+          case "name-desc":
+            const nameDescDiff = b.namaHP.localeCompare(a.namaHP);
+            if (nameDescDiff !== 0) return nameDescDiff;
+            break;
+          case "brand-asc":
+            const brandAscDiff = a.brand.localeCompare(b.brand);
+            if (brandAscDiff !== 0) return brandAscDiff;
+            break;
+          case "brand-desc":
+            const brandDescDiff = b.brand.localeCompare(a.brand);
+            if (brandDescDiff !== 0) return brandDescDiff;
+            break;
+        }
+      }
+
+      // Secondary sort
+      if (sortOption2 !== "none") {
+        switch (sortOption2) {
+          case "scanned-first":
+          case "unscanned-first":
+            const diff2 =
+              getSortValue(sortOption2, a) - getSortValue(sortOption2, b);
+            if (diff2 !== 0) return diff2;
+            break;
+          case "name-asc":
+            const nameAscDiff = a.namaHP.localeCompare(b.namaHP);
+            if (nameAscDiff !== 0) return nameAscDiff;
+            break;
+          case "name-desc":
+            const nameDescDiff = b.namaHP.localeCompare(a.namaHP);
+            if (nameDescDiff !== 0) return nameDescDiff;
+            break;
+          case "brand-asc":
+            const brandAscDiff = a.brand.localeCompare(b.brand);
+            if (brandAscDiff !== 0) return brandAscDiff;
+            break;
+          case "brand-desc":
+            const brandDescDiff = b.brand.localeCompare(a.brand);
+            if (brandDescDiff !== 0) return brandDescDiff;
+            break;
+        }
+      }
+
+      // Fallback: sort by name
+      return a.namaHP.localeCompare(b.namaHP);
+    });
+  }, [filteredItems, scannedImeis, lastScanned, sortOption, sortOption2]);
 
   const totalReady = readyItems.length;
   const scannedCount = scannedImeis.size;
@@ -233,7 +276,9 @@ export const StockOpnamePage = () => {
       </div>
 
       <div className="bg-white rounded-lg border border-gray-200 p-3 sm:p-4 shadow-sm space-y-3">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        {/* Desktop: 1 row with all controls */}
+        <div className="hidden lg:grid lg:grid-cols-5 gap-3">
+          {/* Search */}
           <Popover open={searchOpen} onOpenChange={setSearchOpen}>
             <PopoverTrigger asChild>
               <button
@@ -296,6 +341,7 @@ export const StockOpnamePage = () => {
             </PopoverContent>
           </Popover>
 
+          {/* Brand Filter */}
           <div className="relative">
             <button
               onClick={() => setBrandDropdownOpen(!brandDropdownOpen)}
@@ -330,7 +376,185 @@ export const StockOpnamePage = () => {
             )}
           </div>
 
-          <div className="relative">
+          {/* Sort 1 */}
+          <select
+            value={sortOption}
+            onChange={(e) =>
+              setSortOption(
+                e.target.value as
+                  | "scanned-first"
+                  | "unscanned-first"
+                  | "name-asc"
+                  | "name-desc"
+                  | "brand-asc"
+                  | "brand-desc"
+                  | "none",
+              )
+            }
+            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="scanned-first">✓ Sudah Scan</option>
+            <option value="unscanned-first">✗ Belum Scan</option>
+            <option value="name-asc">Nama A-Z</option>
+            <option value="name-desc">Nama Z-A</option>
+            <option value="brand-asc">Brand A-Z</option>
+            <option value="brand-desc">Brand Z-A</option>
+            <option value="none">--- Tidak ---</option>
+          </select>
+
+          {/* Sort 2 */}
+          <select
+            value={sortOption2}
+            onChange={(e) =>
+              setSortOption2(
+                e.target.value as
+                  | "scanned-first"
+                  | "unscanned-first"
+                  | "name-asc"
+                  | "name-desc"
+                  | "brand-asc"
+                  | "brand-desc"
+                  | "none",
+              )
+            }
+            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="none">--- Tidak ---</option>
+            <option value="scanned-first">✓ Sudah Scan</option>
+            <option value="unscanned-first">✗ Belum Scan</option>
+            <option value="name-asc">Nama A-Z</option>
+            <option value="name-desc">Nama Z-A</option>
+            <option value="brand-asc">Brand A-Z</option>
+            <option value="brand-desc">Brand Z-A</option>
+          </select>
+
+          {/* Scan Form */}
+          <form onSubmit={handleScanSubmit} className="flex gap-2">
+            <input
+              value={imeiInput}
+              onChange={(e) => setImeiInput(e.target.value)}
+              placeholder="Scan / input IMEI"
+              className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <button
+              type="submit"
+              className="px-3 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 transition whitespace-nowrap"
+            >
+              Scan
+            </button>
+            <button
+              type="button"
+              onClick={handleResetScan}
+              className="px-3 py-2 bg-gray-100 text-gray-700 rounded-md text-sm font-medium hover:bg-gray-200 transition whitespace-nowrap"
+            >
+              Reset
+            </button>
+          </form>
+        </div>
+
+        {/* Mobile: 3 rows */}
+        <div className="lg:hidden space-y-3">
+          {/* Row 1: Search + Brand Filter */}
+          <div className="grid grid-cols-2 gap-3">
+            <Popover open={searchOpen} onOpenChange={setSearchOpen}>
+              <PopoverTrigger asChild>
+                <button
+                  type="button"
+                  className={`w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-left focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white ${
+                    search ? "text-gray-900" : "text-gray-500"
+                  }`}
+                >
+                  {search || "Cari IMEI atau Nama HP"}
+                </button>
+              </PopoverTrigger>
+              <PopoverContent
+                align="start"
+                className="p-0 w-[--radix-popover-trigger-width]"
+              >
+                <Command>
+                  <CommandInput
+                    placeholder="Ketik IMEI atau Nama HP..."
+                    value={search}
+                    onValueChange={(value) => setSearch(value)}
+                  />
+                  <CommandList>
+                    <CommandEmpty>Tidak ada hasil.</CommandEmpty>
+
+                    {(!searchValue || !isNumericSearch) && (
+                      <CommandGroup heading="Nama HP">
+                        {filteredNamaOptions.slice(0, 20).map((name) => (
+                          <CommandItem
+                            key={name}
+                            value={name}
+                            onSelect={(value) => {
+                              setSearch(value);
+                              setSearchOpen(false);
+                            }}
+                          >
+                            {name}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    )}
+
+                    {(!searchValue || isNumericSearch) && (
+                      <CommandGroup heading="IMEI">
+                        {filteredImeiOptions.slice(0, 20).map((imei) => (
+                          <CommandItem
+                            key={imei}
+                            value={imei}
+                            onSelect={(value) => {
+                              setSearch(value);
+                              setSearchOpen(false);
+                            }}
+                          >
+                            {imei}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    )}
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
+
+            <div className="relative">
+              <button
+                onClick={() => setBrandDropdownOpen(!brandDropdownOpen)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-left focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+              >
+                {brandFilters.length === 0
+                  ? "Semua Brand"
+                  : `${brandFilters.length} Brand Terpilih`}
+              </button>
+              {brandDropdownOpen && (
+                <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-64 overflow-y-auto">
+                  {brandsList.map((brand) => (
+                    <label
+                      key={brand}
+                      className="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 cursor-pointer"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={brandFilters.includes(brand)}
+                        onChange={() => handleToggleBrand(brand)}
+                        className="w-4 h-4 rounded border-gray-300"
+                      />
+                      <span
+                        className="text-xs px-2 py-0.5 rounded text-white font-medium"
+                        style={{ backgroundColor: getBrandColor(brand) }}
+                      >
+                        {brand}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Row 2: Sort 1 + Sort 2 */}
+          <div className="grid grid-cols-2 gap-3">
             <select
               value={sortOption}
               onChange={(e) =>
@@ -341,20 +565,48 @@ export const StockOpnamePage = () => {
                     | "name-asc"
                     | "name-desc"
                     | "brand-asc"
-                    | "brand-desc",
+                    | "brand-desc"
+                    | "none",
                 )
               }
               className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              <option value="scanned-first">Urutkan: Sudah Scan</option>
-              <option value="unscanned-first">Urutkan: Belum Scan</option>
-              <option value="name-asc">Urutkan: Nama A-Z</option>
-              <option value="name-desc">Urutkan: Nama Z-A</option>
-              <option value="brand-asc">Urutkan: Brand A-Z</option>
-              <option value="brand-desc">Urutkan: Brand Z-A</option>
+              <option value="scanned-first">✓ Sudah Scan</option>
+              <option value="unscanned-first">✗ Belum Scan</option>
+              <option value="name-asc">Nama A-Z</option>
+              <option value="name-desc">Nama Z-A</option>
+              <option value="brand-asc">Brand A-Z</option>
+              <option value="brand-desc">Brand Z-A</option>
+              <option value="none">--- Tidak ---</option>
+            </select>
+
+            <select
+              value={sortOption2}
+              onChange={(e) =>
+                setSortOption2(
+                  e.target.value as
+                    | "scanned-first"
+                    | "unscanned-first"
+                    | "name-asc"
+                    | "name-desc"
+                    | "brand-asc"
+                    | "brand-desc"
+                    | "none",
+                )
+              }
+              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="none">--- Tidak ---</option>
+              <option value="scanned-first">✓ Sudah Scan</option>
+              <option value="unscanned-first">✗ Belum Scan</option>
+              <option value="name-asc">Nama A-Z</option>
+              <option value="name-desc">Nama Z-A</option>
+              <option value="brand-asc">Brand A-Z</option>
+              <option value="brand-desc">Brand Z-A</option>
             </select>
           </div>
 
+          {/* Row 3: Scan Input + Buttons */}
           <form onSubmit={handleScanSubmit} className="flex gap-2">
             <input
               value={imeiInput}
@@ -364,14 +616,14 @@ export const StockOpnamePage = () => {
             />
             <button
               type="submit"
-              className="px-3 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 transition"
+              className="px-3 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 transition whitespace-nowrap"
             >
               Scan
             </button>
             <button
               type="button"
               onClick={handleResetScan}
-              className="px-3 py-2 bg-gray-100 text-gray-700 rounded-md text-sm font-medium hover:bg-gray-200 transition"
+              className="px-3 py-2 bg-gray-100 text-gray-700 rounded-md text-sm font-medium hover:bg-gray-200 transition whitespace-nowrap"
             >
               Reset
             </button>
@@ -426,17 +678,6 @@ export const StockOpnamePage = () => {
                   </p>
                   <p>Tanggal Masuk: {item.tanggalMasuk?.slice(0, 10) || "-"}</p>
                 </div>
-
-                {isLast && (
-                  <div className="mt-2 text-[10px] sm:text-xs font-medium text-amber-700">
-                    Baru saja discan
-                  </div>
-                )}
-                {!isLast && isScanned && (
-                  <div className="mt-2 text-[10px] sm:text-xs font-medium text-emerald-700">
-                    Sudah discan
-                  </div>
-                )}
               </div>
             );
           })}

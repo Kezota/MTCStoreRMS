@@ -40,7 +40,7 @@ interface FilterState {
   search: string;
   status: "" | "READY" | "TERJUAL";
   brands: string[];
-  warna: string;
+  tanggal: string;
 }
 
 interface SortField {
@@ -67,7 +67,7 @@ export const InventoryPage = () => {
     search: "",
     status: "",
     brands: [],
-    warna: "",
+    tanggal: "",
   });
 
   const [sorts, setSorts] = useState<SortField[]>([
@@ -110,7 +110,10 @@ export const InventoryPage = () => {
       params.brand = activeBrands.join(",");
     }
 
-    if (filters.warna) params.warna = filters.warna;
+    if (filters.tanggal) {
+      params.tanggalMasuk = filters.tanggal; // Format: YYYY-MM-DD
+      console.log("[DEBUG] Date filter applied:", filters.tanggal);
+    }
 
     // Build sort params only for non-empty fields
     const activeSorts = sorts.filter((s) => s.field);
@@ -167,7 +170,7 @@ export const InventoryPage = () => {
       search: "",
       status: "",
       brands: [],
-      warna: "",
+      tanggal: "",
     });
     setSorts([
       { field: "tanggalMasuk", order: "desc" },
@@ -365,21 +368,13 @@ export const InventoryPage = () => {
 
           <div className="relative">
             <input
-              type="text"
-              placeholder="Warna..."
-              value={filters.warna}
+              type="date"
+              value={filters.tanggal}
               onChange={(e) =>
-                setFilters({ ...filters, warna: e.target.value })
+                setFilters({ ...filters, tanggal: e.target.value })
               }
-              className={`w-full px-2 sm:px-3 py-1.5 sm:py-2 border border-slate-200 rounded text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                filters.warna ? "pr-16 sm:pr-20" : ""
-              }`}
+              className="w-full px-2 sm:px-3 py-1.5 sm:py-2 border border-slate-200 rounded text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
-            {filters.warna && (
-              <span className="absolute right-1.5 sm:right-2 top-1/2 -translate-y-1/2 px-1.5 py-0.5 rounded text-[10px] font-medium text-white bg-blue-600 truncate">
-                {filters.warna}
-              </span>
-            )}
           </div>
         </div>
 

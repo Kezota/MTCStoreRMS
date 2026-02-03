@@ -155,6 +155,7 @@ export const inventoryQuerySchema = z.object({
   imei: z.string().optional(),
   namaHP: z.string().optional(),
   warna: z.string().optional(),
+  tanggalMasuk: z.string().optional(), // Filter by exact date (YYYY-MM-DD)
   minModalAwal: z.string().optional(),
   maxModalAwal: z.string().optional(),
   minModalFinal: z.string().optional(),

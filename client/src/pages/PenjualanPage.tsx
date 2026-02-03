@@ -43,7 +43,7 @@ interface FilterState {
   search: string;
   metodeBayar: string;
   brands: string[];
-  warna: string;
+  tanggal: string;
 }
 
 interface SortField {
@@ -69,7 +69,7 @@ export const PenjualanPage = () => {
     search: "",
     metodeBayar: "",
     brands: [],
-    warna: "",
+    tanggal: "",
   });
   const [sorts, setSorts] = useState<SortField[]>([
     { field: "tanggal", order: "desc" },
@@ -100,7 +100,9 @@ export const PenjualanPage = () => {
       }
     }
     if (filters.metodeBayar) params.metodeBayar = filters.metodeBayar;
-    if (filters.warna) params.warna = filters.warna;
+    if (filters.tanggal) {
+      params.tanggal = filters.tanggal; // Format: YYYY-MM-DD
+    }
 
     // Multi-brand filter
     const activeBrands = filters.brands.filter((b) => b);
@@ -158,7 +160,7 @@ export const PenjualanPage = () => {
   };
 
   const handleClearFilters = () => {
-    setFilters({ search: "", metodeBayar: "", brands: [], warna: "" });
+    setFilters({ search: "", metodeBayar: "", brands: [], tanggal: "" });
     setSorts([
       { field: "tanggal", order: "desc" },
       { field: "", order: "desc" },
@@ -375,19 +377,13 @@ export const PenjualanPage = () => {
 
           <div className="relative">
             <input
-              type="text"
-              placeholder="Warna..."
-              value={filters.warna}
+              type="date"
+              value={filters.tanggal}
               onChange={(e) =>
-                setFilters((prev) => ({ ...prev, warna: e.target.value }))
+                setFilters((prev) => ({ ...prev, tanggal: e.target.value }))
               }
               className="w-full px-2 sm:px-3 py-1.5 sm:py-2 border border-slate-200 rounded text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
-            {filters.warna && (
-              <span className="absolute right-1.5 sm:right-2 top-1/2 -translate-y-1/2 px-1.5 py-0.5 rounded text-[10px] font-medium text-white bg-slate-600 truncate">
-                {filters.warna}
-              </span>
-            )}
           </div>
         </div>
         {/* Sort Section */}

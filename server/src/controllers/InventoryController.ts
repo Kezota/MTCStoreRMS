@@ -36,6 +36,7 @@ export const getAllInventory = async (
       imei,
       namaHP,
       warna,
+      tanggalMasuk,
       minModalAwal,
       maxModalAwal,
       minModalFinal,
@@ -110,6 +111,14 @@ export const getAllInventory = async (
       where.tanggalMasuk = {};
       if (startDate) where.tanggalMasuk.gte = new Date(startDate);
       if (endDate) where.tanggalMasuk.lte = new Date(endDate);
+    }
+
+    // Single date filter (exact date)
+    if (tanggalMasuk) {
+      const dateStart = new Date(tanggalMasuk);
+      const dateEnd = new Date(tanggalMasuk);
+      dateEnd.setHours(23, 59, 59, 999);
+      where.tanggalMasuk = { gte: dateStart, lte: dateEnd };
     }
 
     // Pagination

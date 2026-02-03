@@ -36,6 +36,7 @@ export const getAllPenjualan = async (
       namaHP,
       brand,
       warna,
+      tanggal,
       minHargaJual,
       maxHargaJual,
       minProfit,
@@ -119,6 +120,14 @@ export const getAllPenjualan = async (
       where.tanggal = {};
       if (startDate) where.tanggal.gte = new Date(startDate);
       if (endDate) where.tanggal.lte = new Date(endDate);
+    }
+
+    // Single date filter (exact date)
+    if (tanggal) {
+      const dateStart = new Date(tanggal);
+      const dateEnd = new Date(tanggal);
+      dateEnd.setHours(23, 59, 59, 999);
+      where.tanggal = { gte: dateStart, lte: dateEnd };
     }
 
     // Pagination
