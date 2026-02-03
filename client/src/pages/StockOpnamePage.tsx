@@ -135,27 +135,32 @@ export const StockOpnamePage = () => {
       if (sortOption !== "none") {
         switch (sortOption) {
           case "scanned-first":
-          case "unscanned-first":
+          case "unscanned-first": {
             const diff1 =
               getSortValue(sortOption, a) - getSortValue(sortOption, b);
             if (diff1 !== 0) return diff1;
             break;
-          case "name-asc":
+          }
+          case "name-asc": {
             const nameAscDiff = a.namaHP.localeCompare(b.namaHP);
             if (nameAscDiff !== 0) return nameAscDiff;
             break;
-          case "name-desc":
+          }
+          case "name-desc": {
             const nameDescDiff = b.namaHP.localeCompare(a.namaHP);
             if (nameDescDiff !== 0) return nameDescDiff;
             break;
-          case "brand-asc":
+          }
+          case "brand-asc": {
             const brandAscDiff = a.brand.localeCompare(b.brand);
             if (brandAscDiff !== 0) return brandAscDiff;
             break;
-          case "brand-desc":
+          }
+          case "brand-desc": {
             const brandDescDiff = b.brand.localeCompare(a.brand);
             if (brandDescDiff !== 0) return brandDescDiff;
             break;
+          }
         }
       }
 
@@ -163,34 +168,39 @@ export const StockOpnamePage = () => {
       if (sortOption2 !== "none") {
         switch (sortOption2) {
           case "scanned-first":
-          case "unscanned-first":
+          case "unscanned-first": {
             const diff2 =
               getSortValue(sortOption2, a) - getSortValue(sortOption2, b);
             if (diff2 !== 0) return diff2;
             break;
-          case "name-asc":
+          }
+          case "name-asc": {
             const nameAscDiff = a.namaHP.localeCompare(b.namaHP);
             if (nameAscDiff !== 0) return nameAscDiff;
             break;
-          case "name-desc":
+          }
+          case "name-desc": {
             const nameDescDiff = b.namaHP.localeCompare(a.namaHP);
             if (nameDescDiff !== 0) return nameDescDiff;
             break;
-          case "brand-asc":
+          }
+          case "brand-asc": {
             const brandAscDiff = a.brand.localeCompare(b.brand);
             if (brandAscDiff !== 0) return brandAscDiff;
             break;
-          case "brand-desc":
+          }
+          case "brand-desc": {
             const brandDescDiff = b.brand.localeCompare(a.brand);
             if (brandDescDiff !== 0) return brandDescDiff;
             break;
+          }
         }
       }
 
       // Fallback: sort by name
       return a.namaHP.localeCompare(b.namaHP);
     });
-  }, [filteredItems, scannedImeis, lastScanned, sortOption, sortOption2]);
+  }, [filteredItems, sortOption, sortOption2, getSortValue]);
 
   const totalReady = readyItems.length;
   const scannedCount = scannedImeis.size;

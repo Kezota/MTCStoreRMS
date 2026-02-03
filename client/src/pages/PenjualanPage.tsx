@@ -34,6 +34,7 @@ import {
   Trash2,
   Plus,
   X,
+  ChevronsUpDown,
 } from "lucide-react";
 import { brandsList } from "@/lib/constants";
 import { getBrandColor } from "@/lib/utils";
@@ -78,6 +79,7 @@ export const PenjualanPage = () => {
   ]);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [searchInput, setSearchInput] = useState("");
   const [brandDropdownOpen, setBrandDropdownOpen] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
@@ -87,10 +89,9 @@ export const PenjualanPage = () => {
   const { data: inventoryData } = useGetInventory({ page: 1, limit: 10000 });
 
   const searchValue = filters.search.trim();
-  const isNumericSearch = searchValue.length > 0 && /^\d+$/.test(searchValue);
 
   const queryParams = useMemo(() => {
-    const params: any = { page, limit: 1000 };
+    const params: Record<string, string | number> = { page, limit: 1000 };
 
     if (searchValue) {
       if (/^\d+$/.test(searchValue)) {
@@ -117,7 +118,7 @@ export const PenjualanPage = () => {
     }
 
     return params;
-  }, [filters, sorts, page, limit, searchValue]);
+  }, [filters, sorts, page, searchValue]);
 
   const { data, isLoading, error } = useGetPenjualan(queryParams);
 
@@ -201,22 +202,53 @@ export const PenjualanPage = () => {
     }).format(num);
   };
 
-  const penjualan = data?.data || [];
+  const penjualan = useMemo(() => data?.data || [], [data]);
 
-  const imeiOptions = useMemo(
-    () =>
-      Array.from(new Set(penjualan.map((item) => item.inventory?.imei))).filter(
-        Boolean,
-      ) as string[],
-    [penjualan],
-  );
+  const filteredPenjualanList = useMemo(() => {
+    if (!searchInput.trim()) return penjualan.slice(0, 20);
+    const search = searchInput.toLowerCase();
 
-  const namaOptions = useMemo(
+    const filtered = penjualan.filter(
+      (item) =>
+        item.inventory?.imei?.toLowerCase().includes(search) ||
+        item.inventory?.namaHP?.toLowerCase().includes(search) ||
+        item.inventory?.brand?.toLowerCase().includes(search),
+    );
+
+    // Sort by IMEI match position (closer to end = higher priority)
+    filtered.sort((a, b) => {
+      const aImei = a.inventory?.imei?.toLowerCase() || "";
+      const bImei = b.inventory?.imei?.toLowerCase() || "";
+
+      const aIndex = aImei.indexOf(search);
+      const bIndex = bImei.indexOf(search);
+
+      // If both match in IMEI, sort by position (higher index = closer to end = higher priority)
+      if (aIndex !== -1 && bIndex !== -1) {
+        return bIndex - aIndex; // Reverse order: higher index first
+      }
+
+      // If only one matches in IMEI, prioritize that one
+      if (aIndex !== -1) return -1;
+      if (bIndex !== -1) return 1;
+
+      // Neither matches in IMEI, keep original order
+      return 0;
+    });
+
+    return filtered.slice(0, 20);
+  }, [penjualan, searchInput]);
+
+  const selectedItem = useMemo(
     () =>
-      Array.from(
-        new Set(penjualan.map((item) => item.inventory?.namaHP)),
-      ).filter(Boolean) as string[],
-    [penjualan],
+      filters.search.trim()
+        ? penjualan.find(
+            (item) =>
+              item.inventory?.imei === filters.search ||
+              item.inventory?.namaHP === filters.search,
+          )
+        : undefined,
+    [penjualan, filters.search],
   );
 
   const inventoryOptions: InventoryItem[] = useMemo(
@@ -260,69 +292,69 @@ export const PenjualanPage = () => {
       <div className="bg-white/90 rounded-lg border border-slate-200/80 my-7 p-2 sm:p-4 space-y-2 sm:space-y-4">
         {/* Basic Filters - Compact on mobile */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 sm:gap-3">
-          <Popover open={searchOpen} onOpenChange={setSearchOpen}>
-            <PopoverTrigger asChild>
-              <button
-                type="button"
-                className={`w-full px-2 sm:px-3 py-1.5 sm:py-2 border border-slate-200 rounded text-xs sm:text-sm text-left focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white ${
-                  filters.search ? "text-slate-900" : "text-slate-500"
-                }`}
+          <div>
+            <Popover open={searchOpen} onOpenChange={setSearchOpen}>
+              <PopoverTrigger asChild>
+                <button
+                  type="button"
+                  className={`w-full px-2 sm:px-3 py-1.5 sm:py-2 border border-slate-200 rounded text-xs sm:text-sm text-left focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white flex items-center justify-between ${
+                    filters.search ? "text-slate-900" : "text-slate-500"
+                  }`}
+                >
+                  <span className="truncate">
+                    {selectedItem?.inventory
+                      ? `${selectedItem.inventory.imei} - ${selectedItem.inventory.namaHP}`
+                      : "Cari IMEI atau Nama HP"}
+                  </span>
+                  <ChevronsUpDown className="ml-1 h-3 w-3 sm:h-4 sm:w-4 shrink-0 opacity-50" />
+                </button>
+              </PopoverTrigger>
+              <PopoverContent
+                align="start"
+                className="p-0 w-[--radix-popover-trigger-width]"
               >
-                {filters.search || "Cari IMEI atau Nama HP"}
-              </button>
-            </PopoverTrigger>
-            <PopoverContent
-              align="start"
-              className="p-0 w-[--radix-popover-trigger-width]"
-            >
-              <Command>
-                <CommandInput
-                  placeholder="Ketik IMEI atau Nama HP..."
-                  value={filters.search}
-                  onValueChange={(value) =>
-                    setFilters((prev) => ({ ...prev, search: value }))
-                  }
-                />
-                <CommandList>
-                  <CommandEmpty>Tidak ada hasil.</CommandEmpty>
-
-                  {(!searchValue || !isNumericSearch) && (
-                    <CommandGroup heading="Nama HP">
-                      {namaOptions.slice(0, 20).map((name) => (
+                <Command shouldFilter={false}>
+                  <CommandInput
+                    placeholder="Cari IMEI, Nama HP, atau Brand..."
+                    value={searchInput}
+                    onValueChange={setSearchInput}
+                  />
+                  <CommandList>
+                    <CommandEmpty>Tidak ada hasil.</CommandEmpty>
+                    <CommandGroup>
+                      {filteredPenjualanList.map((item) => (
                         <CommandItem
-                          key={name}
-                          value={name}
-                          onSelect={(value) => {
-                            setFilters((prev) => ({ ...prev, search: value }));
+                          key={item.id}
+                          value={String(item.id)}
+                          onSelect={() => {
+                            setFilters((prev) => ({
+                              ...prev,
+                              search: item.inventory?.imei || "",
+                            }));
                             setSearchOpen(false);
+                            setSearchInput("");
                           }}
                         >
-                          {name}
+                          <div className="flex flex-col text-xs sm:text-sm">
+                            <div className="font-medium">
+                              {item.inventory?.imei} - {item.inventory?.namaHP}
+                            </div>
+                            <div className="text-slate-500 text-[10px] sm:text-xs">
+                              {item.inventory?.brand} •{" "}
+                              {item.inventory?.warna || "Tanpa warna"} •{" "}
+                              {new Date(item.tanggal).toLocaleDateString(
+                                "id-ID",
+                              )}
+                            </div>
+                          </div>
                         </CommandItem>
                       ))}
                     </CommandGroup>
-                  )}
-
-                  {(!searchValue || isNumericSearch) && (
-                    <CommandGroup heading="IMEI">
-                      {imeiOptions.slice(0, 20).map((imei) => (
-                        <CommandItem
-                          key={imei}
-                          value={imei}
-                          onSelect={(value) => {
-                            setFilters((prev) => ({ ...prev, search: value }));
-                            setSearchOpen(false);
-                          }}
-                        >
-                          {imei}
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
-                  )}
-                </CommandList>
-              </Command>
-            </PopoverContent>
-          </Popover>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
+          </div>
 
           <select
             value={filters.metodeBayar}
@@ -488,10 +520,10 @@ export const PenjualanPage = () => {
                     Nama HP
                   </TableHead>
                   <TableHead className="px-3 py-2 text-sm text-slate-600 border-l border-slate-200/70">
-                    Modal Final
+                    Harga Jual
                   </TableHead>
                   <TableHead className="px-3 py-2 text-sm text-slate-600 border-l border-slate-200/70">
-                    Harga Jual
+                    Modal Final
                   </TableHead>
                   <TableHead className="px-3 py-2 text-sm text-slate-600 border-l border-slate-200/70">
                     Diskon
@@ -541,10 +573,10 @@ export const PenjualanPage = () => {
                       {item.inventory?.namaHP}
                     </TableCell>
                     <TableCell className="px-3 py-2 text-sm text-slate-600 border-l border-slate-200/70">
-                      {formatRupiah(item.inventory?.modalFinal || 0)}
+                      {formatRupiah(item.hargaJual)}
                     </TableCell>
                     <TableCell className="px-3 py-2 text-sm text-slate-600 border-l border-slate-200/70">
-                      {formatRupiah(item.hargaJual)}
+                      {formatRupiah(item.inventory?.modalFinal || 0)}
                     </TableCell>
                     <TableCell className="px-3 py-2 text-sm text-slate-600 border-l border-slate-200/70">
                       {item.diskon ? formatRupiah(item.diskon) : "-"}
@@ -614,10 +646,10 @@ export const PenjualanPage = () => {
                   Nama
                 </TableHead>
                 <TableHead className="px-1 py-0.5 text-[10px] text-slate-600 border-l border-slate-200/70">
-                  Modal
+                  Harga
                 </TableHead>
                 <TableHead className="px-1 py-0.5 text-[10px] text-slate-600 border-l border-slate-200/70">
-                  Harga
+                  Modal
                 </TableHead>
                 <TableHead className="px-1 py-0.5 text-[10px] text-slate-600 border-l border-slate-200/70">
                   Profit
@@ -661,10 +693,10 @@ export const PenjualanPage = () => {
                     {item.inventory?.namaHP?.substring(0, 12) || "-"}
                   </TableCell>
                   <TableCell className="px-1 py-0.5 text-[10px] text-slate-600 border-l border-slate-200/70">
-                    {formatRupiah(item.inventory?.modalFinal || 0)}
+                    {formatRupiah(item.hargaJual)}
                   </TableCell>
                   <TableCell className="px-1 py-0.5 text-[10px] text-slate-600 border-l border-slate-200/70">
-                    {formatRupiah(item.hargaJual)}
+                    {formatRupiah(item.inventory?.modalFinal || 0)}
                   </TableCell>
                   <TableCell
                     className={`px-1 py-0.5 text-[10px] font-semibold border-l border-slate-200/70 ${Number(item.profit) < 0 ? "text-red-600" : "text-green-600"}`}

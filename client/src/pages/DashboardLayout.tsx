@@ -38,9 +38,11 @@ export const DashboardLayout = () => {
           <div className="flex items-center justify-between h-12 sm:h-16">
             {/* Logo */}
             <div className="flex items-center gap-1.5 sm:gap-2">
-              <div className="w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center">
-                <Smartphone className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
-              </div>
+              <img
+                src="/logo mtc.jpeg"
+                alt="Logo"
+                className="w-8 h-8 object-cover rounded-lg"
+              />
               <span className="text-base sm:text-xl font-bold text-gray-900">
                 MTC Store
               </span>

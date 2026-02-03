@@ -31,6 +31,7 @@ import {
   Edit2,
   Trash2,
   GripHorizontal,
+  ChevronsUpDown,
 } from "lucide-react";
 import { brandsList } from "@/lib/constants";
 import { getBrandColor } from "@/lib/utils";
@@ -79,6 +80,7 @@ export const InventoryPage = () => {
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [brandDropdownOpen, setBrandDropdownOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [searchInput, setSearchInput] = useState("");
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [editingItem, setEditingItem] = useState<InventoryItem | null>(null);
@@ -86,11 +88,10 @@ export const InventoryPage = () => {
   const deleteMutation = useDeleteInventoryMutation();
 
   const searchValue = filters.search.trim();
-  const isNumericSearch = searchValue.length > 0 && /^\d+$/.test(searchValue);
 
   // Build query params
   const queryParams = useMemo(() => {
-    const params: any = {
+    const params: Record<string, string | number> = {
       page,
       limit: 1000,
     };
@@ -123,7 +124,7 @@ export const InventoryPage = () => {
     }
 
     return params;
-  }, [filters, sorts, page, limit]);
+  }, [filters, sorts, page, limit, searchValue]);
 
   const { data, isLoading, error } = useGetInventory(queryParams);
 
@@ -197,20 +198,55 @@ export const InventoryPage = () => {
     await deleteMutation.mutateAsync(id);
   };
 
-  const inventory = data?.data || [];
+  const inventory = useMemo(() => data?.data || [], [data]);
 
-  const imeiOptions = useMemo(
+  const filteredInventoryList = useMemo(() => {
+    if (!searchInput.trim()) return inventory.slice(0, 20);
+    const search = searchInput.toLowerCase();
+
+    const filtered = inventory.filter(
+      (item) =>
+        item.imei?.toLowerCase().includes(search) ||
+        item.namaHP?.toLowerCase().includes(search) ||
+        item.brand?.toLowerCase().includes(search),
+    );
+
+    // Sort by IMEI match position (closer to end = higher priority)
+    filtered.sort((a, b) => {
+      const aImei = a.imei?.toLowerCase() || "";
+      const bImei = b.imei?.toLowerCase() || "";
+
+      const aIndex = aImei.indexOf(search);
+      const bIndex = bImei.indexOf(search);
+
+      // If both match in IMEI, sort by position (higher index = closer to end = higher priority)
+      if (aIndex !== -1 && bIndex !== -1) {
+        return bIndex - aIndex; // Reverse order: higher index first
+      }
+
+      // If only one matches in IMEI, prioritize that one
+      if (aIndex !== -1) return -1;
+      if (bIndex !== -1) return 1;
+
+      // Neither matches in IMEI, keep original order
+      return 0;
+    });
+
+    return filtered.slice(0, 20);
+  }, [inventory, searchInput]);
+
+  const selectedItem = useMemo(
     () =>
-      Array.from(new Set(inventory.map((item) => item.imei))).filter(Boolean),
-    [inventory],
+      filters.search.trim()
+        ? inventory.find(
+            (item) =>
+              item.imei === filters.search || item.namaHP === filters.search,
+          )
+        : undefined,
+    [inventory, filters.search],
   );
 
   const namaHPOptions = useMemo(
-    () =>
-      Array.from(new Set(inventory.map((item) => item.namaHP))).filter(Boolean),
-    [inventory],
-  );
-  const namaOptions = useMemo(
     () =>
       Array.from(new Set(inventory.map((item) => item.namaHP))).filter(Boolean),
     [inventory],
@@ -239,69 +275,66 @@ export const InventoryPage = () => {
       <div className="bg-white/90 rounded-lg border border-slate-200/80 p-2 sm:p-4 space-y-2 sm:space-y-4">
         {/* Basic Filters - Compact on mobile */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 sm:gap-3">
-          <Popover open={searchOpen} onOpenChange={setSearchOpen}>
-            <PopoverTrigger asChild>
-              <button
-                type="button"
-                className={`w-full px-2 sm:px-3 py-1.5 sm:py-2 border border-slate-200 rounded text-xs sm:text-sm text-left focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white ${
-                  filters.search ? "text-slate-900" : "text-slate-500"
-                }`}
+          <div>
+            <Popover open={searchOpen} onOpenChange={setSearchOpen}>
+              <PopoverTrigger asChild>
+                <button
+                  type="button"
+                  className={`w-full px-2 sm:px-3 py-1.5 sm:py-2 border border-slate-200 rounded text-xs sm:text-sm text-left focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white flex items-center justify-between ${
+                    filters.search ? "text-slate-900" : "text-slate-500"
+                  }`}
+                >
+                  <span className="truncate">
+                    {selectedItem
+                      ? `${selectedItem.imei} - ${selectedItem.namaHP}`
+                      : "Cari IMEI atau Nama HP"}
+                  </span>
+                  <ChevronsUpDown className="ml-1 h-3 w-3 sm:h-4 sm:w-4 shrink-0 opacity-50" />
+                </button>
+              </PopoverTrigger>
+              <PopoverContent
+                align="start"
+                className="p-0 w-[--radix-popover-trigger-width]"
               >
-                {filters.search || "Cari IMEI atau Nama HP"}
-              </button>
-            </PopoverTrigger>
-            <PopoverContent
-              align="start"
-              className="p-0 w-[--radix-popover-trigger-width]"
-            >
-              <Command>
-                <CommandInput
-                  placeholder="Ketik IMEI atau Nama HP..."
-                  value={filters.search}
-                  onValueChange={(value) =>
-                    setFilters((prev) => ({ ...prev, search: value }))
-                  }
-                />
-                <CommandList>
-                  <CommandEmpty>Tidak ada hasil.</CommandEmpty>
-
-                  {(!searchValue || !isNumericSearch) && (
-                    <CommandGroup heading="Nama HP">
-                      {namaOptions.slice(0, 20).map((name) => (
+                <Command shouldFilter={false}>
+                  <CommandInput
+                    placeholder="Cari IMEI, Nama HP, atau Brand..."
+                    value={searchInput}
+                    onValueChange={setSearchInput}
+                  />
+                  <CommandList>
+                    <CommandEmpty>Tidak ada hasil.</CommandEmpty>
+                    <CommandGroup>
+                      {filteredInventoryList.map((item) => (
                         <CommandItem
-                          key={name}
-                          value={name}
-                          onSelect={(value) => {
-                            setFilters((prev) => ({ ...prev, search: value }));
+                          key={item.id}
+                          value={String(item.id)}
+                          onSelect={() => {
+                            setFilters((prev) => ({
+                              ...prev,
+                              search: item.imei,
+                            }));
                             setSearchOpen(false);
+                            setSearchInput("");
                           }}
                         >
-                          {name}
+                          <div className="flex flex-col text-xs sm:text-sm">
+                            <div className="font-medium">
+                              {item.imei} - {item.namaHP}
+                            </div>
+                            <div className="text-slate-500 text-[10px] sm:text-xs">
+                              {item.brand} • {item.warna || "Tanpa warna"} •{" "}
+                              {item.status}
+                            </div>
+                          </div>
                         </CommandItem>
                       ))}
                     </CommandGroup>
-                  )}
-
-                  {(!searchValue || isNumericSearch) && (
-                    <CommandGroup heading="IMEI">
-                      {imeiOptions.slice(0, 20).map((imei) => (
-                        <CommandItem
-                          key={imei}
-                          value={imei}
-                          onSelect={(value) => {
-                            setFilters((prev) => ({ ...prev, search: value }));
-                            setSearchOpen(false);
-                          }}
-                        >
-                          {imei}
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
-                  )}
-                </CommandList>
-              </Command>
-            </PopoverContent>
-          </Popover>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
+          </div>
 
           <div className="relative">
             <select
@@ -569,7 +602,7 @@ export const InventoryPage = () => {
                       Rp {parseFloat(item.modalAwal).toLocaleString("id-ID")}
                     </TableCell>
                     <TableCell className="px-3 py-2 text-sm text-slate-600 border-l border-slate-200/70">
-                      {item.cashback && parseFloat(item.cashback) > 0
+                      {item.cashback && parseFloat(item.cashback) !== 0
                         ? `Rp ${parseFloat(item.cashback).toLocaleString("id-ID")}`
                         : "-"}
                     </TableCell>
