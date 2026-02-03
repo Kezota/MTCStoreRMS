@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { API } from "@/lib/API";
 import { QUERY_KEYS } from "@/lib/queryKeys";
+import { showToast } from "@/lib/toast";
 import type {
   CreatePenjualanRequest,
   UpdatePenjualanRequest,
@@ -23,7 +24,7 @@ export const useCreatePenjualanMutation = () => {
       );
       return response.data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({
         queryKey: QUERY_KEYS.penjualan.list(),
         exact: false,
@@ -32,6 +33,12 @@ export const useCreatePenjualanMutation = () => {
         queryKey: QUERY_KEYS.inventory.list(),
         exact: false,
       });
+      showToast.success(data.message || "Penjualan berhasil ditambahkan");
+    },
+    onError: (error: any) => {
+      showToast.error(
+        error?.response?.data?.message || "Gagal menambahkan penjualan",
+      );
     },
   });
 };
@@ -51,7 +58,7 @@ export const useUpdatePenjualanMutation = () => {
       );
       return response.data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({
         queryKey: QUERY_KEYS.penjualan.list(),
         exact: false,
@@ -60,6 +67,12 @@ export const useUpdatePenjualanMutation = () => {
         queryKey: QUERY_KEYS.inventory.list(),
         exact: false,
       });
+      showToast.success(data.message || "Penjualan berhasil diperbarui");
+    },
+    onError: (error: any) => {
+      showToast.error(
+        error?.response?.data?.message || "Gagal memperbarui penjualan",
+      );
     },
   });
 };
@@ -74,11 +87,17 @@ export const useDeletePenjualanMutation = () => {
       );
       return response.data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({
         queryKey: QUERY_KEYS.penjualan.list(),
         exact: false,
       });
+      showToast.success(data.message || "Penjualan berhasil dihapus");
+    },
+    onError: (error: any) => {
+      showToast.error(
+        error?.response?.data?.message || "Gagal menghapus penjualan",
+      );
     },
   });
 };

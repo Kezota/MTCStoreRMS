@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { API } from "@/lib/API";
 import { QUERY_KEYS } from "@/lib/queryKeys";
+import { showToast } from "@/lib/toast";
 import type {
   CreateInventoryRequest,
   UpdateInventoryRequest,
@@ -23,7 +24,7 @@ export const useCreateInventoryMutation = () => {
       );
       return response.data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({
         queryKey: QUERY_KEYS.inventory.list(),
         exact: false,
@@ -32,6 +33,12 @@ export const useCreateInventoryMutation = () => {
         queryKey: QUERY_KEYS.penjualan.list(),
         exact: false,
       });
+      showToast.success(data.message || "Inventory berhasil ditambahkan");
+    },
+    onError: (error: any) => {
+      showToast.error(
+        error?.response?.data?.message || "Gagal menambahkan inventory",
+      );
     },
   });
 };
@@ -51,7 +58,7 @@ export const useCreateBulkInventoryMutation = () => {
       );
       return response.data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({
         queryKey: QUERY_KEYS.inventory.list(),
         exact: false,
@@ -60,6 +67,12 @@ export const useCreateBulkInventoryMutation = () => {
         queryKey: QUERY_KEYS.penjualan.list(),
         exact: false,
       });
+      showToast.success(data.message || "Bulk inventory berhasil ditambahkan");
+    },
+    onError: (error: any) => {
+      showToast.error(
+        error?.response?.data?.message || "Gagal menambahkan bulk inventory",
+      );
     },
   });
 };
@@ -79,7 +92,7 @@ export const useUpdateInventoryMutation = () => {
       );
       return response.data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({
         queryKey: QUERY_KEYS.inventory.list(),
         exact: false,
@@ -88,6 +101,12 @@ export const useUpdateInventoryMutation = () => {
         queryKey: QUERY_KEYS.penjualan.list(),
         exact: false,
       });
+      showToast.success(data.message || "Inventory berhasil diperbarui");
+    },
+    onError: (error: any) => {
+      showToast.error(
+        error?.response?.data?.message || "Gagal memperbarui inventory",
+      );
     },
   });
 };
@@ -102,7 +121,7 @@ export const useDeleteInventoryMutation = () => {
       );
       return response.data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({
         queryKey: QUERY_KEYS.inventory.list(),
         exact: false,
@@ -111,6 +130,12 @@ export const useDeleteInventoryMutation = () => {
         queryKey: QUERY_KEYS.penjualan.list(),
         exact: false,
       });
+      showToast.success(data.message || "Inventory berhasil dihapus");
+    },
+    onError: (error: any) => {
+      showToast.error(
+        error?.response?.data?.message || "Gagal menghapus inventory",
+      );
     },
   });
 };
