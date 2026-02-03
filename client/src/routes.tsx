@@ -5,6 +5,7 @@ import {
   DashboardLayout,
   DashboardPage,
   LaporanPage,
+  StockOpnamePage,
   StaffPage,
   InventoryPage,
   PenjualanPage,
@@ -39,6 +40,11 @@ export const routes = [
             index: true,
             handle: { title: "Dashboard" },
             element: <DashboardPage />,
+          },
+          {
+            path: "stock-opname",
+            handle: { title: "Stock Opname" },
+            element: <StockOpnamePage />,
           },
           {
             path: "staff",

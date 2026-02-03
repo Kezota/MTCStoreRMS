@@ -40,11 +40,11 @@ export const DashboardPage = () => {
       path: "/dashboard/laporan",
     },
     {
-      title: "Staff",
-      description: "Manajemen user dan akses sistem",
+      title: "Stock Opname",
+      description: "Cek stok READY dan validasi scan IMEI",
       icon: Users,
       gradient: "from-orange-500 via-orange-600 to-red-600",
-      path: "/dashboard/staff",
+      path: "/dashboard/stock-opname",
     },
   ];
 

@@ -3,6 +3,7 @@ export { default as HomePage } from "./HomePage";
 export { LoginPage } from "./LoginPage";
 export { DashboardLayout } from "./DashboardLayout";
 export { DashboardPage } from "./DashboardPage";
+export { StockOpnamePage } from "./StockOpnamePage";
 export { StaffPage } from "./StaffPage";
 export { InventoryPage } from "./InventoryPage";
 export { default as PenjualanPage } from "./PenjualanPage";

@@ -449,10 +449,8 @@ export const LaporanPage = () => {
 
       {isLoading || isYearLoading ? (
         <div className="text-center py-12">
-          <div className="inline-block">
-            <div className="animate-spin">
-              <div className="h-8 w-8 border-4 border-gray-300 border-t-blue-600 rounded-full"></div>
-            </div>
+          <div className="inline-flex flex-col items-center">
+            <div className="h-8 w-8 border-4 border-gray-300 border-t-blue-600 rounded-full animate-spin"></div>
             <p className="text-gray-600 mt-3">Memuat laporan...</p>
           </div>
         </div>
