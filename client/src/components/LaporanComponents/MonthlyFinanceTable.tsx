@@ -34,15 +34,15 @@ export const MonthlyFinanceTable = ({
   );
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-4 sm:p-6 shadow-sm">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-sm sm:text-base font-semibold text-gray-900">
+    <div className="bg-white rounded-lg border border-gray-200 p-3 sm:p-4 lg:p-6 shadow-sm">
+      <div className="flex items-center justify-between mb-2 sm:mb-3 lg:mb-4 flex-col sm:flex-row gap-2 sm:gap-0">
+        <h3 className="text-xs sm:text-sm lg:text-base font-semibold text-gray-900">
           📅 Keuangan Per Bulan
         </h3>
         <select
           value={selectedYear}
           onChange={(e) => onYearChange(parseInt(e.target.value))}
-          className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+          className="px-2 py-1 sm:px-3 sm:py-2 border border-gray-300 rounded-md text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
         >
           {availableYears.map((year) => (
             <option key={year} value={year}>
@@ -52,25 +52,25 @@ export const MonthlyFinanceTable = ({
         </select>
       </div>
       <div className="overflow-x-auto">
-        <table className="min-w-full text-xs sm:text-sm lg:text-base">
+        <table className="min-w-full text-xs">
           <thead>
             <tr className="bg-gradient-to-r from-slate-50 to-slate-100 text-gray-700 border-b-2 border-gray-300">
-              <th className="px-2 sm:px-3 lg:px-4 py-2 sm:py-2.5 lg:py-3 text-left font-semibold">
+              <th className="px-2 py-1 sm:px-3 sm:py-2 lg:px-4 lg:py-3 text-left font-semibold">
                 Bulan
               </th>
-              <th className="px-2 sm:px-3 lg:px-4 py-2 sm:py-2.5 lg:py-3 text-right font-semibold">
+              <th className="px-2 py-1 sm:px-3 sm:py-2 lg:px-4 lg:py-3 text-right font-semibold">
                 Pemasukan
               </th>
-              <th className="px-2 sm:px-3 lg:px-4 py-2 sm:py-2.5 lg:py-3 text-right font-semibold">
+              <th className="px-2 py-1 sm:px-3 sm:py-2 lg:px-4 lg:py-3 text-right font-semibold">
                 Modal
               </th>
-              <th className="px-2 sm:px-3 lg:px-4 py-2 sm:py-2.5 lg:py-3 text-right font-semibold">
+              <th className="px-2 py-1 sm:px-3 sm:py-2 lg:px-4 lg:py-3 text-right font-semibold">
                 Laba Kotor
               </th>
-              <th className="px-2 sm:px-3 lg:px-4 py-2 sm:py-2.5 lg:py-3 text-right font-semibold">
+              <th className="px-2 py-1 sm:px-3 sm:py-2 lg:px-4 lg:py-3 text-right font-semibold">
                 Laba Bersih
               </th>
-              <th className="px-2 sm:px-3 lg:px-4 py-2 sm:py-2.5 lg:py-3 text-right font-semibold">
+              <th className="px-2 py-1 sm:px-3 sm:py-2 lg:px-4 lg:py-3 text-right font-semibold">
                 Transaksi
               </th>
             </tr>
@@ -83,43 +83,43 @@ export const MonthlyFinanceTable = ({
                   index % 2 === 0 ? "bg-white" : "bg-gray-50/50"
                 }`}
               >
-                <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-2.5 lg:py-3 font-medium text-gray-900">
+                <td className="px-2 py-1 sm:px-3 sm:py-2 lg:px-4 lg:py-3 font-medium text-gray-900">
                   {row.month}
                 </td>
-                <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-2.5 lg:py-3 text-right text-gray-600">
+                <td className="px-2 py-1 sm:px-3 sm:py-2 lg:px-4 lg:py-3 text-right text-gray-600">
                   {formatRupiah(row.sales)}
                 </td>
-                <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-2.5 lg:py-3 text-right text-gray-600">
+                <td className="px-2 py-1 sm:px-3 sm:py-2 lg:px-4 lg:py-3 text-right text-gray-600">
                   {formatRupiah(row.modal)}
                 </td>
-                <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-2.5 lg:py-3 text-right font-semibold text-purple-700">
+                <td className="px-2 py-1 sm:px-3 sm:py-2 lg:px-4 lg:py-3 text-right font-semibold text-purple-700">
                   {formatRupiah(row.gross)}
                 </td>
-                <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-2.5 lg:py-3 text-right font-semibold text-emerald-700">
+                <td className="px-2 py-1 sm:px-3 sm:py-2 lg:px-4 lg:py-3 text-right font-semibold text-emerald-700">
                   {formatRupiah(row.net)}
                 </td>
-                <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-2.5 lg:py-3 text-right font-medium text-slate-700">
+                <td className="px-2 py-1 sm:px-3 sm:py-2 lg:px-4 lg:py-3 text-right font-medium text-slate-700">
                   {row.transaksi}
                 </td>
               </tr>
             ))}
             <tr className="bg-gradient-to-r from-amber-50 to-amber-100 border-t-2 border-gray-300 font-semibold">
-              <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-2.5 lg:py-3 font-bold text-gray-900">
+              <td className="px-2 py-1 sm:px-3 sm:py-2 lg:px-4 lg:py-3 font-bold text-gray-900">
                 TOTAL
               </td>
-              <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-2.5 lg:py-3 text-right text-blue-700">
+              <td className="px-2 py-1 sm:px-3 sm:py-2 lg:px-4 lg:py-3 text-right text-blue-700">
                 {formatRupiah(totals.sales)}
               </td>
-              <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-2.5 lg:py-3 text-right text-orange-700">
+              <td className="px-2 py-1 sm:px-3 sm:py-2 lg:px-4 lg:py-3 text-right text-orange-700">
                 {formatRupiah(totals.modal)}
               </td>
-              <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-2.5 lg:py-3 text-right text-purple-700">
+              <td className="px-2 py-1 sm:px-3 sm:py-2 lg:px-4 lg:py-3 text-right text-purple-700">
                 {formatRupiah(totals.gross)}
               </td>
-              <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-2.5 lg:py-3 text-right text-emerald-700">
+              <td className="px-2 py-1 sm:px-3 sm:py-2 lg:px-4 lg:py-3 text-right text-emerald-700">
                 {formatRupiah(totals.net)}
               </td>
-              <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-2.5 lg:py-3 text-right text-slate-700">
+              <td className="px-2 py-1 sm:px-3 sm:py-2 lg:px-4 lg:py-3 text-right text-slate-700">
                 {totals.transaksi}
               </td>
             </tr>
