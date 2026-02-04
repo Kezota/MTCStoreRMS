@@ -5,10 +5,10 @@ export const brandsList = [
   "SAMSUNG",
   "APPLE",
   "REALME",
+  "INFINIX",
   "ITEL",
   "NOKIA",
   "ADVAN",
-  "INFINIX",
   "TECNO",
   "OTHERS",
 ] as const;
