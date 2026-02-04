@@ -35,6 +35,7 @@ import {
   Plus,
   X,
   ChevronsUpDown,
+  Eye,
 } from "lucide-react";
 import { brandsList } from "@/lib/constants";
 import { getBrandColor } from "@/lib/utils";
@@ -84,6 +85,7 @@ export const PenjualanPage = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [editingItem, setEditingItem] = useState<PenjualanItem | null>(null);
+  const [viewingItem, setViewingItem] = useState<PenjualanItem | null>(null);
 
   const deleteMutation = useDeletePenjualanMutation();
   const { data: inventoryData } = useGetInventory({ page: 1, limit: 10000 });
@@ -258,6 +260,207 @@ export const PenjualanPage = () => {
 
   return (
     <div className="w-full h-full flex flex-col overflow-hidden">
+      {/* View Modal */}
+      {viewingItem && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-2 sm:p-4"
+          onClick={() => setViewingItem(null)}
+        >
+          <div
+            className="w-full max-w-2xl rounded-lg bg-white shadow-lg max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between border-b border-slate-200 px-3 sm:px-4 py-2 sm:py-3 sticky top-0 bg-white">
+              <h2 className="text-base sm:text-lg font-semibold text-slate-900">
+                Detail Penjualan
+              </h2>
+              <button
+                type="button"
+                onClick={() => setViewingItem(null)}
+                className="rounded p-1 text-slate-500 hover:bg-slate-100"
+              >
+                <X className="h-4 w-4 sm:h-5 sm:w-5" />
+              </button>
+            </div>
+            <div className="p-3 sm:p-6 space-y-4 sm:space-y-6">
+              {/* Phone Details */}
+              <div>
+                <h3 className="text-xs sm:text-sm font-semibold text-slate-700 mb-2 sm:mb-4">
+                  Detail HP
+                </h3>
+                <div className="grid grid-cols-2 gap-2 sm:gap-4 bg-slate-50 p-2 sm:p-4 rounded-lg">
+                  <div>
+                    <p className="text-[11px] sm:text-xs text-slate-600 mb-0.5 sm:mb-1">
+                      IMEI
+                    </p>
+                    <p className="font-mono text-xs sm:text-sm font-semibold text-slate-900">
+                      {viewingItem.inventory?.imei}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-[11px] sm:text-xs text-slate-600 mb-0.5 sm:mb-1">
+                      Tanggal Masuk
+                    </p>
+                    <p className="text-xs sm:text-sm font-medium text-slate-900">
+                      {viewingItem.inventory?.tanggalMasuk
+                        ? new Date(
+                            viewingItem.inventory.tanggalMasuk,
+                          ).toLocaleDateString("id-ID", {
+                            year: "numeric",
+                            month: "short",
+                            day: "numeric",
+                          })
+                        : "-"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-[11px] sm:text-xs text-slate-600 mb-0.5 sm:mb-1">
+                      Brand
+                    </p>
+                    <div className="flex items-center gap-2">
+                      <span
+                        style={{
+                          backgroundColor: getBrandColor(
+                            viewingItem.inventory?.brand || "",
+                          ),
+                        }}
+                        className="px-2 py-0.5 sm:py-1 rounded text-[10px] sm:text-xs font-medium text-white"
+                      >
+                        {viewingItem.inventory?.brand}
+                      </span>
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-[11px] sm:text-xs text-slate-600 mb-0.5 sm:mb-1">
+                      Nama HP
+                    </p>
+                    <p className="text-xs sm:text-sm font-medium text-slate-900">
+                      {viewingItem.inventory?.namaHP}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-[11px] sm:text-xs text-slate-600 mb-0.5 sm:mb-1">
+                      Warna
+                    </p>
+                    <p className="text-xs sm:text-sm font-medium text-slate-900">
+                      {viewingItem.inventory?.warna || "-"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-[11px] sm:text-xs text-slate-600 mb-0.5 sm:mb-1">
+                      Modal Awal
+                    </p>
+                    <p className="text-xs sm:text-sm font-medium text-slate-900">
+                      {formatRupiah(viewingItem.inventory?.modalAwal || 0)}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-[11px] sm:text-xs text-slate-600 mb-0.5 sm:mb-1">
+                      Modal Final
+                    </p>
+                    <p className="text-xs sm:text-sm font-medium text-slate-900">
+                      {formatRupiah(viewingItem.inventory?.modalFinal || 0)}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-[11px] sm:text-xs text-slate-600 mb-0.5 sm:mb-1">
+                      Cashback
+                    </p>
+                    <p className="text-xs sm:text-sm font-medium text-slate-900">
+                      {viewingItem.inventory?.cashback
+                        ? formatRupiah(viewingItem.inventory.cashback)
+                        : "-"}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Transaction Details */}
+              <div>
+                <h3 className="text-xs sm:text-sm font-semibold text-slate-700 mb-2 sm:mb-4">
+                  Detail Transaksi
+                </h3>
+                <div className="grid grid-cols-2 gap-2 sm:gap-4 bg-blue-50 p-2 sm:p-4 rounded-lg border border-blue-200">
+                  <div>
+                    <p className="text-[11px] sm:text-xs text-slate-600 mb-0.5 sm:mb-1">
+                      Tanggal
+                    </p>
+                    <p className="text-xs sm:text-sm font-medium text-slate-900">
+                      {new Date(viewingItem.tanggal).toLocaleDateString(
+                        "id-ID",
+                        {
+                          year: "numeric",
+                          month: "short",
+                          day: "numeric",
+                        },
+                      )}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-[11px] sm:text-xs text-slate-600 mb-0.5 sm:mb-1">
+                      Harga Jual
+                    </p>
+                    <p className="text-xs sm:text-sm font-semibold text-slate-900">
+                      {formatRupiah(viewingItem.hargaJual)}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-[11px] sm:text-xs text-slate-600 mb-0.5 sm:mb-1">
+                      Diskon
+                    </p>
+                    <p className="text-xs sm:text-sm font-medium text-slate-900">
+                      {viewingItem.diskon
+                        ? formatRupiah(viewingItem.diskon)
+                        : "-"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-[11px] sm:text-xs text-slate-600 mb-0.5 sm:mb-1">
+                      Metode Bayar
+                    </p>
+                    <span
+                      className={`inline-block px-2 py-0.5 sm:py-1 rounded text-[10px] sm:text-xs font-medium ${
+                        viewingItem.metodeBayar === "CASH"
+                          ? "bg-green-100 text-green-800"
+                          : "bg-blue-100 text-blue-800"
+                      }`}
+                    >
+                      {viewingItem.metodeBayar}
+                    </span>
+                  </div>
+                  <div className="col-span-1 sm:col-span-2">
+                    <p className="text-[11px] sm:text-xs text-slate-600 mb-0.5 sm:mb-1">
+                      Profit
+                    </p>
+                    <p
+                      className={`text-xs sm:text-sm font-semibold ${
+                        Number(viewingItem.profit) < 0
+                          ? "text-red-600"
+                          : "text-green-600"
+                      }`}
+                    >
+                      {formatRupiah(viewingItem.profit)}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Keterangan */}
+              {viewingItem.keterangan && (
+                <div>
+                  <h3 className="text-xs sm:text-sm font-semibold text-slate-700 mb-1 sm:mb-2">
+                    Keterangan
+                  </h3>
+                  <p className="text-xs sm:text-sm text-slate-700 bg-slate-50 p-2 sm:p-4 rounded-lg break-words">
+                    {viewingItem.keterangan}
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Form Modal */}
       <PenjualanFormModal
         isOpen={isFormOpen}
@@ -604,6 +807,14 @@ export const PenjualanPage = () => {
                     <TableCell className="px-3 py-2 text-sm border-l border-slate-200/70">
                       <div className="flex items-center justify-end gap-1">
                         <button
+                          onClick={() => setViewingItem(item)}
+                          className="inline-flex items-center gap-0.5 px-2 py-1 text-slate-600 hover:bg-slate-100 rounded text-xs transition"
+                          title="View"
+                        >
+                          <Eye className="w-3 h-3" />
+                          View
+                        </button>
+                        <button
                           onClick={() => handleOpenEdit(item)}
                           className="inline-flex items-center gap-0.5 px-2 py-1 text-blue-600 hover:bg-blue-50 rounded text-xs transition"
                         >
@@ -706,6 +917,14 @@ export const PenjualanPage = () => {
                   </TableCell>
                   <TableCell className="px-1 py-0.5 text-[10px] border-l border-slate-200/70">
                     <div className="flex items-center justify-end gap-0.5">
+                      <button
+                        onClick={() => setViewingItem(item)}
+                        className="inline-flex items-center gap-0.5 px-1 py-0.5 text-slate-600 hover:bg-slate-100 rounded text-[8px] transition"
+                        title="View"
+                      >
+                        <Eye className="w-2 h-2" />
+                        View
+                      </button>
                       <button
                         onClick={() => handleOpenEdit(item)}
                         className="inline-flex items-center gap-0.5 px-1 py-0.5 text-blue-600 hover:bg-blue-50 rounded text-[8px] transition"
