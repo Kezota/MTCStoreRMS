@@ -1,5 +1,5 @@
 import { Link, useNavigate, useLocation, Outlet } from "react-router-dom";
-import { LogOut, Smartphone, Menu, X } from "lucide-react";
+import { LogOut, Menu, X } from "lucide-react";
 import { showToast } from "../lib/toast";
 import { useState } from "react";
 import { useGetCurrentUser } from "../hooks/queries";

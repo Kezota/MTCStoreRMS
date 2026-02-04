@@ -203,8 +203,13 @@ export const StockOpnamePage = () => {
   }, [filteredItems, sortOption, sortOption2, getSortValue]);
 
   const totalReady = readyItems.length;
-  const filteredScannedCount = sortedItems.filter(item => scannedImeis.has(item.imei)).length;
-  const filteredRemainingCount = Math.max(sortedItems.length - filteredScannedCount, 0);
+  const filteredScannedCount = sortedItems.filter((item) =>
+    scannedImeis.has(item.imei),
+  ).length;
+  const filteredRemainingCount = Math.max(
+    sortedItems.length - filteredScannedCount,
+    0,
+  );
 
   useEffect(() => {
     localStorage.setItem(
@@ -262,9 +267,9 @@ export const StockOpnamePage = () => {
       <div className="flex flex-col gap-2">
         <h1 className="text-2xl font-bold text-gray-900">Stock Opname</h1>
         <p className="text-sm text-gray-600">
-          {(search || brandFilters.length > 0) 
+          {search || brandFilters.length > 0
             ? `Menampilkan ${sortedItems.length} HP dari ${totalReady} total READY`
-            : 'Cek HP yang READY di toko, scan IMEI untuk validasi fisik.'}
+            : "Cek HP yang READY di toko, scan IMEI untuk validasi fisik."}
         </p>
       </div>
 
@@ -272,7 +277,9 @@ export const StockOpnamePage = () => {
         <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
           <p className="text-xs text-gray-500">Total READY</p>
           <p className="text-2xl font-semibold text-gray-900">
-            {(search || brandFilters.length > 0) ? `${sortedItems.length}/${totalReady}` : totalReady}
+            {search || brandFilters.length > 0
+              ? `${sortedItems.length}/${totalReady}`
+              : totalReady}
           </p>
         </div>
         <div className="bg-emerald-50 rounded-lg border border-emerald-200 p-4 shadow-sm">
@@ -695,7 +702,13 @@ export const StockOpnamePage = () => {
                       IMEI: <span className="font-medium">{item.imei}</span>
                     </p>
                     <p>
-                      Tanggal Masuk: {item.tanggalMasuk?.slice(0, 10) || "-"}
+                      {item.tanggalMasuk
+                        ? item.tanggalMasuk
+                            .slice(0, 10)
+                            .split("-")
+                            .reverse()
+                            .join("/")
+                        : "-"}
                     </p>
                   </div>
                 </div>
