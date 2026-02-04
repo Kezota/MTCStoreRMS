@@ -203,8 +203,8 @@ export const StockOpnamePage = () => {
   }, [filteredItems, sortOption, sortOption2, getSortValue]);
 
   const totalReady = readyItems.length;
-  const scannedCount = scannedImeis.size;
-  const remainingCount = Math.max(totalReady - scannedCount, 0);
+  const filteredScannedCount = sortedItems.filter(item => scannedImeis.has(item.imei)).length;
+  const filteredRemainingCount = Math.max(sortedItems.length - filteredScannedCount, 0);
 
   useEffect(() => {
     localStorage.setItem(
@@ -262,32 +262,39 @@ export const StockOpnamePage = () => {
       <div className="flex flex-col gap-2">
         <h1 className="text-2xl font-bold text-gray-900">Stock Opname</h1>
         <p className="text-sm text-gray-600">
-          Cek HP yang READY di toko, scan IMEI untuk validasi fisik.
+          {(search || brandFilters.length > 0) 
+            ? `Menampilkan ${sortedItems.length} HP dari ${totalReady} total READY`
+            : 'Cek HP yang READY di toko, scan IMEI untuk validasi fisik.'}
         </p>
       </div>
 
       <div className="grid grid-cols-3 gap-2 sm:gap-4">
         <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
           <p className="text-xs text-gray-500">Total READY</p>
-          <p className="text-2xl font-semibold text-gray-900">{totalReady}</p>
+          <p className="text-2xl font-semibold text-gray-900">
+            {(search || brandFilters.length > 0) ? `${sortedItems.length}/${totalReady}` : totalReady}
+          </p>
         </div>
         <div className="bg-emerald-50 rounded-lg border border-emerald-200 p-4 shadow-sm">
           <p className="text-xs text-emerald-700">Sudah Scan</p>
           <p className="text-2xl font-semibold text-emerald-800">
-            {scannedCount}
+            {filteredScannedCount}
           </p>
         </div>
         <div className="bg-amber-50 rounded-lg border border-amber-200 p-4 shadow-sm">
           <p className="text-xs text-amber-700">Belum Scan</p>
           <p className="text-2xl font-semibold text-amber-800">
-            {remainingCount}
+            {filteredRemainingCount}
           </p>
         </div>
       </div>
 
       <div className="bg-white rounded-lg border border-gray-200 p-3 sm:p-4 shadow-sm space-y-3">
         {/* Desktop: 1 row with all controls */}
-        <div className="hidden lg:grid lg:grid-cols-5 gap-3">
+        <div
+          className="hidden lg:grid gap-3"
+          style={{ gridTemplateColumns: "1fr 1fr auto auto 2fr" }}
+        >
           {/* Search */}
           <Popover open={searchOpen} onOpenChange={setSearchOpen}>
             <PopoverTrigger asChild>
@@ -297,7 +304,7 @@ export const StockOpnamePage = () => {
                   search ? "text-gray-900" : "text-gray-500"
                 }`}
               >
-                {search || "Cari IMEI atau Nama HP"}
+                {search || "Cari imei atau nama"}
               </button>
             </PopoverTrigger>
             <PopoverContent
@@ -401,7 +408,7 @@ export const StockOpnamePage = () => {
                   | "none",
               )
             }
-            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="px-2 py-1 border border-gray-300 rounded-md text-xs bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
           >
             <option value="scanned-first">✓ Sudah Scan</option>
             <option value="unscanned-first">✗ Belum Scan</option>
@@ -427,7 +434,7 @@ export const StockOpnamePage = () => {
                   | "none",
               )
             }
-            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="px-2 py-1 border border-gray-300 rounded-md text-xs bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
           >
             <option value="none">--- Tidak ---</option>
             <option value="scanned-first">✓ Sudah Scan</option>
@@ -579,7 +586,7 @@ export const StockOpnamePage = () => {
                     | "none",
                 )
               }
-              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="px-2 py-1 border border-gray-300 rounded-md text-xs bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 max-w-[130px]"
             >
               <option value="scanned-first">✓ Sudah Scan</option>
               <option value="unscanned-first">✗ Belum Scan</option>
@@ -604,7 +611,7 @@ export const StockOpnamePage = () => {
                     | "none",
                 )
               }
-              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="px-2 py-1 border border-gray-300 rounded-md text-xs bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 max-w-[130px]"
             >
               <option value="none">--- Tidak ---</option>
               <option value="scanned-first">✓ Sudah Scan</option>
@@ -646,52 +653,56 @@ export const StockOpnamePage = () => {
           Memuat data stock opname...
         </div>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-2 sm:gap-3">
-          {sortedItems.map((item) => {
-            const isScanned = scannedImeis.has(item.imei);
-            const isLast = lastScanned === item.imei;
-            const cardClass = isLast
-              ? "border-amber-300 bg-amber-50"
-              : isScanned
-                ? "border-emerald-300 bg-emerald-50"
-                : "border-gray-200 bg-white";
+        <>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-2 sm:gap-3">
+            {sortedItems.map((item) => {
+              const isScanned = scannedImeis.has(item.imei);
+              const isLast = lastScanned === item.imei;
+              const cardClass = isLast
+                ? "border-amber-300 bg-amber-50"
+                : isScanned
+                  ? "border-emerald-300 bg-emerald-50"
+                  : "border-gray-200 bg-white";
 
-            return (
-              <div
-                key={item.id}
-                className={`rounded-md border p-2 sm:p-3 shadow-sm transition ${cardClass}`}
-              >
-                <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <p className="text-xs sm:text-sm font-semibold text-gray-900">
-                      {item.namaHP}
-                    </p>
-                    <div className="mt-1 flex flex-wrap items-center gap-2">
-                      <span
-                        className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-semibold text-white"
-                        style={{ backgroundColor: getBrandColor(item.brand) }}
-                      >
-                        {item.brand}
-                      </span>
-                      {item.warna && (
-                        <span className="text-[10px] sm:text-xs text-gray-500">
-                          {item.warna}
+              return (
+                <div
+                  key={item.id}
+                  className={`rounded-md border p-2 sm:p-3 shadow-sm transition ${cardClass}`}
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <p className="text-xs sm:text-sm font-semibold text-gray-900">
+                        {item.namaHP}
+                      </p>
+                      <div className="mt-1 flex flex-wrap items-center gap-2">
+                        <span
+                          className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-semibold text-white"
+                          style={{ backgroundColor: getBrandColor(item.brand) }}
+                        >
+                          {item.brand}
                         </span>
-                      )}
+                        {item.warna && (
+                          <span className="text-[10px] sm:text-xs text-gray-500">
+                            {item.warna}
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                <div className="mt-2 space-y-0.5 text-[10px] sm:text-xs text-gray-600">
-                  <p>
-                    IMEI: <span className="font-medium">{item.imei}</span>
-                  </p>
-                  <p>Tanggal Masuk: {item.tanggalMasuk?.slice(0, 10) || "-"}</p>
+                  <div className="mt-2 space-y-0.5 text-[10px] sm:text-xs text-gray-600">
+                    <p>
+                      IMEI: <span className="font-medium">{item.imei}</span>
+                    </p>
+                    <p>
+                      Tanggal Masuk: {item.tanggalMasuk?.slice(0, 10) || "-"}
+                    </p>
+                  </div>
                 </div>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+        </>
       )}
     </div>
   );

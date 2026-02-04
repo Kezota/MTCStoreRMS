@@ -41,10 +41,10 @@ export const DashboardLayout = () => {
               <img
                 src="/logo mtc.jpeg"
                 alt="Logo"
-                className="w-8 h-8 object-cover rounded-lg"
+                className="w-10 h-4 object-cover"
               />
               <span className="text-base sm:text-xl font-bold text-gray-900">
-                MTC Store
+                Store
               </span>
             </div>
 
