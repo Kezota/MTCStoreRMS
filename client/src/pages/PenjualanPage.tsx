@@ -409,7 +409,7 @@ export const PenjualanPage = () => {
                       Diskon
                     </p>
                     <p className="text-xs sm:text-sm font-medium text-slate-900">
-                      {viewingItem.diskon
+                      {viewingItem.diskon && Number(viewingItem.diskon) > 0
                         ? formatRupiah(viewingItem.diskon)
                         : "-"}
                     </p>
@@ -783,7 +783,9 @@ export const PenjualanPage = () => {
                       {formatRupiah(item.inventory?.modalFinal || 0)}
                     </TableCell>
                     <TableCell className="px-3 py-2 text-sm text-slate-600 border-l border-slate-200/70">
-                      {item.diskon ? formatRupiah(item.diskon) : "-"}
+                      {item.diskon && Number(item.diskon) > 0
+                        ? formatRupiah(item.diskon)
+                        : "-"}
                     </TableCell>
                     <TableCell
                       className={`px-3 py-2 text-sm font-semibold border-l border-slate-200/70 ${Number(item.profit) < 0 ? "text-red-600" : "text-green-600"}`}

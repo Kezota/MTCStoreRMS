@@ -676,7 +676,8 @@ export const InventoryPage = () => {
                           Diskon
                         </p>
                         <p className="text-xs sm:text-sm font-medium text-slate-900">
-                          {viewingItem.penjualan[0].diskon
+                          {viewingItem.penjualan[0].diskon &&
+                          Number(viewingItem.penjualan[0].diskon) > 0
                             ? `Rp ${Number(
                                 viewingItem.penjualan[0].diskon,
                               ).toLocaleString("id-ID")}`
