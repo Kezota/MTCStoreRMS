@@ -46,9 +46,10 @@ export const FilterSection = ({
             </label>
             <input
               type="date"
+              placeholder="Pilih tanggal"
               value={startDate}
               onChange={(e) => onStartDateChange(e.target.value)}
-              className="w-full px-2 py-1 border border-gray-300 rounded-md text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-2 py-1 sm:py-1.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none"
             />
           </div>
           <div>
@@ -57,9 +58,10 @@ export const FilterSection = ({
             </label>
             <input
               type="date"
+              placeholder="Pilih tanggal"
               value={endDate}
               onChange={(e) => onEndDateChange(e.target.value)}
-              className="w-full px-2 py-1 border border-gray-300 rounded-md text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-2 py-1 sm:py-1.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none"
             />
           </div>
           <div>

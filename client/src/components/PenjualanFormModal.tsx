@@ -262,11 +262,12 @@ export const PenjualanFormModal = ({
                   <input
                     type="date"
                     required
+                    placeholder="Pilih tanggal"
                     value={form.tanggal}
                     onChange={(e) =>
                       setForm({ ...form, tanggal: e.target.value })
                     }
-                    className="w-full px-2 sm:px-3 py-1.5 sm:py-2 border border-slate-300 rounded-md text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-2 sm:px-3 py-1 sm:py-1.5 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none"
                   />
                 </div>
 
@@ -293,6 +294,7 @@ export const PenjualanFormModal = ({
                       </button>
                     </PopoverTrigger>
                     <PopoverContent
+                      side="bottom"
                       className="w-[--radix-popover-trigger-width] p-0"
                       align="start"
                     >

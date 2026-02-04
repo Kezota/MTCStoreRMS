@@ -410,11 +410,12 @@ export const PenjualanPage = () => {
           <div className="relative">
             <input
               type="date"
+              placeholder="Pilih tanggal"
               value={filters.tanggal}
               onChange={(e) =>
                 setFilters((prev) => ({ ...prev, tanggal: e.target.value }))
               }
-              className="w-full px-2 sm:px-3 py-1.5 sm:py-2 border border-slate-200 rounded text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-2 sm:px-3 py-1 sm:py-1.5 border border-slate-200 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none"
             />
           </div>
         </div>
