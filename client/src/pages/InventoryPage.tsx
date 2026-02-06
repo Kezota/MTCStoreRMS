@@ -848,25 +848,24 @@ export const InventoryPage = () => {
                       <div className="flex items-center justify-end gap-1">
                         <button
                           onClick={() => setViewingItem(item)}
-                          className="inline-flex items-center gap-0.5 px-2 py-1 text-slate-600 hover:bg-slate-100 rounded text-xs transition"
+                          className="inline-flex items-center gap-0.5 p-1.5 text-slate-600 hover:bg-slate-100 rounded transition"
                           title="View"
                         >
-                          <Eye className="w-3 h-3" />
-                          View
+                          <Eye className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => handleOpenEdit(item)}
-                          className="inline-flex items-center gap-0.5 px-2 py-1 text-blue-600 hover:bg-blue-50 rounded text-xs transition"
+                          className="inline-flex items-center gap-0.5 p-1.5 text-blue-600 hover:bg-blue-50 rounded transition"
+                          title="Edit"
                         >
-                          <Edit2 className="w-3 h-3" />
-                          Edit
+                          <Edit2 className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => handleDeleteInventory(item.id)}
-                          className="inline-flex items-center gap-0.5 px-2 py-1 text-red-600 hover:bg-red-50 rounded text-xs transition"
+                          className="inline-flex items-center gap-0.5 p-1.5 text-red-600 hover:bg-red-50 rounded transition"
+                          title="Hapus"
                         >
-                          <Trash2 className="w-3 h-3" />
-                          Hapus
+                          <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
                     </TableCell>
@@ -974,25 +973,24 @@ export const InventoryPage = () => {
                       <div className="flex items-center justify-end gap-0.5">
                         <button
                           onClick={() => setViewingItem(item)}
-                          className="inline-flex items-center gap-0.5 px-1 py-0.5 text-slate-600 hover:bg-slate-100 rounded text-[8px] transition"
+                          className="inline-flex items-center gap-0.5 p-1 text-slate-600 hover:bg-slate-100 rounded transition"
                           title="View"
                         >
-                          <Eye className="w-2 h-2" />
-                          View
+                          <Eye className="w-3 h-3" />
                         </button>
                         <button
                           onClick={() => handleOpenEdit(item)}
-                          className="inline-flex items-center gap-0.5 px-1 py-0.5 text-blue-600 hover:bg-blue-50 rounded text-[8px] transition"
+                          className="inline-flex items-center gap-0.5 p-1 text-blue-600 hover:bg-blue-50 rounded transition"
+                          title="Edit"
                         >
-                          <Edit2 className="w-2 h-2" />
-                          Edit
+                          <Edit2 className="w-3 h-3" />
                         </button>
                         <button
                           onClick={() => handleDeleteInventory(item.id)}
-                          className="inline-flex items-center gap-0.5 px-1 py-0.5 text-red-600 hover:bg-red-50 rounded text-[8px] transition"
+                          className="inline-flex items-center gap-0.5 p-1 text-red-600 hover:bg-red-50 rounded transition"
+                          title="Hapus"
                         >
-                          <Trash2 className="w-2 h-2" />
-                          Hapus
+                          <Trash2 className="w-3 h-3" />
                         </button>
                       </div>
                     </TableCell>

@@ -697,7 +697,12 @@ export const StockOpnamePage = () => {
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-2 sm:gap-3">
+          <div
+            className="grid gap-2 sm:gap-3"
+            style={{
+              gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+            }}
+          >
             {sortedItems.map((item) => {
               const isScanned = scannedImeis.has(item.imei.trim());
               const isLast = lastScanned === item.imei.trim();
