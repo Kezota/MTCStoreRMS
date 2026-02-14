@@ -308,6 +308,30 @@ export const InventoryPage = () => {
                   <CommandList>
                     <CommandEmpty>Tidak ada hasil.</CommandEmpty>
                     <CommandGroup>
+                      {/* Show search input as an option if it has content */}
+                      {searchInput.trim() && (
+                        <CommandItem
+                          key="search-input"
+                          value="search-input"
+                          onSelect={() => {
+                            setFilters((prev) => ({
+                              ...prev,
+                              search: searchInput.trim(),
+                            }));
+                            setSearchOpen(false);
+                            setSearchInput("");
+                          }}
+                        >
+                          <div className="flex flex-col text-xs sm:text-sm w-full">
+                            <div className="font-medium text-blue-600">
+                              Cari: "{searchInput}"
+                            </div>
+                            <div className="text-slate-500 text-[10px] sm:text-xs">
+                              Cari semua item yang cocok dengan text ini
+                            </div>
+                          </div>
+                        </CommandItem>
+                      )}
                       {filteredInventoryList.map((item) => (
                         <CommandItem
                           key={item.id}

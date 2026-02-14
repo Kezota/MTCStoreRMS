@@ -8,7 +8,12 @@ import {
   BrandAnalysis,
 } from "@/components/LaporanComponents";
 
-const toDateInput = (date: Date) => date.toISOString().slice(0, 10);
+const toDateInput = (date: Date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
 const parseNumber = (value?: string | number | null) =>
   value ? parseFloat(String(value)) : 0;
 const monthNames = [
@@ -393,56 +398,60 @@ export const LaporanPage = () => {
               setEndDate(todayKey);
               break;
             }
-            case "7days":
+            case "7days": {
+              const start = new Date(now);
+              start.setDate(start.getDate() - 6);
+              setStartDate(toDateInput(start));
               setEndDate(toDateInput(now));
-              setStartDate(
-                toDateInput(
-                  new Date(
-                    now.getFullYear(),
-                    now.getMonth(),
-                    now.getDate() - 6,
-                  ),
-                ),
-              );
               break;
-            case "30days":
+            }
+            case "30days": {
+              const start = new Date(now);
+              start.setDate(start.getDate() - 29);
+              setStartDate(toDateInput(start));
               setEndDate(toDateInput(now));
-              setStartDate(
-                toDateInput(
-                  new Date(
-                    now.getFullYear(),
-                    now.getMonth(),
-                    now.getDate() - 29,
-                  ),
-                ),
-              );
               break;
-            case "thisMonth":
+            }
+            case "thisMonth": {
+              const start = new Date(now.getFullYear(), now.getMonth(), 1);
+              setStartDate(toDateInput(start));
               setEndDate(toDateInput(now));
-              setStartDate(
-                toDateInput(new Date(now.getFullYear(), now.getMonth(), 1)),
-              );
               break;
-            case "thisYear":
+            }
+            case "thisYear": {
+              const start = new Date(now.getFullYear(), 0, 1);
+              setStartDate(toDateInput(start));
               setEndDate(toDateInput(now));
-              setStartDate(toDateInput(new Date(now.getFullYear(), 0, 1)));
               break;
-            case "q1":
-              setStartDate(toDateInput(new Date(now.getFullYear(), 0, 1)));
-              setEndDate(toDateInput(new Date(now.getFullYear(), 2, 31)));
+            }
+            case "q1": {
+              const start = new Date(now.getFullYear(), 0, 1);
+              const end = new Date(now.getFullYear(), 3, 0); // Last day of March
+              setStartDate(toDateInput(start));
+              setEndDate(toDateInput(end));
               break;
-            case "q2":
-              setStartDate(toDateInput(new Date(now.getFullYear(), 3, 1)));
-              setEndDate(toDateInput(new Date(now.getFullYear(), 5, 30)));
+            }
+            case "q2": {
+              const start = new Date(now.getFullYear(), 3, 1);
+              const end = new Date(now.getFullYear(), 6, 0); // Last day of June
+              setStartDate(toDateInput(start));
+              setEndDate(toDateInput(end));
               break;
-            case "q3":
-              setStartDate(toDateInput(new Date(now.getFullYear(), 6, 1)));
-              setEndDate(toDateInput(new Date(now.getFullYear(), 8, 30)));
+            }
+            case "q3": {
+              const start = new Date(now.getFullYear(), 6, 1);
+              const end = new Date(now.getFullYear(), 9, 0); // Last day of September
+              setStartDate(toDateInput(start));
+              setEndDate(toDateInput(end));
               break;
-            case "q4":
-              setStartDate(toDateInput(new Date(now.getFullYear(), 9, 1)));
-              setEndDate(toDateInput(new Date(now.getFullYear(), 11, 31)));
+            }
+            case "q4": {
+              const start = new Date(now.getFullYear(), 9, 1);
+              const end = new Date(now.getFullYear(), 12, 0); // Last day of December
+              setStartDate(toDateInput(start));
+              setEndDate(toDateInput(end));
               break;
+            }
           }
         }}
       />
