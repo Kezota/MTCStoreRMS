@@ -280,17 +280,21 @@ export const InventoryFormModal = ({
     async (event: FormEvent) => {
       event.preventDefault();
 
+      const modalAwalValue = parseFloat(parseFromRupiah(form.modalAwal));
+      const cashbackValue = form.cashback
+        ? parseFloat(parseFromRupiah(form.cashback))
+        : null;
+      const modalFinalValue = form.modalFinal
+        ? parseFloat(parseFromRupiah(form.modalFinal))
+        : modalAwalValue - (cashbackValue || 0); // Default to modalAwal if not provided
+
       const baseData = {
         tanggalMasuk: form.tanggalMasuk,
         brand: form.brand,
         namaHP: form.namaHP,
-        modalAwal: parseFloat(parseFromRupiah(form.modalAwal)),
-        cashback: form.cashback
-          ? parseFloat(parseFromRupiah(form.cashback))
-          : null,
-        modalFinal: form.modalFinal
-          ? parseFloat(parseFromRupiah(form.modalFinal))
-          : undefined,
+        modalAwal: modalAwalValue,
+        cashback: cashbackValue,
+        modalFinal: modalFinalValue,
       };
 
       if (isEditMode && item) {

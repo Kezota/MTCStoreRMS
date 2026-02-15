@@ -156,13 +156,26 @@ export const PenjualanFormModal = ({
 
     const hargaJual = parseFloat(parseFromRupiah(form.hargaJual));
     const diskon = form.diskon ? parseFloat(parseFromRupiah(form.diskon)) : 0;
-    const modal =
-      selectedInventory.modalFinal &&
-      parseFloat(selectedInventory.modalFinal) > 0
-        ? parseFloat(selectedInventory.modalFinal)
-        : selectedInventory.modalAwal
-          ? parseFloat(selectedInventory.modalAwal)
-          : 0;
+
+    // Use modalFinal if available and not 0, otherwise use modalAwal
+    let modal = 0;
+    const modalFinalValue = selectedInventory.modalFinal
+      ? parseFloat(String(selectedInventory.modalFinal))
+      : null;
+    const modalAwalValue = selectedInventory.modalAwal
+      ? parseFloat(String(selectedInventory.modalAwal))
+      : 0;
+
+    // Prefer modalFinal if it's a valid number > 0, otherwise use modalAwal
+    if (
+      modalFinalValue !== null &&
+      !isNaN(modalFinalValue) &&
+      modalFinalValue > 0
+    ) {
+      modal = modalFinalValue;
+    } else {
+      modal = modalAwalValue;
+    }
 
     // Profit = Harga Jual - Diskon - Modal
     return hargaJual - diskon - modal;

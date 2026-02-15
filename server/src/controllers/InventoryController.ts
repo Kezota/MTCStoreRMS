@@ -591,10 +591,24 @@ export const createBulkInventory = async (
     // Create all items
     const createdItems = await prisma.$transaction(
       validatedItems.map((item) => {
-        const modalValue =
-          item.modalFinal && item.modalFinal !== 0
-            ? item.modalFinal
-            : item.modalAwal;
+        // Calculate modalFinal and cashback relationship: modalFinal = modalAwal - cashback
+        let finalCashback = item.cashback || null;
+        let finalModalFinal: number = item.modalFinal || item.modalAwal;
+
+        if (item.cashback && item.cashback > 0) {
+          // If cashback provided, calculate modalFinal
+          finalModalFinal = item.modalAwal - item.cashback;
+        } else if (
+          item.modalFinal &&
+          item.modalFinal > 0 &&
+          item.modalFinal !== item.modalAwal
+        ) {
+          // If modalFinal provided and different from modalAwal, calculate cashback
+          finalCashback = item.modalAwal - item.modalFinal;
+        } else {
+          // Default: modalFinal = modalAwal, cashback = 0 or null
+          finalModalFinal = item.modalAwal;
+        }
 
         return prisma.inventoryHP.create({
           data: {
@@ -603,9 +617,9 @@ export const createBulkInventory = async (
             brand: item.brand,
             namaHP: item.namaHP,
             warna: item.warna || null,
-            modalAwal: modalValue,
-            cashback: item.cashback || null,
-            modalFinal: modalValue,
+            modalAwal: item.modalAwal,
+            cashback: finalCashback,
+            modalFinal: finalModalFinal,
           },
         });
       }),
