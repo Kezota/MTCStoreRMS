@@ -60,12 +60,42 @@ export const getAllInventory = async (
     // Brand filter - support multiple brands (comma-separated)
     if (brand) {
       const brands = brand.split(",").map((b) => b.trim());
-      if (brands.length > 1) {
-        where.OR = (where.OR || []).concat(
-          brands.map((b) => ({ brand: { contains: b } })),
-        );
+      const mainBrands = [
+        "OPPO",
+        "VIVO",
+        "XIAOMI",
+        "SAMSUNG",
+        "APPLE",
+        "REALME",
+        "INFINIX",
+        "ITEL",
+        "NOKIA",
+        "ADVAN",
+        "TECNO",
+      ];
+
+      // Check if OTHERS is in the filter
+      const hasOthers = brands.includes("OTHERS");
+      const specificBrands = brands.filter((b) => b !== "OTHERS");
+
+      if (hasOthers && specificBrands.length === 0) {
+        // Only OTHERS is selected - exclude main brands
+        where.brand = { notIn: mainBrands };
+      } else if (hasOthers && specificBrands.length > 0) {
+        // OTHERS + specific brands are selected
+        where.OR = (where.OR || []).concat([
+          { brand: { in: specificBrands } },
+          { brand: { notIn: mainBrands } },
+        ]);
       } else {
-        where.brand = { contains: brands[0] };
+        // Only specific brands selected
+        if (specificBrands.length > 1) {
+          where.OR = (where.OR || []).concat(
+            specificBrands.map((b) => ({ brand: { contains: b } })),
+          );
+        } else if (specificBrands.length === 1) {
+          where.brand = { contains: specificBrands[0] };
+        }
       }
     }
 

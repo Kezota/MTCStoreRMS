@@ -58,6 +58,7 @@ const METODE_BAYAR_OPTIONS = ["CASH", "TRANSFER"];
 const SORT_FIELD_OPTIONS = [
   { value: "tanggal", label: "Tanggal" },
   { value: "hargaJual", label: "Harga Jual" },
+  { value: "modalFinal", label: "Modal Final" },
   { value: "profit", label: "Profit" },
   { value: "metodeBayar", label: "Metode Bayar" },
   { value: "brand", label: "Brand" },

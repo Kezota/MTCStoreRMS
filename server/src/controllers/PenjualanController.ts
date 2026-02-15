@@ -74,10 +74,46 @@ export const getAllPenjualan = async (
     // Filter by brand
     if (brand) {
       const brands = brand.split(",").map((b) => b.trim());
-      where.inventory = {
-        ...where.inventory,
-        brand: { in: brands },
-      };
+      const mainBrands = [
+        "OPPO",
+        "VIVO",
+        "XIAOMI",
+        "SAMSUNG",
+        "APPLE",
+        "REALME",
+        "INFINIX",
+        "ITEL",
+        "NOKIA",
+        "ADVAN",
+        "TECNO",
+      ];
+
+      // Check if OTHERS is in the filter
+      const hasOthers = brands.includes("OTHERS");
+      const specificBrands = brands.filter((b) => b !== "OTHERS");
+
+      if (hasOthers && specificBrands.length === 0) {
+        // Only OTHERS is selected - exclude main brands
+        where.inventory = {
+          ...where.inventory,
+          brand: { notIn: mainBrands },
+        };
+      } else if (hasOthers && specificBrands.length > 0) {
+        // OTHERS + specific brands are selected
+        where.inventory = {
+          ...where.inventory,
+          OR: [
+            { brand: { in: specificBrands } },
+            { brand: { notIn: mainBrands } },
+          ],
+        };
+      } else {
+        // Only specific brands selected
+        where.inventory = {
+          ...where.inventory,
+          brand: { in: brands },
+        };
+      }
     }
 
     // Filter by warna
@@ -149,6 +185,7 @@ export const getAllPenjualan = async (
       "imei",
       "namaHP",
       "warna",
+      "modalFinal",
     ];
 
     const sortByFields = sortBy.split(",").map((f) => f.trim());
@@ -167,7 +204,7 @@ export const getAllPenjualan = async (
       }
 
       // Handle inventory relation fields
-      if (["brand", "imei", "namaHP", "warna"].includes(field)) {
+      if (["brand", "imei", "namaHP", "warna", "modalFinal"].includes(field)) {
         return { inventory: { [field]: order } };
       }
 
