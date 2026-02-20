@@ -52,6 +52,7 @@ model InventoryHP {
 enum Status {
   READY
   TERJUAL
+  DIKEMBALIKAN
 }
 
 // Penjualan table (Sales)

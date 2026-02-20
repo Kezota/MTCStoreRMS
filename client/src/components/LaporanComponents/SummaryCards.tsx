@@ -6,6 +6,7 @@ interface SummaryData {
   totalGross: number;
   totalProfit: number;
   totalTransaksi: number;
+  totalBarangMasuk: number;
   totalDiskon: number;
   todaySales: number;
   todayGross: number;
@@ -14,8 +15,12 @@ interface SummaryData {
   todayTransaksi: number;
   cashTotal: number;
   transferTotal: number;
+  transferBNITotal: number;
+  transferMandiiriTotal: number;
   todayCashTotal: number;
   todayTransferTotal: number;
+  todayTransferBNITotal: number;
+  todayTransferMandiiriTotal: number;
 }
 
 interface YearSummaryData {
@@ -24,8 +29,11 @@ interface YearSummaryData {
   totalGross: number;
   totalProfit: number;
   totalTransaksi: number;
+  totalBarangMasuk: number;
   cashTotal: number;
   transferTotal: number;
+  transferBNITotal: number;
+  transferMandiiriTotal: number;
 }
 
 interface SummaryCardsProps {
@@ -42,46 +50,66 @@ export const SummaryCards = ({ summary, yearSummary }: SummaryCardsProps) => {
           Ringkasan Periode
         </h3>
         <div className="grid grid-cols-2 gap-2 sm:gap-3">
-          <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-2 sm:p-3 border border-blue-200">
+          <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-2 sm:p-2 border border-blue-200">
             <p className="text-xs text-blue-700 font-medium">Pemasukan</p>
             <p className="text-sm sm:text-base font-semibold text-blue-900 mt-1">
               {formatRupiah(summary.totalSales)}
             </p>
           </div>
-          <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg p-2 sm:p-3 border border-orange-200">
+          <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg p-2 sm:p-2 border border-orange-200">
             <p className="text-xs text-orange-700 font-medium">Total Modal</p>
             <p className="text-sm sm:text-base font-semibold text-orange-900 mt-1">
               {formatRupiah(summary.totalModal)}
             </p>
           </div>
-          <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-2 sm:p-3 border border-purple-200">
+          <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-2 sm:p-2 border border-purple-200">
             <p className="text-xs text-purple-700 font-medium">Laba Kotor</p>
             <p className="text-sm sm:text-base font-semibold text-purple-900 mt-1">
               {formatRupiah(summary.totalGross)}
             </p>
           </div>
-          <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-lg p-2 sm:p-3 border border-emerald-200">
+          <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-lg p-2 sm:p-2 border border-emerald-200">
             <p className="text-xs text-emerald-700 font-medium">Laba Bersih</p>
             <p className="text-sm sm:text-base font-semibold text-emerald-900 mt-1">
               {formatRupiah(summary.totalProfit)}
             </p>
           </div>
-          <div className="bg-gradient-to-br from-slate-50 to-slate-100 rounded-lg p-2 sm:p-3 col-span-2 border border-slate-200">
+          <div className="bg-gradient-to-br from-slate-50 to-slate-100 rounded-lg p-2 sm:p-2 border border-slate-200">
             <p className="text-xs text-slate-600 font-medium">Transaksi</p>
             <p className="text-sm sm:text-base font-semibold text-slate-900 mt-1">
               {summary.totalTransaksi} transaksi
             </p>
           </div>
-          <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-2 sm:p-3 border border-blue-200">
-            <p className="text-xs text-blue-700 font-medium">Cash</p>
-            <p className="text-sm sm:text-base font-semibold text-blue-900 mt-1">
+          <div className="bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-lg p-2 sm:p-2 border border-indigo-200">
+            <p className="text-xs text-indigo-700 font-medium">Barang Masuk</p>
+            <p className="text-sm sm:text-base font-semibold text-indigo-900 mt-1">
+              {summary.totalBarangMasuk} barang
+            </p>
+          </div>
+          <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-2 sm:p-2 border border-green-200">
+            <p className="text-xs text-green-700 font-medium">Cash</p>
+            <p className="text-sm sm:text-base font-semibold text-green-900 mt-1">
               {formatRupiah(summary.cashTotal)}
             </p>
           </div>
-          <div className="bg-gradient-to-br from-cyan-50 to-cyan-100 rounded-lg p-2 sm:p-3 border border-cyan-200">
-            <p className="text-xs text-cyan-700 font-medium">Transfer</p>
+          <div className="bg-gradient-to-br from-cyan-50 to-cyan-100 rounded-lg p-2 sm:p-2 border border-cyan-200">
+            <p className="text-xs text-cyan-700 font-medium">Total Transfer</p>
             <p className="text-sm sm:text-base font-semibold text-cyan-900 mt-1">
               {formatRupiah(summary.transferTotal)}
+            </p>
+          </div>
+          <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-2 sm:p-2 border border-purple-200">
+            <p className="text-xs text-purple-700 font-medium">Transfer BNI</p>
+            <p className="text-sm sm:text-base font-semibold text-purple-900 mt-1">
+              {formatRupiah(summary.transferBNITotal)}
+            </p>
+          </div>
+          <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-2 sm:p-2 border border-blue-200">
+            <p className="text-xs text-blue-700 font-medium">
+              Transfer Mandiri
+            </p>
+            <p className="text-sm sm:text-base font-semibold text-blue-900 mt-1">
+              {formatRupiah(summary.transferMandiiriTotal)}
             </p>
           </div>
         </div>
@@ -125,14 +153,26 @@ export const SummaryCards = ({ summary, yearSummary }: SummaryCardsProps) => {
           </div>
           <div className="bg-blue-400/20 rounded p-2 border border-blue-300/30">
             <p className="text-blue-100 text-xs">Cash</p>
-            <p className="font-semibold text-blue-50 mt-1">
+            <p className="font-semibold text-green-50 mt-1">
               {formatRupiah(summary.todayCashTotal)}
             </p>
           </div>
           <div className="bg-blue-400/20 rounded p-2 border border-blue-300/30">
-            <p className="text-blue-100 text-xs">Transfer</p>
+            <p className="text-blue-100 text-xs">Total Transfer</p>
             <p className="font-semibold text-cyan-50 mt-1">
               {formatRupiah(summary.todayTransferTotal)}
+            </p>
+          </div>
+          <div className="bg-blue-400/20 rounded p-2 border border-blue-300/30">
+            <p className="text-blue-100 text-xs">Transfer BNI</p>
+            <p className="font-semibold text-purple-50 mt-1">
+              {formatRupiah(summary.todayTransferBNITotal)}
+            </p>
+          </div>
+          <div className="bg-blue-400/20 rounded p-2 border border-blue-300/30">
+            <p className="text-blue-100 text-xs">Transfer Mandiri</p>
+            <p className="font-semibold text-blue-50 mt-1">
+              {formatRupiah(summary.todayTransferMandiiriTotal)}
             </p>
           </div>
         </div>
@@ -173,16 +213,34 @@ export const SummaryCards = ({ summary, yearSummary }: SummaryCardsProps) => {
             <span className="text-slate-200">Transaksi</span>
             <span className="font-semibold">{yearSummary.totalTransaksi}</span>
           </div>
+          <div className="flex items-center justify-between">
+            <span className="text-slate-200">Barang Masuk</span>
+            <span className="font-semibold text-indigo-200">
+              {yearSummary.totalBarangMasuk}
+            </span>
+          </div>
           <div className="flex items-center justify-between text-xs mt-2 pt-2 border-t border-slate-600">
             <span className="text-slate-300">Cash</span>
-            <span className="font-semibold text-blue-200">
+            <span className="font-semibold text-green-200">
               {formatRupiah(yearSummary.cashTotal)}
             </span>
           </div>
           <div className="flex items-center justify-between text-xs">
-            <span className="text-slate-300">Transfer</span>
+            <span className="text-slate-300">Total Transfer</span>
             <span className="font-semibold text-cyan-200">
               {formatRupiah(yearSummary.transferTotal)}
+            </span>
+          </div>
+          <div className="flex items-center justify-between text-xs">
+            <span className="text-slate-300">Transfer BNI</span>
+            <span className="font-semibold text-purple-200">
+              {formatRupiah(yearSummary.transferBNITotal)}
+            </span>
+          </div>
+          <div className="flex items-center justify-between text-xs">
+            <span className="text-slate-300">Transfer Mandiri</span>
+            <span className="font-semibold text-blue-200">
+              {formatRupiah(yearSummary.transferMandiiriTotal)}
             </span>
           </div>
         </div>

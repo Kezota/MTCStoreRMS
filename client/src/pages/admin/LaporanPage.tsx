@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { useGetPenjualan } from "@/hooks/queries/usePenjualanQueries";
+import { useGetInventory } from "@/hooks/queries/useInventoryQueries";
 import {
   FilterSection,
   SummaryCards,
@@ -74,8 +75,14 @@ export const LaporanPage = () => {
     sortOrder: "asc",
   });
 
+  const { data: inventoryData } = useGetInventory({ page: 1, limit: 10000 });
+
   const items = useMemo(() => data?.data ?? [], [data]);
   const yearItems = useMemo(() => yearData?.data ?? [], [yearData]);
+  const inventoryItems = useMemo(
+    () => inventoryData?.data ?? [],
+    [inventoryData],
+  );
 
   const brandOptions = useMemo(() => {
     const set = new Set(items.map((item) => item.inventory?.brand || "-"));
@@ -98,19 +105,28 @@ export const LaporanPage = () => {
   }, [items, filterBrand, filterMetode]);
 
   const summary = useMemo(() => {
+    // Count items added to inventory within the date range (by tanggalMasuk)
+    const barangMasukCount = inventoryItems.filter((item) => {
+      const itemDate = new Date(item.tanggalMasuk).toISOString().slice(0, 10);
+      return itemDate >= startDate && itemDate <= endDate;
+    }).length;
+
     const totals = filteredItems.reduce(
       (acc, item) => {
         const sales = parseNumber(item.hargaJual);
         const modal = getModalValue(item);
-        const metode = (item.metodeBayar || "-").toLowerCase().trim();
+        const metode = (item.metodeBayar || "-").toUpperCase().trim();
         acc.totalSales += sales;
         acc.totalModal += modal;
         acc.totalGross += sales - modal;
         acc.totalProfit += parseNumber(item.profit);
         acc.totalDiskon += parseNumber(item.diskon);
         acc.totalTransaksi += 1;
-        if (metode === "cash") acc.cashTotal += sales;
-        if (metode === "transfer") acc.transferTotal += sales;
+        if (metode === "CASH") acc.cashTotal += sales;
+        if (metode === "TRANSFER_BNI") acc.transferBNITotal += sales;
+        if (metode === "TRANSFER_MANDIRI") acc.transferMandiiriTotal += sales;
+        if (metode === "TRANSFER")
+          acc.transferOldTotal = (acc.transferOldTotal || 0) + sales;
         return acc;
       },
       {
@@ -121,7 +137,9 @@ export const LaporanPage = () => {
         totalDiskon: 0,
         totalTransaksi: 0,
         cashTotal: 0,
-        transferTotal: 0,
+        transferBNITotal: 0,
+        transferMandiiriTotal: 0,
+        transferOldTotal: 0,
       },
     );
 
@@ -148,14 +166,32 @@ export const LaporanPage = () => {
     const todayGross = todaySales - todayModal;
 
     const todayCash = todayData.reduce((acc, item) => {
-      if ((item.metodeBayar || "-").toLowerCase().trim() === "cash") {
+      const metode = (item.metodeBayar || "-").toUpperCase().trim();
+      if (metode === "CASH") {
         return acc + parseNumber(item.hargaJual);
       }
       return acc;
     }, 0);
 
-    const todayTransfer = todayData.reduce((acc, item) => {
-      if ((item.metodeBayar || "-").toLowerCase().trim() === "transfer") {
+    const todayTransferBNI = todayData.reduce((acc, item) => {
+      const metode = (item.metodeBayar || "-").toUpperCase().trim();
+      if (metode === "TRANSFER_BNI") {
+        return acc + parseNumber(item.hargaJual);
+      }
+      return acc;
+    }, 0);
+
+    const todayTransferMandiri = todayData.reduce((acc, item) => {
+      const metode = (item.metodeBayar || "-").toUpperCase().trim();
+      if (metode === "TRANSFER_MANDIRI") {
+        return acc + parseNumber(item.hargaJual);
+      }
+      return acc;
+    }, 0);
+
+    const todayTransferOld = todayData.reduce((acc, item) => {
+      const metode = (item.metodeBayar || "-").toUpperCase().trim();
+      if (metode === "TRANSFER") {
         return acc + parseNumber(item.hargaJual);
       }
       return acc;
@@ -163,15 +199,23 @@ export const LaporanPage = () => {
 
     return {
       ...totals,
+      transferTotal:
+        (totals.transferOldTotal || 0) +
+        totals.transferBNITotal +
+        totals.transferMandiiriTotal,
+      totalBarangMasuk: barangMasukCount,
       todayProfit,
       todaySales,
       todayModal,
       todayGross,
       todayTransaksi: todayData.length,
       todayCashTotal: todayCash,
-      todayTransferTotal: todayTransfer,
+      todayTransferTotal:
+        todayTransferOld + todayTransferBNI + todayTransferMandiri,
+      todayTransferBNITotal: todayTransferBNI,
+      todayTransferMandiiriTotal: todayTransferMandiri,
     };
-  }, [filteredItems]);
+  }, [filteredItems, inventoryItems, startDate, endDate]);
 
   const dailySeries = useMemo(() => {
     if (!startDate || !endDate) return [];
@@ -215,18 +259,27 @@ export const LaporanPage = () => {
       return true;
     });
 
+    // Count items added to inventory within the year (by tanggalMasuk)
+    const yearBarangMasukCount = inventoryItems.filter((item) => {
+      const itemDate = new Date(item.tanggalMasuk).toISOString().slice(0, 10);
+      return itemDate >= startOfYear && itemDate <= endOfYear;
+    }).length;
+
     const totals = yearFilteredItems.reduce(
       (acc, item) => {
         const sales = parseNumber(item.hargaJual);
         const modal = getModalValue(item);
-        const metode = (item.metodeBayar || "-").toLowerCase().trim();
+        const metode = (item.metodeBayar || "-").toUpperCase().trim();
         acc.totalSales += sales;
         acc.totalModal += modal;
         acc.totalGross += sales - modal;
         acc.totalProfit += parseNumber(item.profit);
         acc.totalTransaksi += 1;
-        if (metode === "cash") acc.cashTotal += sales;
-        if (metode === "transfer") acc.transferTotal += sales;
+        if (metode === "CASH") acc.cashTotal += sales;
+        if (metode === "TRANSFER_BNI") acc.transferBNITotal += sales;
+        if (metode === "TRANSFER_MANDIRI") acc.transferMandiiriTotal += sales;
+        if (metode === "TRANSFER")
+          acc.transferOldTotal = (acc.transferOldTotal || 0) + sales;
         return acc;
       },
       {
@@ -236,12 +289,28 @@ export const LaporanPage = () => {
         totalProfit: 0,
         totalTransaksi: 0,
         cashTotal: 0,
-        transferTotal: 0,
+        transferBNITotal: 0,
+        transferMandiiriTotal: 0,
+        transferOldTotal: 0,
       },
     );
 
-    return totals;
-  }, [yearItems, filterBrand, filterMetode]);
+    return {
+      ...totals,
+      transferTotal:
+        (totals.transferOldTotal || 0) +
+        totals.transferBNITotal +
+        totals.transferMandiiriTotal,
+      totalBarangMasuk: yearBarangMasukCount,
+    };
+  }, [
+    yearItems,
+    filterBrand,
+    filterMetode,
+    inventoryItems,
+    startOfYear,
+    endOfYear,
+  ]);
 
   const availableYears = useMemo(() => {
     if (yearItems.length === 0) return [today.getFullYear()];

@@ -503,7 +503,8 @@ export const PenjualanFormModal = ({
                     className="w-full px-2 sm:px-3 py-1.5 sm:py-2 border border-slate-300 rounded-md text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="CASH">CASH</option>
-                    <option value="TRANSFER">TRANSFER</option>
+                    <option value="TRANSFER_BNI">Transfer BNI</option>
+                    <option value="TRANSFER_MANDIRI">Transfer Mandiri</option>
                   </select>
                 </div>
 

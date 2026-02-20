@@ -40,7 +40,7 @@ import type { InventoryItem } from "@/lib/types";
 
 interface FilterState {
   search: string;
-  status: "" | "READY" | "TERJUAL";
+  status: "" | "READY" | "TERJUAL" | "DIKEMBALIKAN";
   brands: string[];
   tanggal: string;
 }
@@ -369,7 +369,11 @@ export const InventoryPage = () => {
               onChange={(e) =>
                 setFilters({
                   ...filters,
-                  status: e.target.value as "" | "READY" | "TERJUAL",
+                  status: e.target.value as
+                    | ""
+                    | "READY"
+                    | "TERJUAL"
+                    | "DIKEMBALIKAN",
                 })
               }
               className="w-full px-2 sm:px-3 py-1.5 sm:py-2 border border-slate-200 rounded text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none pr-8"
@@ -377,6 +381,7 @@ export const InventoryPage = () => {
               <option value="">Semua Status</option>
               <option value="READY">Ready</option>
               <option value="TERJUAL">Terjual</option>
+              <option value="DIKEMBALIKAN">Dikembalikan</option>
             </select>
             {filters.status && (
               <span
