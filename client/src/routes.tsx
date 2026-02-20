@@ -11,6 +11,14 @@ import {
   PenjualanPage,
   CustomerPage,
 } from "./pages";
+import {
+  StaffDashboardLayout,
+  StaffDashboardPage,
+  StaffInventoryPage,
+  StaffPenjualanPage,
+  StaffStockOpnamePage,
+  StaffCustomerPage,
+} from "./pages/staff";
 import { ProtectedRoute, AdminRoute } from "./components";
 
 export const routes = [
@@ -32,49 +40,80 @@ export const routes = [
   },
   {
     path: "/dashboard",
+    element: (
+      <AdminRoute>
+        <DashboardLayout />
+      </AdminRoute>
+    ),
+    children: [
+      {
+        index: true,
+        handle: { title: "Dashboard" },
+        element: <DashboardPage />,
+      },
+      {
+        path: "stock-opname",
+        handle: { title: "Stock Opname" },
+        element: <StockOpnamePage />,
+      },
+      {
+        path: "staff",
+        handle: { title: "Staff" },
+        element: <StaffPage />,
+      },
+      {
+        path: "inventory",
+        handle: { title: "Inventory" },
+        element: <InventoryPage />,
+      },
+      {
+        path: "penjualan",
+        handle: { title: "Penjualan" },
+        element: <PenjualanPage />,
+      },
+      {
+        path: "customers",
+        handle: { title: "Pelanggan" },
+        element: <CustomerPage />,
+      },
+      {
+        path: "laporan",
+        handle: { title: "Laporan" },
+        element: <LaporanPage />,
+      },
+    ],
+  },
+  {
+    path: "/staff",
     element: <ProtectedRoute />,
     children: [
       {
-        element: <DashboardLayout />,
+        element: <StaffDashboardLayout />,
         children: [
           {
-            index: true,
+            path: "dashboard",
             handle: { title: "Dashboard" },
-            element: <DashboardPage />,
-          },
-          {
-            path: "stock-opname",
-            handle: { title: "Stock Opname" },
-            element: <StockOpnamePage />,
-          },
-          {
-            path: "staff",
-            handle: { title: "Staff" },
-            element: (
-              <AdminRoute>
-                <StaffPage />
-              </AdminRoute>
-            ),
+            element: <StaffDashboardPage />,
           },
           {
             path: "inventory",
             handle: { title: "Inventory" },
-            element: <InventoryPage />,
+            element: <StaffInventoryPage />,
           },
           {
             path: "penjualan",
             handle: { title: "Penjualan" },
-            element: <PenjualanPage />,
+            element: <StaffPenjualanPage />,
+          },
+          {
+            path: "stock-opname",
+            handle: { title: "Stock Opname" },
+            element: <StaffStockOpnamePage />,
           },
           {
             path: "customers",
             handle: { title: "Pelanggan" },
-            element: <CustomerPage />,
-          },
-          {
-            path: "laporan",
-            handle: { title: "Laporan" },
-            element: <LaporanPage />,
+            element: <StaffCustomerPage />,
           },
         ],
       },

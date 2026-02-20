@@ -2,49 +2,49 @@ import { useNavigate } from "react-router-dom";
 import {
   Package,
   ShoppingCart,
-  FileText,
   Users,
-  TrendingUp,
   Smartphone,
+  TrendingUp,
   DollarSign,
   BarChart3,
   Loader2,
+  ClipboardCheck,
 } from "lucide-react";
-import { useGetDashboardStats } from "../hooks/queries";
-import { formatRupiah } from "../lib/utils";
+import { useGetDashboardStats } from "../../hooks/queries";
+import { formatRupiah } from "../../lib/utils";
 
-export const DashboardPage = () => {
+export const StaffDashboardPage = () => {
   const navigate = useNavigate();
   const { data: stats, isLoading } = useGetDashboardStats();
 
   const navigationCards = [
     {
       title: "Inventory",
-      description: "Kelola stok HP, update harga, dan tracking IMEI",
+      description: "Lihat stok HP yang tersedia",
       icon: Package,
       gradient: "from-blue-500 via-blue-600 to-indigo-600",
-      path: "/dashboard/inventory",
+      path: "/staff/inventory",
     },
     {
       title: "Penjualan",
-      description: "Input transaksi penjualan dan tracking profit",
+      description: "Input transaksi penjualan",
       icon: ShoppingCart,
       gradient: "from-green-500 via-green-600 to-emerald-600",
-      path: "/dashboard/penjualan",
-    },
-    {
-      title: "Laporan",
-      description: "Lihat laporan penjualan dan analisis bisnis",
-      icon: FileText,
-      gradient: "from-purple-500 via-purple-600 to-pink-600",
-      path: "/dashboard/laporan",
+      path: "/staff/penjualan",
     },
     {
       title: "Stock Opname",
       description: "Cek stok READY dan validasi scan IMEI",
-      icon: Users,
+      icon: ClipboardCheck,
       gradient: "from-orange-500 via-orange-600 to-red-600",
-      path: "/dashboard/stock-opname",
+      path: "/staff/stock-opname",
+    },
+    {
+      title: "Customer",
+      description: "Kelola data pelanggan",
+      icon: Users,
+      gradient: "from-purple-500 via-purple-600 to-pink-600",
+      path: "/staff/customers",
     },
   ];
 
@@ -157,7 +157,7 @@ export const DashboardPage = () => {
         </h3>
         <p className="text-xs sm:text-sm text-blue-100">
           Pilih menu di atas untuk mulai mengelola inventory, penjualan, atau
-          melihat laporan
+          customer
         </p>
       </div>
     </div>

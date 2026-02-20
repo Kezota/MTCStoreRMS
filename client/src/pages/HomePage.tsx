@@ -17,7 +17,12 @@ function HomePage() {
 
   useEffect(() => {
     if (user) {
-      navigate("/dashboard");
+      // Redirect based on role
+      if (user.role === "ADMIN") {
+        navigate("/dashboard");
+      } else if (user.role === "STAFF") {
+        navigate("/staff/dashboard");
+      }
     }
   }, [user, navigate]);
 

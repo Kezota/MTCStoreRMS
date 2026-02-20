@@ -1,14 +1,12 @@
 import { Link, useNavigate, useLocation, Outlet } from "react-router-dom";
 import { LogOut, Menu, X } from "lucide-react";
-import { showToast } from "../lib/toast";
+import { showToast } from "../../lib/toast";
 import { useState } from "react";
-import { useGetCurrentUser } from "../hooks/queries";
 
-export const DashboardLayout = () => {
+export const StaffDashboardLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { data: currentUser } = useGetCurrentUser(true);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -17,19 +15,12 @@ export const DashboardLayout = () => {
   };
 
   const navLinks = [
-    { name: "Dashboard", path: "/dashboard" },
-    { name: "Inventory", path: "/dashboard/inventory" },
-    { name: "Penjualan", path: "/dashboard/penjualan" },
-    { name: "Laporan", path: "/dashboard/laporan" },
-    { name: "Stock Opname", path: "/dashboard/stock-opname" },
-    { name: "Customer", path: "/dashboard/customers" },
-    { name: "Staff", path: "/dashboard/staff" },
+    { name: "Dashboard", path: "/staff/dashboard" },
+    { name: "Inventory", path: "/staff/inventory" },
+    { name: "Penjualan", path: "/staff/penjualan" },
+    { name: "Stock Opname", path: "/staff/stock-opname" },
+    { name: "Customer", path: "/staff/customers" },
   ];
-
-  const visibleNavLinks =
-    currentUser?.role === "ADMIN"
-      ? navLinks
-      : navLinks.filter((link) => link.path !== "/dashboard/staff");
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -51,7 +42,7 @@ export const DashboardLayout = () => {
 
             {/* Navigation Links - Desktop */}
             <div className="hidden md:flex items-center gap-1">
-              {visibleNavLinks.map((link) => {
+              {navLinks.map((link) => {
                 const isActive = location.pathname === link.path;
                 return (
                   <Link
@@ -98,7 +89,7 @@ export const DashboardLayout = () => {
           {isMobileMenuOpen && (
             <div className="md:hidden pb-2 border-t border-gray-200 pt-2">
               <div className="flex flex-col gap-0.5">
-                {visibleNavLinks.map((link) => {
+                {navLinks.map((link) => {
                   const isActive = location.pathname === link.path;
                   return (
                     <Link

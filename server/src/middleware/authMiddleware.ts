@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
+import { PrismaClient } from "@prisma/client";
 import { AppError } from "../utils/http/AppError";
 
 interface JwtPayload {
@@ -62,4 +63,56 @@ export const restrictTo = (...roles: string[]) => {
 
     next();
   };
+};
+
+/**
+ * Middleware to check if staff can edit penjualan (within 10 minutes of creation)
+ * Admins bypass this check
+ */
+export const checkPenjualanEditTime = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const userRole = (req as any).user?.role;
+
+    // Admin can always edit
+    if (userRole === "ADMIN") {
+      return next();
+    }
+
+    // For staff, check if penjualan was created within 10 minutes
+    if (userRole === "STAFF") {
+      const prisma = new PrismaClient();
+
+      const penjualanId = parseInt(req.params.id);
+      const penjualan = await prisma.penjualan.findUnique({
+        where: { id: penjualanId },
+      });
+
+      if (!penjualan) {
+        return next(new AppError("Penjualan not found", 404));
+      }
+
+      const now = new Date();
+      const createdAt = new Date(penjualan.createdAt);
+      const diffInMinutes = (now.getTime() - createdAt.getTime()) / (1000 * 60);
+
+      if (diffInMinutes > 10) {
+        return next(
+          new AppError(
+            "Staff can only edit penjualan within 10 minutes of creation",
+            403,
+          ),
+        );
+      }
+
+      await prisma.$disconnect();
+    }
+
+    next();
+  } catch (error) {
+    next(error);
+  }
 };

@@ -39,6 +39,7 @@ interface PenjualanFormModalProps {
   isEditMode: boolean;
   item?: PenjualanItem | null;
   inventoryOptions?: InventoryItem[];
+  hideProfit?: boolean;
 }
 
 interface FormData {
@@ -60,6 +61,7 @@ export const PenjualanFormModal = ({
   isEditMode,
   item,
   inventoryOptions = [],
+  hideProfit = false,
 }: PenjualanFormModalProps) => {
   const [form, setForm] = useState<FormData>({
     tanggal: "",
@@ -244,10 +246,11 @@ export const PenjualanFormModal = ({
       const hasNewCustomer =
         customerMode === "new" && form.customerNama.trim().length > 0;
 
-      if (!hasExistingCustomer && !hasNewCustomer) {
-        alert("Pilih customer atau isi nama customer baru");
-        return;
-      }
+      // Customer is now optional
+      // if (!hasExistingCustomer && !hasNewCustomer) {
+      //   alert("Pilih customer atau isi nama customer baru");
+      //   return;
+      // }
 
       if (!form.inventoryId) {
         alert("Silakan pilih inventory");
@@ -470,7 +473,7 @@ export const PenjualanFormModal = ({
                         className="w-full pl-8 sm:pl-9 pr-2 sm:pr-3 py-1.5 sm:py-2 border border-slate-300 rounded-md text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
-                    {selectedInventory && form.hargaJual && (
+                    {!hideProfit && selectedInventory && form.hargaJual && (
                       <div
                         className={cn(
                           "mt-1 text-[10px] sm:text-xs font-bold",

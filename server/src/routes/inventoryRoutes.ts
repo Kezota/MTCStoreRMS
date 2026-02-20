@@ -28,16 +28,16 @@ router.get("/nama-by-brand", getNamaHPByBrand);
 // Get single inventory item by ID
 router.get("/:id", getInventoryById);
 
-// Create new inventory item (authenticated users)
-router.post("/", createInventory);
+// Create new inventory item (ADMIN only)
+router.post("/", restrictTo("ADMIN"), createInventory);
 
-// Create multiple inventory items at once (bulk create)
-router.post("/bulk", createBulkInventory);
+// Create multiple inventory items at once (bulk create - ADMIN only)
+router.post("/bulk", restrictTo("ADMIN"), createBulkInventory);
 
-// Update inventory item (authenticated users)
-router.patch("/:id", updateInventory);
+// Update inventory item (ADMIN only)
+router.patch("/:id", restrictTo("ADMIN"), updateInventory);
 
-// Delete inventory item (Admin only)
+// Delete inventory item (ADMIN only)
 router.delete("/:id", restrictTo("ADMIN"), deleteInventory);
 
 export default router;

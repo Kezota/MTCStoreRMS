@@ -1,13 +1,13 @@
 import { useMemo, useState } from "react";
 import { Loader2, Pencil, Trash2, UserPlus, Eye, EyeOff } from "lucide-react";
 import { isAxiosError } from "axios";
-import { showToast } from "../lib/toast";
-import { useGetUsers } from "../hooks/queries";
+import { showToast } from "../../lib/toast";
+import { useGetUsers } from "../../hooks/queries";
 import {
   useCreateUserMutation,
   useUpdateUserMutation,
   useDeleteUserMutation,
-} from "../hooks/mutations";
+} from "../../hooks/mutations";
 import {
   Table,
   TableBody,
@@ -16,7 +16,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import type { User } from "../lib/types";
+import type { User } from "../../lib/types";
 
 const emptyForm = {
   username: "",

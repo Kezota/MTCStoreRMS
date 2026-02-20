@@ -1,10 +1,10 @@
 import type { ReactNode } from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, Outlet } from "react-router-dom";
 import { useGetCurrentUser } from "../hooks/queries";
 import { Loader2 } from "lucide-react";
 
 interface AdminRouteProps {
-  children: ReactNode;
+  children?: ReactNode;
 }
 
 export const AdminRoute = ({ children }: AdminRouteProps) => {
@@ -27,8 +27,8 @@ export const AdminRoute = ({ children }: AdminRouteProps) => {
   }
 
   if (user.role !== "ADMIN") {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to="/staff/dashboard" replace />;
   }
 
-  return <>{children}</>;
+  return children ? <>{children}</> : <Outlet />;
 };

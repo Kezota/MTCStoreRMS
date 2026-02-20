@@ -1,11 +1,14 @@
+// Admin Pages
 export { default as AppLayout } from "./AppLayout";
 export { default as HomePage } from "./HomePage";
 export { LoginPage } from "./LoginPage";
-export { DashboardLayout } from "./DashboardLayout";
-export { DashboardPage } from "./DashboardPage";
-export { StockOpnamePage } from "./StockOpnamePage";
-export { StaffPage } from "./StaffPage";
-export { InventoryPage } from "./InventoryPage";
-export { default as PenjualanPage } from "./PenjualanPage";
-export { default as CustomerPage } from "./CustomerPage";
-export { LaporanPage } from "./LaporanPage";
+export { DashboardLayout } from "./admin/DashboardLayout";
+export { DashboardPage } from "./admin/DashboardPage";
+export { StockOpnamePage } from "./admin/StockOpnamePage";
+export { StaffPage } from "./admin/StaffPage";
+export { InventoryPage } from "./admin/InventoryPage";
+export { default as PenjualanPage } from "./admin/PenjualanPage";
+export { default as CustomerPage } from "./admin/CustomerPage";
+export { LaporanPage } from "./admin/LaporanPage";
+
+// Staff Pages

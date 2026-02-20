@@ -6,7 +6,11 @@ import {
   updatePenjualan,
   deletePenjualan,
 } from "../controllers/PenjualanController";
-import { protect, restrictTo } from "../middleware/authMiddleware";
+import {
+  protect,
+  restrictTo,
+  checkPenjualanEditTime,
+} from "../middleware/authMiddleware";
 
 const router = Router();
 
@@ -19,13 +23,13 @@ router.get("/", getAllPenjualan);
 // GET penjualan by ID
 router.get("/:id", getPenjualanById);
 
-// POST create new penjualan
+// POST create new penjualan (all authenticated users)
 router.post("/", createPenjualan);
 
-// PATCH update penjualan
-router.patch("/:id", updatePenjualan);
+// PATCH update penjualan (staff: within 10 mins, admin: anytime)
+router.patch("/:id", checkPenjualanEditTime, updatePenjualan);
 
-// DELETE penjualan (admin only)
+// DELETE penjualan (ADMIN only)
 router.delete("/:id", restrictTo("ADMIN"), deletePenjualan);
 
 export default router;

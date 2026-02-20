@@ -31,7 +31,10 @@ export const LoginPage = () => {
           showToast.success(
             data.message || `Selamat datang, ${data.data.user.nama}!`,
           );
-          setTimeout(() => navigate("/"), 500);
+          // Redirect based on role
+          const redirectPath =
+            data.data.user.role === "ADMIN" ? "/dashboard" : "/staff/dashboard";
+          setTimeout(() => navigate(redirectPath), 500);
         },
         onError: (error: unknown) => {
           let errorMessage = "Login gagal. Silakan coba lagi.";
