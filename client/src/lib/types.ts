@@ -145,6 +145,12 @@ export interface PenjualanItem {
   createdAt: string;
   inventory: InventoryItem;
   customer?: Customer | null;
+  user?: {
+    id: number;
+    username: string;
+    nama: string;
+    role: string;
+  } | null;
 }
 
 export interface PenjualanResponse {

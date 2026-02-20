@@ -345,9 +345,11 @@ export const createCustomer = async (
     const { nama, nomorHP } = validation.data;
 
     // Check if phone number already exists
-    const existingCustomer = await prisma.customer.findUnique({
-      where: { nomorHP },
-    });
+    const existingCustomer = nomorHP
+      ? await prisma.customer.findFirst({
+          where: { nomorHP },
+        })
+      : null;
 
     if (existingCustomer) {
       throw new AppError("Phone number already exists", 400);
@@ -404,7 +406,7 @@ export const updateCustomer = async (
 
     // If updating phone number, check if it already exists
     if (nomorHP && nomorHP !== existingCustomer.nomorHP) {
-      const duplicatePhone = await prisma.customer.findUnique({
+      const duplicatePhone = await prisma.customer.findFirst({
         where: { nomorHP },
       });
 

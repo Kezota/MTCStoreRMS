@@ -223,6 +223,14 @@ export const getAllPenjualan = async (
       include: {
         inventory: true,
         customer: true,
+        user: {
+          select: {
+            id: true,
+            username: true,
+            nama: true,
+            role: true,
+          },
+        },
       },
     });
 
@@ -258,6 +266,14 @@ export const getPenjualanById = async (
       include: {
         inventory: true,
         customer: true,
+        user: {
+          select: {
+            id: true,
+            username: true,
+            nama: true,
+            role: true,
+          },
+        },
       },
     });
 
@@ -283,6 +299,13 @@ export const createPenjualan = async (
   next: NextFunction,
 ) => {
   try {
+    // Get user ID from authenticated user
+    const userId = (req as any).user?.id;
+
+    if (!userId) {
+      throw new AppError("User not authenticated", 401);
+    }
+
     // Validate request body
     const validation = createPenjualanSchema.safeParse(req.body);
 
@@ -342,7 +365,7 @@ export const createPenjualan = async (
 
       resolvedCustomerId = existingCustomer.id;
     } else if (customerNama && customerNomorHP) {
-      const existingCustomer = await prisma.customer.findUnique({
+      const existingCustomer = await prisma.customer.findFirst({
         where: { nomorHP: customerNomorHP },
       });
 
@@ -367,6 +390,7 @@ export const createPenjualan = async (
           tanggal: new Date(tanggal),
           inventoryId,
           customerId: resolvedCustomerId,
+          userId,
           hargaJual,
           diskon: diskon || null,
           profit: calculatedProfit,
@@ -375,6 +399,14 @@ export const createPenjualan = async (
         },
         include: {
           inventory: true,
+          user: {
+            select: {
+              id: true,
+              username: true,
+              nama: true,
+              role: true,
+            },
+          },
         },
       });
 
@@ -465,7 +497,7 @@ export const updatePenjualan = async (
     if (keterangan !== undefined) updateData.keterangan = keterangan;
 
     if (customerNama && customerNomorHP) {
-      const existingCustomer = await prisma.customer.findUnique({
+      const existingCustomer = await prisma.customer.findFirst({
         where: { nomorHP: customerNomorHP },
       });
 

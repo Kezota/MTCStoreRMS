@@ -331,24 +331,6 @@ export const StaffPenjualanPage = () => {
                       {viewingItem.inventory?.warna || "-"}
                     </p>
                   </div>
-                  <div>
-                    <p className="text-[11px] sm:text-xs text-slate-600 mb-0.5 sm:mb-1">
-                      Modal Awal
-                    </p>
-                    <p className="text-xs sm:text-sm font-medium text-slate-900">
-                      {formatRupiah(viewingItem.inventory?.modalAwal || 0)}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-[11px] sm:text-xs text-slate-600 mb-0.5 sm:mb-1">
-                      Cashback
-                    </p>
-                    <p className="text-xs sm:text-sm font-medium text-slate-900">
-                      {viewingItem.inventory?.cashback
-                        ? formatRupiah(viewingItem.inventory.cashback)
-                        : "-"}
-                    </p>
-                  </div>
                 </div>
               </div>
 
@@ -395,20 +377,16 @@ export const StaffPenjualanPage = () => {
                       {viewingItem.metodeBayar}
                     </span>
                   </div>
-                  <div className="col-span-1 sm:col-span-2">
-                    <p className="text-[11px] sm:text-xs text-slate-600 mb-0.5 sm:mb-1">
-                      Profit
-                    </p>
-                    <p
-                      className={`text-xs sm:text-sm font-semibold ${
-                        Number(viewingItem.profit) < 0
-                          ? "text-red-600"
-                          : "text-green-600"
-                      }`}
-                    >
-                      {formatRupiah(viewingItem.profit)}
-                    </p>
-                  </div>
+                  {viewingItem.user && (
+                    <div>
+                      <p className="text-[11px] sm:text-xs text-slate-600 mb-0.5 sm:mb-1">
+                        Diinput Oleh
+                      </p>
+                      <p className="text-xs sm:text-sm font-medium text-slate-900">
+                        {viewingItem.user.nama}
+                      </p>
+                    </div>
+                  )}
                 </div>
               </div>
 

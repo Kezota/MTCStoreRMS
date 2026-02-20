@@ -429,7 +429,7 @@ export const PenjualanPage = () => {
                       {viewingItem.metodeBayar}
                     </span>
                   </div>
-                  <div className="col-span-1 sm:col-span-2">
+                  <div>
                     <p className="text-[11px] sm:text-xs text-slate-600 mb-0.5 sm:mb-1">
                       Profit
                     </p>
@@ -443,6 +443,16 @@ export const PenjualanPage = () => {
                       {formatRupiah(viewingItem.profit)}
                     </p>
                   </div>
+                  {viewingItem.user && (
+                    <div>
+                      <p className="text-[11px] sm:text-xs text-slate-600 mb-0.5 sm:mb-1">
+                        Diinput Oleh
+                      </p>
+                      <p className="text-xs sm:text-sm font-medium text-slate-900">
+                        {viewingItem.user.nama}
+                      </p>
+                    </div>
+                  )}
                 </div>
               </div>
 
