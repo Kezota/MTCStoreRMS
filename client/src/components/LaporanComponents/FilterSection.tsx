@@ -28,11 +28,9 @@ export const FilterSection = ({
   onFilterPresetChange,
 }: FilterSectionProps) => {
   return (
-    <div className="space-y-3 sm:space-y-4 lg:space-y-6">
+    <div className="space-y-3 sm:space-y-4">
       <div>
-        <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">
-          Laporan
-        </h1>
+        <h1 className="text-lg sm:text-xl font-bold text-gray-900">Laporan</h1>
         <p className="text-xs sm:text-sm text-gray-600 mt-1">
           Ringkasan penjualan, profit, dan tren per tanggal
         </p>

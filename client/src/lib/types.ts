@@ -81,7 +81,7 @@ export interface InventoryItem {
   modalAwal: string;
   cashback?: string;
   modalFinal: string;
-  status: "READY" | "TERJUAL";
+  status: "READY" | "TERJUAL" | "DIKEMBALIKAN";
   createdAt: string;
   penjualan?: Array<{
     id: number;
@@ -128,7 +128,7 @@ export interface UpdateInventoryRequest {
   modalAwal?: number;
   cashback?: number | null;
   modalFinal?: number;
-  status?: "READY" | "TERJUAL";
+  status?: "READY" | "TERJUAL" | "DIKEMBALIKAN";
 }
 
 // Penjualan (Sales) Types

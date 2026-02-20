@@ -31,7 +31,7 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import { cn } from "@/lib/utils";
+import { cn, normalizeDateInput } from "@/lib/utils";
 
 interface PenjualanFormModalProps {
   isOpen: boolean;
@@ -54,6 +54,8 @@ interface FormData {
   metodeBayar: string;
   keterangan: string;
 }
+
+const STORAGE_KEY = "penjualan-form-draft";
 
 export const PenjualanFormModal = ({
   isOpen,
@@ -85,22 +87,46 @@ export const PenjualanFormModal = ({
   const createMutation = useCreatePenjualanMutation();
   const updateMutation = useUpdatePenjualanMutation();
 
-  // Initialize form when opening create mode
+  // Load draft from localStorage on mount
   useEffect(() => {
     if (isOpen && !isEditMode) {
-      setForm({
-        tanggal: new Date().toISOString().slice(0, 10),
-        inventoryId: null,
-        customerId: null,
-        customerNama: "",
-        customerNomorHP: "",
-        hargaJual: "",
-        diskon: "",
-        profit: "",
-        metodeBayar: "CASH",
-        keterangan: "",
-      });
-      setCustomerMode("new");
+      const savedDraft = localStorage.getItem(STORAGE_KEY);
+      if (savedDraft) {
+        try {
+          const draft = JSON.parse(savedDraft);
+          setForm(draft.form);
+          setCustomerMode(draft.customerMode || "new");
+        } catch {
+          // If parsing fails, use default
+          setForm({
+            tanggal: new Date().toISOString().slice(0, 10),
+            inventoryId: null,
+            customerId: null,
+            customerNama: "",
+            customerNomorHP: "",
+            hargaJual: "",
+            diskon: "",
+            profit: "",
+            metodeBayar: "CASH",
+            keterangan: "",
+          });
+          setCustomerMode("new");
+        }
+      } else {
+        setForm({
+          tanggal: new Date().toISOString().slice(0, 10),
+          inventoryId: null,
+          customerId: null,
+          customerNama: "",
+          customerNomorHP: "",
+          hargaJual: "",
+          diskon: "",
+          profit: "",
+          metodeBayar: "CASH",
+          keterangan: "",
+        });
+        setCustomerMode("new");
+      }
       setCustomerSearchInput("");
       setSearchInput("");
     }
@@ -126,6 +152,19 @@ export const PenjualanFormModal = ({
       setSearchInput("");
     }
   }, [isOpen, isEditMode, item]);
+
+  // Save draft to localStorage whenever form changes (only in create mode)
+  useEffect(() => {
+    if (!isEditMode && isOpen) {
+      const hasData = form.inventoryId || form.customerNama || form.hargaJual;
+      if (hasData) {
+        localStorage.setItem(
+          STORAGE_KEY,
+          JSON.stringify({ form, customerMode }),
+        );
+      }
+    }
+  }, [form, customerMode, isEditMode, isOpen]);
 
   // Format number to Rupiah display
   const formatToRupiah = useCallback((value: string): string => {
@@ -237,6 +276,12 @@ export const PenjualanFormModal = ({
     }
   }, [calculatedProfit, selectedInventory, form.hargaJual]);
 
+  const handleSuccessfulSubmit = useCallback(() => {
+    // Clear draft after successful submit
+    localStorage.removeItem(STORAGE_KEY);
+    onClose();
+  }, [onClose]);
+
   const handleSubmitForm = useCallback(
     async (event: FormEvent) => {
       event.preventDefault();
@@ -257,8 +302,11 @@ export const PenjualanFormModal = ({
         return;
       }
 
+      const normalizedTanggal =
+        normalizeDateInput(form.tanggal) || form.tanggal;
+
       const baseData = {
-        tanggal: form.tanggal,
+        tanggal: normalizedTanggal,
         inventoryId: form.inventoryId,
         customerId: hasExistingCustomer ? form.customerId : undefined,
         customerNama: hasNewCustomer ? form.customerNama.trim() : undefined,
@@ -300,7 +348,7 @@ export const PenjualanFormModal = ({
         setCustomerMode("existing");
         setCustomerSearchInput("");
         setSearchInput("");
-        onClose();
+        handleSuccessfulSubmit();
       } catch (error) {
         console.error("Error submitting form:", error);
       }
@@ -312,8 +360,8 @@ export const PenjualanFormModal = ({
       createMutation,
       updateMutation,
       parseFromRupiah,
-      onClose,
       customerMode,
+      handleSuccessfulSubmit,
     ],
   );
 
@@ -321,7 +369,7 @@ export const PenjualanFormModal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl sm:max-w-3xl max-h-[95vh] p-0 overflow-hidden flex flex-col">
+      <DialogContent className="max-w-2xl sm:max-w-3xl max-h-[90vh] sm:max-h-[95vh] p-0 overflow-hidden flex flex-col sm:top-[50%] top-[5%] sm:translate-y-[-50%] translate-y-0">
         <DialogHeader className="px-4 sm:px-6 pt-4 sm:pt-6 pb-3 sm:pb-4 border-b sticky top-0 bg-white z-10 flex-shrink-0">
           <DialogTitle className="text-lg sm:text-xl">
             {isEditMode ? "Edit Penjualan" : "Tambah Penjualan"}
@@ -504,7 +552,7 @@ export const PenjualanFormModal = ({
                   >
                     <option value="CASH">CASH</option>
                     <option value="TRANSFER_BNI">Transfer BNI</option>
-                    <option value="TRANSFER_MANDIRI">Transfer Mandiri</option>
+                    <option value="TRANSFER_BRI">Transfer BRI</option>
                   </select>
                 </div>
 

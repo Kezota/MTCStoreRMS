@@ -26,7 +26,6 @@ import {
 import {
   ArrowUp,
   ArrowDown,
-  GripHorizontal,
   Loader2,
   AlertCircle,
   Edit2,
@@ -36,7 +35,7 @@ import {
   Eye,
 } from "lucide-react";
 import { brandsList } from "@/lib/constants";
-import { getBrandColor } from "@/lib/utils";
+import { getBrandColor, normalizeDateInput } from "@/lib/utils";
 import type { PenjualanItem, InventoryItem } from "@/lib/types";
 
 interface FilterState {
@@ -51,7 +50,7 @@ interface SortField {
   order: "asc" | "desc";
 }
 
-const METODE_BAYAR_OPTIONS = ["CASH", "TRANSFER_BNI", "TRANSFER_MANDIRI"];
+const METODE_BAYAR_OPTIONS = ["CASH", "TRANSFER_BNI", "TRANSFER_BRI"];
 
 const SORT_FIELD_OPTIONS = [
   { value: "tanggal", label: "Tanggal" },
@@ -72,10 +71,7 @@ export const StaffPenjualanPage = () => {
   });
   const [sorts, setSorts] = useState<SortField[]>([
     { field: "tanggal", order: "desc" },
-    { field: "", order: "desc" },
-    { field: "", order: "desc" },
   ]);
-  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchInput, setSearchInput] = useState("");
   const [brandDropdownOpen, setBrandDropdownOpen] = useState(false);
@@ -100,7 +96,9 @@ export const StaffPenjualanPage = () => {
     }
     if (filters.metodeBayar) params.metodeBayar = filters.metodeBayar;
     if (filters.tanggal) {
-      params.tanggal = filters.tanggal; // Format: YYYY-MM-DD
+      const normalizedTanggal =
+        normalizeDateInput(filters.tanggal) || filters.tanggal;
+      params.tanggal = normalizedTanggal; // Format: YYYY-MM-DD
     }
 
     // Multi-brand filter
@@ -140,32 +138,16 @@ export const StaffPenjualanPage = () => {
     setSorts(newSorts);
   };
 
-  const handleDragStart = (index: number) => {
-    setDraggedIndex(index);
+  const handleClearFilters = () => {
+    setFilters({
+      search: "",
+      metodeBayar: "",
+      brands: [],
+      tanggal: "",
+    });
+    setSorts([{ field: "tanggal", order: "desc" }]);
+    setSearchInput("");
   };
-
-  const handleDragOver = (index: number) => {
-    if (draggedIndex === null || draggedIndex === index) return;
-    const newSorts = [...sorts];
-    const draggedSort = newSorts[draggedIndex];
-    newSorts.splice(draggedIndex, 1);
-    newSorts.splice(index, 0, draggedSort);
-    setSorts(newSorts);
-    setDraggedIndex(index);
-  };
-
-  const handleDragEnd = () => {
-    setDraggedIndex(null);
-  };
-
-  // const handleClearFilters = () => {
-  //   setFilters({ search: "", metodeBayar: "", brands: [], tanggal: "" });
-  //   setSorts([
-  //     { field: "tanggal", order: "desc" },
-  //     { field: "", order: "desc" },
-  //     { field: "", order: "desc" },
-  //   ]);
-  // };
 
   const handleOpenCreate = () => {
     setIsEditMode(false);
@@ -378,8 +360,8 @@ export const StaffPenjualanPage = () => {
                     >
                       {viewingItem.metodeBayar === "TRANSFER_BNI"
                         ? "Transfer BNI"
-                        : viewingItem.metodeBayar === "TRANSFER_MANDIRI"
-                          ? "Transfer Mandiri"
+                        : viewingItem.metodeBayar === "TRANSFER_BRI"
+                          ? "Transfer BRI"
                           : viewingItem.metodeBayar}
                     </span>
                   </div>
@@ -466,8 +448,10 @@ export const StaffPenjualanPage = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Penjualan</h1>
-          <p className="text-sm text-slate-600">
+          <h1 className="text-lg sm:text-xl font-bold text-slate-900">
+            Penjualan
+          </h1>
+          <p className="text-xs sm:text-sm text-slate-600">
             Total: {data?.pagination.total || 0} item
           </p>
         </div>
@@ -481,7 +465,7 @@ export const StaffPenjualanPage = () => {
       </div>
 
       {/* Filter & Sort Panel */}
-      <div className="bg-white/90 rounded-lg border border-slate-200/80 my-7 p-2 sm:p-4 space-y-2 sm:space-y-4">
+      <div className="bg-white/90 rounded-lg border border-slate-200/80 my-3 sm:my-4 p-2 sm:p-4 space-y-2 sm:space-y-4">
         {/* Basic Filters - Compact on mobile */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 sm:gap-3">
           <div>
@@ -637,25 +621,12 @@ export const StaffPenjualanPage = () => {
         </div>
         {/* Sort Section */}
         <div className="space-y-1.5 sm:space-y-3 border-t border-slate-200 pt-2 sm:pt-4">
-          {/* <div className="text-xs sm:text-sm font-semibold text-slate-700">
-            Urutkan
-          </div> */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-1.5 sm:gap-3">
+          <div className="flex items-center gap-1.5 sm:gap-3">
             {sorts.map((sort, index) => (
               <div
                 key={index}
-                draggable
-                onDragStart={() => handleDragStart(index)}
-                onDragOver={() => handleDragOver(index)}
-                onDragEnd={handleDragEnd}
-                className={`flex items-center gap-1 sm:gap-2 bg-slate-50 p-1.5 sm:p-3 rounded border transition ${
-                  draggedIndex === index
-                    ? "opacity-50 border-blue-400"
-                    : "border-slate-200"
-                } cursor-move`}
+                className="flex items-center gap-1 sm:gap-2 bg-slate-50 p-1.5 sm:p-3 rounded border border-slate-200 flex-1"
               >
-                <GripHorizontal className="w-3 h-3 sm:w-4 sm:h-4 text-slate-400 flex-shrink-0" />
-
                 <select
                   value={sort.field}
                   onChange={(e) =>
@@ -663,7 +634,7 @@ export const StaffPenjualanPage = () => {
                   }
                   className="flex-1 px-1.5 sm:px-2 py-0.5 sm:py-1 border border-slate-200 rounded text-[11px] sm:text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
-                  <option value="">-- Kosong --</option>
+                  <option value="">-- Pilih Sort --</option>
                   {SORT_FIELD_OPTIONS.map((opt) => (
                     <option key={opt.value} value={opt.value}>
                       {opt.label}
@@ -681,6 +652,7 @@ export const StaffPenjualanPage = () => {
                       )
                     }
                     className="p-0.5 sm:p-1 hover:bg-slate-200 rounded transition flex-shrink-0"
+                    title="Toggle ascending/descending"
                   >
                     {sort.order === "asc" ? (
                       <ArrowUp className="w-3 h-3 sm:w-4 sm:h-4 text-blue-600" />
@@ -691,14 +663,15 @@ export const StaffPenjualanPage = () => {
                 )}
               </div>
             ))}
+
+            <button
+              onClick={handleClearFilters}
+              className="shrink-0 text-xs px-2 sm:px-3 py-1.5 sm:py-2 bg-slate-200 text-slate-700 rounded hover:bg-slate-300 transition"
+            >
+              Reset
+            </button>
           </div>
         </div>
-        {/* <button
-          onClick={handleClearFilters}
-          className="w-full text-xs px-2 sm:px-3 py-1.5 sm:py-2 bg-slate-200 text-slate-700 rounded hover:bg-slate-300 transition"
-        >
-          Reset
-        </button> */}
       </div>
 
       {/* Table */}
@@ -798,8 +771,8 @@ export const StaffPenjualanPage = () => {
                       >
                         {item.metodeBayar === "TRANSFER_BNI"
                           ? "Transfer BNI"
-                          : item.metodeBayar === "TRANSFER_MANDIRI"
-                            ? "Transfer Mandiri"
+                          : item.metodeBayar === "TRANSFER_BRI"
+                            ? "Transfer BRI"
                             : item.metodeBayar}
                       </span>
                     </TableCell>
@@ -858,6 +831,9 @@ export const StaffPenjualanPage = () => {
                   Harga
                 </TableHead>
                 <TableHead className="px-1 py-0.5 text-[10px] text-slate-600 border-l border-slate-200/70">
+                  Metode
+                </TableHead>
+                <TableHead className="px-1 py-0.5 text-[10px] text-slate-600 border-l border-slate-200/70">
                   Aksi
                 </TableHead>
               </TableRow>
@@ -897,6 +873,15 @@ export const StaffPenjualanPage = () => {
                   </TableCell>
                   <TableCell className="px-1 py-0.5 text-[10px] text-slate-600 border-l border-slate-200/70">
                     {formatRupiah(item.hargaJual)}
+                  </TableCell>
+                  <TableCell className="px-1 py-0.5 text-[10px] text-slate-600 border-l border-slate-200/70">
+                    <span className="text-[8px]">
+                      {item.metodeBayar === "CASH"
+                        ? "Cash"
+                        : item.metodeBayar === "TRANSFER_BNI"
+                          ? "BNI"
+                          : "Mandiri"}
+                    </span>
                   </TableCell>
                   <TableCell className="px-1 py-0.5 text-[10px] border-l border-slate-200/70">
                     <div className="flex items-center justify-end gap-0.5">

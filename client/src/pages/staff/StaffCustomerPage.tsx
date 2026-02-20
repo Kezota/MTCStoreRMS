@@ -427,8 +427,10 @@ export const StaffCustomerPage = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Pelanggan</h1>
-          <p className="text-sm text-slate-600">
+          <h1 className="text-lg sm:text-xl font-bold text-slate-900">
+            Pelanggan
+          </h1>
+          <p className="text-xs sm:text-sm text-slate-600">
             Total: {data?.pagination.total || 0} entri (customer & pembelian)
           </p>
         </div>
@@ -442,7 +444,7 @@ export const StaffCustomerPage = () => {
       </div>
 
       {/* Filter & Sort Panel */}
-      <div className="bg-white/90 rounded-lg border border-slate-200/80 my-7 p-2 sm:p-4 space-y-2 sm:space-y-4">
+      <div className="bg-white/90 rounded-lg border border-slate-200/80 my-3 sm:my-4 p-2 sm:p-4 space-y-2 sm:space-y-4">
         {/* Basic Filters */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 sm:gap-3">
           <input
@@ -795,6 +797,12 @@ export const StaffCustomerPage = () => {
                   HP
                 </TableHead>
                 <TableHead className="px-1 py-0.5 text-[10px] text-slate-600 border-l border-slate-200/70">
+                  Tanggal
+                </TableHead>
+                <TableHead className="px-1 py-0.5 text-[10px] text-slate-600 border-l border-slate-200/70">
+                  Harga
+                </TableHead>
+                <TableHead className="px-1 py-0.5 text-[10px] text-slate-600 border-l border-slate-200/70">
                   Aksi
                 </TableHead>
               </TableRow>
@@ -829,6 +837,19 @@ export const StaffCustomerPage = () => {
                     ) : (
                       "-"
                     )}
+                  </TableCell>
+                  <TableCell className="px-1 py-0.5 text-[10px] text-slate-600 border-l border-slate-200/70">
+                    {item.tanggal
+                      ? new Date(item.tanggal).toLocaleDateString("id-ID", {
+                          month: "2-digit",
+                          day: "2-digit",
+                        })
+                      : "-"}
+                  </TableCell>
+                  <TableCell className="px-1 py-0.5 text-[10px] text-slate-600 border-l border-slate-200/70">
+                    {item.hargaJual
+                      ? `Rp ${parseFloat(item.hargaJual).toLocaleString("id-ID", { maximumFractionDigits: 0 })}`
+                      : "-"}
                   </TableCell>
                   <TableCell className="px-1 py-0.5 text-[10px] border-l border-slate-200/70">
                     <div className="flex items-center justify-end gap-0.5">

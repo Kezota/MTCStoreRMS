@@ -21,16 +21,9 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import {
-  ArrowUp,
-  ArrowDown,
-  X,
-  GripHorizontal,
-  ChevronsUpDown,
-  Eye,
-} from "lucide-react";
+import { ArrowUp, ArrowDown, X, ChevronsUpDown, Eye } from "lucide-react";
 import { brandsList } from "@/lib/constants";
-import { getBrandColor } from "@/lib/utils";
+import { getBrandColor, normalizeDateInput } from "@/lib/utils";
 import type { InventoryItem } from "@/lib/types";
 
 interface FilterState {
@@ -67,11 +60,8 @@ export const StaffInventoryPage = () => {
 
   const [sorts, setSorts] = useState<SortField[]>([
     { field: "tanggalMasuk", order: "desc" },
-    { field: "", order: "desc" },
-    { field: "", order: "desc" },
   ]);
 
-  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [brandDropdownOpen, setBrandDropdownOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchInput, setSearchInput] = useState("");
@@ -102,8 +92,10 @@ export const StaffInventoryPage = () => {
     }
 
     if (filters.tanggal) {
-      params.tanggalMasuk = filters.tanggal; // Format: YYYY-MM-DD
-      console.log("[DEBUG] Date filter applied:", filters.tanggal);
+      const normalizedTanggal =
+        normalizeDateInput(filters.tanggal) || filters.tanggal;
+      params.tanggalMasuk = normalizedTanggal; // Format: YYYY-MM-DD
+      console.log("[DEBUG] Date filter applied:", normalizedTanggal);
     }
 
     // Build sort params only for non-empty fields
@@ -137,23 +129,15 @@ export const StaffInventoryPage = () => {
     setSorts(newSorts);
   };
 
-  const handleDragStart = (index: number) => {
-    setDraggedIndex(index);
-  };
-
-  const handleDragOver = (index: number) => {
-    if (draggedIndex === null || draggedIndex === index) return;
-
-    const newSorts = [...sorts];
-    const draggedSort = newSorts[draggedIndex];
-    newSorts.splice(draggedIndex, 1);
-    newSorts.splice(index, 0, draggedSort);
-    setSorts(newSorts);
-    setDraggedIndex(index);
-  };
-
-  const handleDragEnd = () => {
-    setDraggedIndex(null);
+  const handleClearFilters = () => {
+    setFilters({
+      search: "",
+      status: "",
+      brands: [],
+      tanggal: "",
+    });
+    setSorts([{ field: "tanggalMasuk", order: "desc" }]);
+    setSearchInput("");
   };
 
   const inventory = useMemo(() => data?.data || [], [data]);
@@ -205,19 +189,21 @@ export const StaffInventoryPage = () => {
   );
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3 sm:space-y-4">
       {/* Page Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Inventory</h1>
-          <p className="text-sm text-slate-600">
+          <h1 className="text-lg sm:text-xl font-bold text-slate-900">
+            Inventory
+          </h1>
+          <p className="text-xs sm:text-sm text-slate-600">
             Total: {data?.pagination.total || 0} item
           </p>
         </div>
       </div>
 
       {/* Filter & Sort Panel */}
-      <div className="bg-white/90 rounded-lg border border-slate-200/80 p-2 sm:p-4 space-y-2 sm:space-y-4">
+      <div className="bg-white/90 rounded-lg border border-slate-200/80 p-2 sm:p-4 space-y-1 sm:space-y-4">
         {/* Basic Filters - Compact on mobile */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 sm:gap-3">
           <div>
@@ -372,7 +358,7 @@ export const StaffInventoryPage = () => {
           <div className="relative">
             <input
               type="date"
-              placeholder="Pilih tanggal"
+              placeholder="Tanggal"
               value={filters.tanggal}
               onChange={(e) =>
                 setFilters({ ...filters, tanggal: e.target.value })
@@ -382,73 +368,64 @@ export const StaffInventoryPage = () => {
           </div>
         </div>
 
-        {/* Sort Section - 3 fields side by side */}
-        <div className="space-y-1 sm:space-y-3 border-t border-slate-200 pt-2 sm:pt-4">
+        {/* Sort Section - Single field */}
+        <div className="space-y-1 sm:space-y-3">
           {/* <div className="text-xs sm:text-sm font-semibold text-slate-700">
             Urutkan
           </div> */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-1.5 sm:gap-3">
-            {sorts.map((sort, index) => (
-              <div
-                key={index}
-                draggable
-                onDragStart={() => handleDragStart(index)}
-                onDragOver={() => handleDragOver(index)}
-                onDragEnd={handleDragEnd}
-                className={`flex items-center gap-1 sm:gap-2 bg-slate-50 p-1.5 sm:p-3 rounded border transition ${
-                  draggedIndex === index
-                    ? "opacity-50 border-blue-400"
-                    : "border-slate-200"
-                } cursor-move`}
-              >
-                <GripHorizontal className="w-3 h-3 sm:w-4 sm:h-4 text-slate-400 flex-shrink-0" />
-
-                <select
-                  value={sort.field}
-                  onChange={(e) =>
-                    handleUpdateSort(index, e.target.value, sort.order)
-                  }
-                  className="flex-1 px-1.5 sm:px-2 py-0.5 sm:py-1 border border-slate-200 rounded text-[11px] sm:text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
+          <div className="flex flex-row gap-2 items-center">
+            <div className="flex-1 grid grid-cols-1 gap-1.5 sm:gap-3">
+              {sorts.map((sort, index) => (
+                <div
+                  key={index}
+                  className="flex items-center gap-1 sm:gap-2 bg-slate-50 p-1.5 sm:p-3 rounded border border-slate-200"
                 >
-                  <option value="">-- Kosong --</option>
-                  {sortFieldOptions.map((opt) => (
-                    <option key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </option>
-                  ))}
-                </select>
-
-                {sort.field && (
-                  <button
-                    onClick={() =>
-                      handleUpdateSort(
-                        index,
-                        sort.field,
-                        sort.order === "asc" ? "desc" : "asc",
-                      )
+                  <select
+                    value={sort.field}
+                    onChange={(e) =>
+                      handleUpdateSort(index, e.target.value, sort.order)
                     }
-                    className="p-0.5 sm:p-1 hover:bg-slate-200 rounded transition flex-shrink-0"
-                    title="Toggle ascending/descending"
+                    className="flex-1 px-1.5 sm:px-2 py-0.5 sm:py-1 border border-slate-200 rounded text-[11px] sm:text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
-                    {sort.order === "asc" ? (
-                      <ArrowUp className="w-3 h-3 sm:w-4 sm:h-4 text-blue-600" />
-                    ) : (
-                      <ArrowDown className="w-3 h-3 sm:w-4 sm:h-4 text-blue-600" />
-                    )}
-                  </button>
-                )}
-              </div>
-            ))}
+                    <option value="">-- Kosong --</option>
+                    {sortFieldOptions.map((opt) => (
+                      <option key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </option>
+                    ))}
+                  </select>
+
+                  {sort.field && (
+                    <button
+                      onClick={() =>
+                        handleUpdateSort(
+                          index,
+                          sort.field,
+                          sort.order === "asc" ? "desc" : "asc",
+                        )
+                      }
+                      className="p-0.5 sm:p-1 hover:bg-slate-200 rounded transition flex-shrink-0"
+                      title="Toggle ascending/descending"
+                    >
+                      {sort.order === "asc" ? (
+                        <ArrowUp className="w-3 h-3 sm:w-4 sm:h-4 text-blue-600" />
+                      ) : (
+                        <ArrowDown className="w-3 h-3 sm:w-4 sm:h-4 text-blue-600" />
+                      )}
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            <button
+              onClick={handleClearFilters}
+              className="shrink-0 text-xs px-2 sm:px-3 py-1.5 sm:py-2 bg-slate-200 text-slate-700 rounded hover:bg-slate-300 transition"
+            >
+              Reset
+            </button>
           </div>
         </div>
-
-        {/* Clear Filters Button */}
-        {/* <button
-          onClick={handleClearFilters}
-          className="w-full text-xs px-2 sm:px-3 py-1.5 sm:py-2 bg-slate-200 text-slate-700 rounded hover:bg-slate-300 transition"
-        >
-          Reset
-        </button> */}
       </div>
 
       {/* View Modal */}

@@ -36,7 +36,7 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import { getBrandColor, cn } from "@/lib/utils";
+import { getBrandColor, cn, normalizeDateInput } from "@/lib/utils";
 
 interface InventoryFormModalProps {
   isOpen: boolean;
@@ -61,7 +61,7 @@ interface FormData {
   modalAwal: string;
   cashback: string;
   modalFinal: string;
-  status: "READY" | "TERJUAL";
+  status: "READY" | "TERJUAL" | "DIKEMBALIKAN";
 }
 
 const saveFormToStorage = (formData: FormData, variants: PhoneVariant[]) => {
@@ -107,7 +107,7 @@ export const InventoryFormModal = ({
     modalAwal: "",
     cashback: "",
     modalFinal: "",
-    status: "READY" as "READY" | "TERJUAL",
+    status: "READY" as "READY" | "TERJUAL" | "DIKEMBALIKAN",
   });
 
   const [phoneVariants, setPhoneVariants] = useState<PhoneVariant[]>([
@@ -158,7 +158,7 @@ export const InventoryFormModal = ({
           modalAwal: "",
           cashback: "",
           modalFinal: "",
-          status: "READY" as "READY" | "TERJUAL",
+          status: "READY" as "READY" | "TERJUAL" | "DIKEMBALIKAN",
         });
         setPhoneVariants([{ id: 1, imei: "", warna: "" }]);
       }
@@ -288,8 +288,11 @@ export const InventoryFormModal = ({
         ? parseFloat(parseFromRupiah(form.modalFinal))
         : modalAwalValue - (cashbackValue || 0); // Default to modalAwal if not provided
 
+      const normalizedTanggalMasuk =
+        normalizeDateInput(form.tanggalMasuk) || form.tanggalMasuk;
+
       const baseData = {
-        tanggalMasuk: form.tanggalMasuk,
+        tanggalMasuk: normalizedTanggalMasuk,
         brand: form.brand,
         namaHP: form.namaHP,
         modalAwal: modalAwalValue,
@@ -652,13 +655,17 @@ export const InventoryFormModal = ({
                       onChange={(e) =>
                         setForm({
                           ...form,
-                          status: e.target.value as "READY" | "TERJUAL",
+                          status: e.target.value as
+                            | "READY"
+                            | "TERJUAL"
+                            | "DIKEMBALIKAN",
                         })
                       }
                       className="w-full px-2 sm:px-3 py-1.5 sm:py-2 border border-slate-300 rounded-md text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
                       <option value="READY">Ready</option>
                       <option value="TERJUAL">Terjual</option>
+                      <option value="DIKEMBALIKAN">Dikembalikan</option>
                     </select>
                   </div>
                 )}

@@ -5,13 +5,10 @@ import {
   Users,
   Smartphone,
   TrendingUp,
-  DollarSign,
   BarChart3,
   Loader2,
-  ClipboardCheck,
 } from "lucide-react";
 import { useGetDashboardStats } from "../../hooks/queries";
-import { formatRupiah } from "../../lib/utils";
 
 export const StaffDashboardPage = () => {
   const navigate = useNavigate();
@@ -33,11 +30,11 @@ export const StaffDashboardPage = () => {
       path: "/staff/penjualan",
     },
     {
-      title: "Stock Opname",
-      description: "Cek stok READY dan validasi scan IMEI",
-      icon: ClipboardCheck,
+      title: "Laporan",
+      description: "Lihat statistik penjualan per brand",
+      icon: BarChart3,
       gradient: "from-orange-500 via-orange-600 to-red-600",
-      path: "/staff/stock-opname",
+      path: "/staff/laporan",
     },
     {
       title: "Customer",
@@ -61,18 +58,6 @@ export const StaffDashboardPage = () => {
       icon: TrendingUp,
       gradient: "from-green-500 to-emerald-500",
     },
-    {
-      label: "Total Profit Bulan Ini",
-      value: formatRupiah(stats?.profitThisMonth ?? 0),
-      icon: DollarSign,
-      gradient: "from-purple-500 to-pink-500",
-    },
-    {
-      label: "Total Penjualan Bulan Ini",
-      value: formatRupiah(stats?.salesThisMonth ?? 0),
-      icon: BarChart3,
-      gradient: "from-orange-500 to-red-500",
-    },
   ];
 
   if (isLoading) {
@@ -87,10 +72,10 @@ export const StaffDashboardPage = () => {
   }
 
   return (
-    <div className="space-y-3 sm:space-y-4 lg:space-y-6">
+    <div className="space-y-3 sm:space-y-4">
       {/* Header */}
       <div>
-        <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">
+        <h1 className="text-lg sm:text-xl font-bold text-gray-900">
           Dashboard
         </h1>
         <p className="text-xs sm:text-sm text-gray-600 mt-1">

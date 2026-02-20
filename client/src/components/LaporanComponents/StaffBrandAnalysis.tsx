@@ -5,6 +5,11 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
 } from "recharts";
 import { getBrandColor } from "@/lib/utils";
 
@@ -20,9 +25,16 @@ interface PieData {
   value: number;
 }
 
+interface BrandTrendPoint {
+  date: string;
+  [brand: string]: string | number;
+}
+
 interface StaffBrandAnalysisProps {
   brandSummary: BrandData[];
   brandPieData: PieData[];
+  brandTrendSeries: BrandTrendPoint[];
+  brandTrendBrands: string[];
   brandRange: "today" | "yesterday" | "thisWeek" | "thisMonth" | "custom";
   onBrandRangeChange: (
     range: "today" | "yesterday" | "thisWeek" | "thisMonth" | "custom",
@@ -59,6 +71,8 @@ const CustomTooltip = ({ active, payload }: TooltipProps) => {
 export const StaffBrandAnalysis = ({
   brandSummary,
   brandPieData,
+  brandTrendSeries,
+  brandTrendBrands,
   brandRange,
   onBrandRangeChange,
   brandStartDate,
@@ -124,10 +138,57 @@ export const StaffBrandAnalysis = ({
         </div>
       )}
 
-      {/* Pie Chart & Table */}
+      {/* Charts & Table */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-2 sm:gap-4">
-        {/* Pie Chart */}
-        <div className="lg:col-span-1 bg-white rounded-lg border border-gray-200 p-3 sm:p-4 lg:p-6 shadow-sm">
+        <div className="bg-white rounded-lg border border-gray-200 p-3 sm:p-4 lg:p-6 shadow-sm">
+          <h3 className="text-xs sm:text-sm lg:text-base font-semibold text-gray-900 mb-2 sm:mb-3 lg:mb-4">
+            📈 Grafik Brand
+          </h3>
+          <div className="h-56">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={brandTrendSeries} margin={{ left: 8, right: 8 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                <XAxis dataKey="date" tick={{ fontSize: 10 }} />
+                <YAxis tick={{ fontSize: 10 }} />
+                <Tooltip
+                  content={({ active, payload }) => {
+                    if (!active || !payload || !payload.length) return null;
+                    return (
+                      <div className="bg-white p-2 rounded-lg border border-gray-200 shadow-lg text-xs">
+                        <p className="font-semibold text-gray-900">
+                          {payload[0].payload.date}
+                        </p>
+                        {payload.map((entry) => (
+                          <p
+                            key={entry.name}
+                            className="text-gray-600"
+                            style={{ color: entry.color }}
+                          >
+                            {entry.name}: {entry.value} pcs
+                          </p>
+                        ))}
+                      </div>
+                    );
+                  }}
+                />
+                {brandTrendBrands.map((brand) => (
+                  <Line
+                    key={brand}
+                    type="monotone"
+                    dataKey={brand}
+                    stroke={getBrandColor(brand)}
+                    strokeWidth={2}
+                    dot={{ r: 2 }}
+                    activeDot={{ r: 4 }}
+                    connectNulls
+                  />
+                ))}
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-lg border border-gray-200 p-3 sm:p-4 lg:p-6 shadow-sm">
           <h3 className="text-xs sm:text-sm lg:text-base font-semibold text-gray-900 mb-2 sm:mb-3 lg:mb-4">
             📊 Distribusi Brand
           </h3>
@@ -160,8 +221,7 @@ export const StaffBrandAnalysis = ({
           </div>
         </div>
 
-        {/* Brand Summary Table */}
-        <div className="lg:col-span-2 bg-white rounded-lg border border-gray-200 p-3 sm:p-4 lg:p-6 shadow-sm overflow-x-auto">
+        <div className="bg-white rounded-lg border border-gray-200 p-3 sm:p-4 lg:p-6 shadow-sm overflow-x-auto">
           <h3 className="text-xs sm:text-sm lg:text-base font-semibold text-gray-900 mb-2 sm:mb-3 lg:mb-4">
             📋 Detail Per Brand
           </h3>
@@ -173,9 +233,6 @@ export const StaffBrandAnalysis = ({
                 </th>
                 <th className="px-2 sm:px-3 py-2 text-right font-semibold">
                   Transaksi
-                </th>
-                <th className="px-2 sm:px-3 py-2 text-right font-semibold">
-                  Total Qty Terjual
                 </th>
                 <th className="px-2 sm:px-3 py-2 text-right font-semibold">
                   Produk Ready
@@ -192,7 +249,7 @@ export const StaffBrandAnalysis = ({
                 >
                   <td className="px-2 sm:px-3 py-2 font-medium text-gray-900">
                     <span
-                      className="inline-block px-2 sm:px-3 py-1 rounded-full text-white text-xs font-semibold shadow-sm"
+                      className="inline-block px-1.5 py-0.5 rounded-full text-white text-[10px] font-semibold shadow-sm sm:px-2 sm:py-1 sm:text-xs"
                       style={{
                         backgroundColor: getBrandColor(row.brand),
                       }}
@@ -201,13 +258,10 @@ export const StaffBrandAnalysis = ({
                     </span>
                   </td>
                   <td className="px-2 sm:px-3 py-2 text-right text-gray-600">
-                    {row.transaksi}
-                  </td>
-                  <td className="px-2 sm:px-3 py-2 text-right font-semibold text-blue-700">
-                    {row.quantity} pcs
+                    {row.transaksi} pcs
                   </td>
                   <td className="px-2 sm:px-3 py-2 text-right font-semibold text-emerald-700">
-                    {row.readyProducts} produk
+                    {row.readyProducts}
                   </td>
                 </tr>
               ))}

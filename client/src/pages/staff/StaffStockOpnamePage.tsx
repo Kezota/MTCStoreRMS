@@ -289,10 +289,12 @@ export const StaffStockOpnamePage = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3 sm:space-y-4">
       <div className="flex flex-col gap-2">
-        <h1 className="text-2xl font-bold text-gray-900">Stock Opname</h1>
-        <p className="text-sm text-gray-600">
+        <h1 className="text-lg sm:text-xl font-bold text-gray-900">
+          Stock Opname
+        </h1>
+        <p className="text-xs sm:text-sm text-gray-600">
           {search || brandFilters.length > 0
             ? `Menampilkan ${sortedItems.length} HP dari ${totalReady} total READY`
             : "Cek HP yang READY di toko, scan IMEI untuk validasi fisik."}

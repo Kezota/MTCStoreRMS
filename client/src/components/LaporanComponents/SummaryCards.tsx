@@ -16,11 +16,11 @@ interface SummaryData {
   cashTotal: number;
   transferTotal: number;
   transferBNITotal: number;
-  transferMandiiriTotal: number;
+  transferBRITotal: number;
   todayCashTotal: number;
   todayTransferTotal: number;
   todayTransferBNITotal: number;
-  todayTransferMandiiriTotal: number;
+  todayTransferBRITotal: number;
 }
 
 interface YearSummaryData {
@@ -33,7 +33,7 @@ interface YearSummaryData {
   cashTotal: number;
   transferTotal: number;
   transferBNITotal: number;
-  transferMandiiriTotal: number;
+  transferBRITotal: number;
 }
 
 interface SummaryCardsProps {
@@ -105,11 +105,9 @@ export const SummaryCards = ({ summary, yearSummary }: SummaryCardsProps) => {
             </p>
           </div>
           <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-2 sm:p-2 border border-blue-200">
-            <p className="text-xs text-blue-700 font-medium">
-              Transfer Mandiri
-            </p>
+            <p className="text-xs text-blue-700 font-medium">Transfer BRI</p>
             <p className="text-sm sm:text-base font-semibold text-blue-900 mt-1">
-              {formatRupiah(summary.transferMandiiriTotal)}
+              {formatRupiah(summary.transferBRITotal)}
             </p>
           </div>
         </div>
@@ -170,9 +168,9 @@ export const SummaryCards = ({ summary, yearSummary }: SummaryCardsProps) => {
             </p>
           </div>
           <div className="bg-blue-400/20 rounded p-2 border border-blue-300/30">
-            <p className="text-blue-100 text-xs">Transfer Mandiri</p>
+            <p className="text-blue-100 text-xs">Transfer BRI</p>
             <p className="font-semibold text-blue-50 mt-1">
-              {formatRupiah(summary.todayTransferMandiiriTotal)}
+              {formatRupiah(summary.todayTransferBRITotal)}
             </p>
           </div>
         </div>
@@ -238,9 +236,9 @@ export const SummaryCards = ({ summary, yearSummary }: SummaryCardsProps) => {
             </span>
           </div>
           <div className="flex items-center justify-between text-xs">
-            <span className="text-slate-300">Transfer Mandiri</span>
+            <span className="text-slate-300">Transfer BRI</span>
             <span className="font-semibold text-blue-200">
-              {formatRupiah(yearSummary.transferMandiiriTotal)}
+              {formatRupiah(yearSummary.transferBRITotal)}
             </span>
           </div>
         </div>

@@ -34,12 +34,10 @@ export const StaffLaporanPage = () => {
   const [selectedYear, setSelectedYear] = useState(today.getFullYear());
   const [brandRange, setBrandRange] = useState<
     "today" | "yesterday" | "thisWeek" | "thisMonth" | "custom"
-  >("thisMonth");
+  >("today");
 
   const defaultEnd = toDateInput(today);
-  const defaultStart = toDateInput(
-    new Date(today.getFullYear(), today.getMonth(), 1),
-  );
+  const defaultStart = toDateInput(today);
   const [brandStartDate, setBrandStartDate] = useState(defaultStart);
   const [brandEndDate, setBrandEndDate] = useState(defaultEnd);
 
@@ -140,9 +138,7 @@ export const StaffLaporanPage = () => {
     return Array.from(map.values());
   }, [yearItems, selectedYear]);
 
-  // Brand summary for the whole year
-  const brandSummary = useMemo(() => {
-    const standardBrands = brandsList.filter((b) => b !== "OTHERS");
+  const brandRangeInfo = useMemo(() => {
     const now = new Date();
     const todayKey = toDateInput(now);
     const yesterday = new Date(now);
@@ -158,21 +154,50 @@ export const StaffLaporanPage = () => {
 
     const startMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const rangeStart = new Date(brandStartDate);
+    rangeStart.setHours(0, 0, 0, 0);
     const rangeEnd = new Date(brandEndDate);
+    rangeEnd.setHours(23, 59, 59, 999);
 
-    // Filter items based on selected range
+    let rangeStartDate = startMonth;
+    let rangeEndDate = new Date(now);
+
+    if (brandRange === "today") {
+      rangeStartDate = new Date(now);
+      rangeStartDate.setHours(0, 0, 0, 0);
+      rangeEndDate = new Date(now);
+      rangeEndDate.setHours(23, 59, 59, 999);
+    } else if (brandRange === "yesterday") {
+      rangeStartDate = new Date(yesterday);
+      rangeStartDate.setHours(0, 0, 0, 0);
+      rangeEndDate = new Date(yesterday);
+      rangeEndDate.setHours(23, 59, 59, 999);
+    } else if (brandRange === "thisWeek") {
+      rangeStartDate = startOfWeek;
+      rangeEndDate = new Date(now);
+    } else if (brandRange === "thisMonth") {
+      rangeStartDate = startMonth;
+      rangeEndDate = new Date(now);
+    } else if (brandRange === "custom") {
+      rangeStartDate = rangeStart;
+      rangeEndDate = rangeEnd;
+    }
+
     const filteredItems = yearItems.filter((item) => {
       const date = new Date(item.tanggal);
       const dateKey = date.toISOString().slice(0, 10);
 
       if (brandRange === "today") return dateKey === todayKey;
       if (brandRange === "yesterday") return dateKey === yesterdayKey;
-      if (brandRange === "thisWeek") return date >= startOfWeek;
-      if (brandRange === "thisMonth") return date >= startMonth;
-      if (brandRange === "custom")
-        return date >= rangeStart && date <= rangeEnd;
-      return false;
+      return date >= rangeStartDate && date <= rangeEndDate;
     });
+
+    return { filteredItems, rangeStartDate, rangeEndDate };
+  }, [yearItems, brandRange, brandStartDate, brandEndDate]);
+
+  // Brand summary for the whole year
+  const brandSummary = useMemo(() => {
+    const standardBrands = brandsList.filter((b) => b !== "OTHERS");
+    const { filteredItems } = brandRangeInfo;
 
     const groups = new Map<
       string,
@@ -233,7 +258,49 @@ export const StaffLaporanPage = () => {
     return Array.from(groups.values())
       .filter((group) => group.transaksi > 0)
       .sort((a, b) => b.transaksi - a.transaksi);
-  }, [yearItems, inventoryItems, brandRange, brandStartDate, brandEndDate]);
+  }, [brandRangeInfo, inventoryItems]);
+
+  const brandTrendBrands = useMemo(
+    () => brandSummary.map((row) => row.brand),
+    [brandSummary],
+  );
+
+  const brandTrendSeries = useMemo(() => {
+    const standardBrands = brandsList.filter((b) => b !== "OTHERS");
+    const { filteredItems, rangeStartDate, rangeEndDate } = brandRangeInfo;
+
+    if (!rangeStartDate || !rangeEndDate) return [];
+
+    const start = new Date(rangeStartDate);
+    const end = new Date(rangeEndDate);
+    start.setHours(0, 0, 0, 0);
+    end.setHours(0, 0, 0, 0);
+
+    const points: Array<{ date: string; [brand: string]: number | string }> =
+      [];
+    for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+      points.push({ date: toDateInput(d) });
+    }
+
+    const map = new Map(points.map((point) => [point.date, point]));
+
+    filteredItems.forEach((item) => {
+      const dateKey = new Date(item.tanggal).toISOString().slice(0, 10);
+      const brand = (item.inventory?.brand || "-").toUpperCase();
+      const finalBrand = standardBrands.includes(
+        brand as (typeof standardBrands)[number],
+      )
+        ? brand
+        : "OTHERS";
+
+      const target = map.get(dateKey);
+      if (!target) return;
+      target[finalBrand] =
+        ((target[finalBrand] as number | undefined) || 0) + 1;
+    });
+
+    return points;
+  }, [brandRangeInfo]);
 
   const brandPieData = useMemo(() => {
     return brandSummary.map((row) => ({
@@ -256,6 +323,8 @@ export const StaffLaporanPage = () => {
           <StaffBrandAnalysis
             brandSummary={brandSummary}
             brandPieData={brandPieData}
+            brandTrendSeries={brandTrendSeries}
+            brandTrendBrands={brandTrendBrands}
             brandRange={brandRange}
             onBrandRangeChange={setBrandRange}
             brandStartDate={brandStartDate}

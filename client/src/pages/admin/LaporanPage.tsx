@@ -124,7 +124,7 @@ export const LaporanPage = () => {
         acc.totalTransaksi += 1;
         if (metode === "CASH") acc.cashTotal += sales;
         if (metode === "TRANSFER_BNI") acc.transferBNITotal += sales;
-        if (metode === "TRANSFER_MANDIRI") acc.transferMandiiriTotal += sales;
+        if (metode === "TRANSFER_BRI") acc.transferBRITotal += sales;
         if (metode === "TRANSFER")
           acc.transferOldTotal = (acc.transferOldTotal || 0) + sales;
         return acc;
@@ -138,7 +138,7 @@ export const LaporanPage = () => {
         totalTransaksi: 0,
         cashTotal: 0,
         transferBNITotal: 0,
-        transferMandiiriTotal: 0,
+        transferBRITotal: 0,
         transferOldTotal: 0,
       },
     );
@@ -181,9 +181,9 @@ export const LaporanPage = () => {
       return acc;
     }, 0);
 
-    const todayTransferMandiri = todayData.reduce((acc, item) => {
+    const todayTransferBRI = todayData.reduce((acc, item) => {
       const metode = (item.metodeBayar || "-").toUpperCase().trim();
-      if (metode === "TRANSFER_MANDIRI") {
+      if (metode === "TRANSFER_BRI") {
         return acc + parseNumber(item.hargaJual);
       }
       return acc;
@@ -202,7 +202,7 @@ export const LaporanPage = () => {
       transferTotal:
         (totals.transferOldTotal || 0) +
         totals.transferBNITotal +
-        totals.transferMandiiriTotal,
+        totals.transferBRITotal,
       totalBarangMasuk: barangMasukCount,
       todayProfit,
       todaySales,
@@ -211,9 +211,9 @@ export const LaporanPage = () => {
       todayTransaksi: todayData.length,
       todayCashTotal: todayCash,
       todayTransferTotal:
-        todayTransferOld + todayTransferBNI + todayTransferMandiri,
+        todayTransferOld + todayTransferBNI + todayTransferBRI,
       todayTransferBNITotal: todayTransferBNI,
-      todayTransferMandiiriTotal: todayTransferMandiri,
+      todayTransferBRITotal: todayTransferBRI,
     };
   }, [filteredItems, inventoryItems, startDate, endDate]);
 
@@ -277,7 +277,7 @@ export const LaporanPage = () => {
         acc.totalTransaksi += 1;
         if (metode === "CASH") acc.cashTotal += sales;
         if (metode === "TRANSFER_BNI") acc.transferBNITotal += sales;
-        if (metode === "TRANSFER_MANDIRI") acc.transferMandiiriTotal += sales;
+        if (metode === "TRANSFER_BRI") acc.transferBRITotal += sales;
         if (metode === "TRANSFER")
           acc.transferOldTotal = (acc.transferOldTotal || 0) + sales;
         return acc;
@@ -290,7 +290,7 @@ export const LaporanPage = () => {
         totalTransaksi: 0,
         cashTotal: 0,
         transferBNITotal: 0,
-        transferMandiiriTotal: 0,
+        transferBRITotal: 0,
         transferOldTotal: 0,
       },
     );
@@ -300,7 +300,7 @@ export const LaporanPage = () => {
       transferTotal:
         (totals.transferOldTotal || 0) +
         totals.transferBNITotal +
-        totals.transferMandiiriTotal,
+        totals.transferBRITotal,
       totalBarangMasuk: yearBarangMasukCount,
     };
   }, [
@@ -439,7 +439,7 @@ export const LaporanPage = () => {
   }, [brandSummary]);
 
   return (
-    <div className="space-y-6 sm:space-y-8">
+    <div className="space-y-3 sm:space-y-4">
       <FilterSection
         startDate={startDate}
         endDate={endDate}

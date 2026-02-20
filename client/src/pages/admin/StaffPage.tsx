@@ -139,13 +139,11 @@ export const StaffPage = () => {
   }
 
   return (
-    <div className="space-y-6 sm:space-y-8">
+    <div className="space-y-3 sm:space-y-4">
       <div className="flex items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
-            Staff
-          </h1>
-          <p className="text-sm sm:text-base text-gray-600 mt-1">
+          <h1 className="text-lg sm:text-xl font-bold text-gray-900">Staff</h1>
+          <p className="text-xs sm:text-sm text-gray-600 mt-1">
             Kelola user dan akses sistem
           </p>
         </div>
