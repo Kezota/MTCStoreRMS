@@ -163,14 +163,14 @@ export const PenjualanPage = () => {
     setDraggedIndex(null);
   };
 
-  const handleClearFilters = () => {
-    setFilters({ search: "", metodeBayar: "", brands: [], tanggal: "" });
-    setSorts([
-      { field: "tanggal", order: "desc" },
-      { field: "", order: "desc" },
-      { field: "", order: "desc" },
-    ]);
-  };
+  // const handleClearFilters = () => {
+  //   setFilters({ search: "", metodeBayar: "", brands: [], tanggal: "" });
+  //   setSorts([
+  //     { field: "tanggal", order: "desc" },
+  //     { field: "", order: "desc" },
+  //     { field: "", order: "desc" },
+  //   ]);
+  // };
 
   const handleOpenCreate = () => {
     setIsEditMode(false);
@@ -446,6 +446,33 @@ export const PenjualanPage = () => {
                 </div>
               </div>
 
+              {/* Customer Details */}
+              {viewingItem.customer && (
+                <div>
+                  <h3 className="text-xs sm:text-sm font-semibold text-slate-700 mb-2 sm:mb-4">
+                    Detail Customer
+                  </h3>
+                  <div className="grid grid-cols-2 gap-2 sm:gap-4 bg-slate-50 p-2 sm:p-4 rounded-lg">
+                    <div>
+                      <p className="text-[11px] sm:text-xs text-slate-600 mb-0.5 sm:mb-1">
+                        Nama
+                      </p>
+                      <p className="text-xs sm:text-sm font-semibold text-slate-900">
+                        {viewingItem.customer.nama}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-[11px] sm:text-xs text-slate-600 mb-0.5 sm:mb-1">
+                        Nomor HP
+                      </p>
+                      <p className="text-xs sm:text-sm font-medium text-slate-900">
+                        {viewingItem.customer.nomorHP || "-"}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Keterangan */}
               {viewingItem.keterangan && (
                 <div>
@@ -649,9 +676,9 @@ export const PenjualanPage = () => {
         </div>
         {/* Sort Section */}
         <div className="space-y-1.5 sm:space-y-3 border-t border-slate-200 pt-2 sm:pt-4">
-          <div className="text-xs sm:text-sm font-semibold text-slate-700">
+          {/* <div className="text-xs sm:text-sm font-semibold text-slate-700">
             Urutkan
-          </div>
+          </div> */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-1.5 sm:gap-3">
             {sorts.map((sort, index) => (
               <div
@@ -705,12 +732,12 @@ export const PenjualanPage = () => {
             ))}
           </div>
         </div>
-        <button
+        {/* <button
           onClick={handleClearFilters}
           className="w-full text-xs px-2 sm:px-3 py-1.5 sm:py-2 bg-slate-200 text-slate-700 rounded hover:bg-slate-300 transition"
         >
           Reset
-        </button>
+        </button> */}
       </div>
 
       {/* Table */}

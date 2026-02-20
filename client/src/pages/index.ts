@@ -7,4 +7,5 @@ export { StockOpnamePage } from "./StockOpnamePage";
 export { StaffPage } from "./StaffPage";
 export { InventoryPage } from "./InventoryPage";
 export { default as PenjualanPage } from "./PenjualanPage";
+export { default as CustomerPage } from "./CustomerPage";
 export { LaporanPage } from "./LaporanPage";

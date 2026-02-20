@@ -14,3 +14,8 @@ export {
   useUpdatePenjualanMutation,
   useDeletePenjualanMutation,
 } from "./usePenjualanMutations";
+export {
+  useCreateCustomerMutation,
+  useUpdateCustomerMutation,
+  useDeleteCustomerMutation,
+} from "./useCustomerMutations";

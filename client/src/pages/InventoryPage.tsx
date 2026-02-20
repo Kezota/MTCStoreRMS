@@ -168,19 +168,19 @@ export const InventoryPage = () => {
     setDraggedIndex(null);
   };
 
-  const handleClearFilters = () => {
-    setFilters({
-      search: "",
-      status: "",
-      brands: [],
-      tanggal: "",
-    });
-    setSorts([
-      { field: "tanggalMasuk", order: "desc" },
-      { field: "", order: "desc" },
-      { field: "", order: "desc" },
-    ]);
-  };
+  // const handleClearFilters = () => {
+  //   setFilters({
+  //     search: "",
+  //     status: "",
+  //     brands: [],
+  //     tanggal: "",
+  //   });
+  //   setSorts([
+  //     { field: "tanggalMasuk", order: "desc" },
+  //     { field: "", order: "desc" },
+  //     { field: "", order: "desc" },
+  //   ]);
+  // };
 
   const handleOpenCreate = useCallback(() => {
     setIsEditMode(false);
@@ -441,9 +441,9 @@ export const InventoryPage = () => {
 
         {/* Sort Section - 3 fields side by side */}
         <div className="space-y-1 sm:space-y-3 border-t border-slate-200 pt-2 sm:pt-4">
-          <div className="text-xs sm:text-sm font-semibold text-slate-700">
+          {/* <div className="text-xs sm:text-sm font-semibold text-slate-700">
             Urutkan
-          </div>
+          </div> */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-1.5 sm:gap-3">
             {sorts.map((sort, index) => (
               <div
@@ -500,12 +500,12 @@ export const InventoryPage = () => {
         </div>
 
         {/* Clear Filters Button */}
-        <button
+        {/* <button
           onClick={handleClearFilters}
           className="w-full text-xs px-2 sm:px-3 py-1.5 sm:py-2 bg-slate-200 text-slate-700 rounded hover:bg-slate-300 transition"
         >
           Reset
-        </button>
+        </button> */}
       </div>
 
       {isFormOpen && (

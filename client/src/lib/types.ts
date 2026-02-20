@@ -136,6 +136,7 @@ export interface PenjualanItem {
   id: number;
   tanggal: string;
   inventoryId: number;
+  customerId?: number | null;
   hargaJual: string;
   diskon?: string;
   profit: string;
@@ -143,6 +144,7 @@ export interface PenjualanItem {
   keterangan?: string;
   createdAt: string;
   inventory: InventoryItem;
+  customer?: Customer | null;
 }
 
 export interface PenjualanResponse {
@@ -160,6 +162,9 @@ export interface PenjualanResponse {
 export interface CreatePenjualanRequest {
   tanggal: string;
   inventoryId: number;
+  customerId?: number | null;
+  customerNama?: string;
+  customerNomorHP?: string;
   hargaJual: number;
   diskon?: number | null;
   profit: number;
@@ -170,9 +175,68 @@ export interface CreatePenjualanRequest {
 export interface UpdatePenjualanRequest {
   tanggal?: string;
   inventoryId?: number;
+  customerId?: number | null;
+  customerNama?: string;
+  customerNomorHP?: string;
   hargaJual?: number;
   diskon?: number | null;
   profit?: number;
   metodeBayar?: string;
   keterangan?: string;
+}
+// Customer Types
+export interface Customer {
+  id: number;
+  nama: string;
+  nomorHP: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CustomerResponse {
+  status: string;
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+  data: Customer[];
+}
+
+export interface CreateCustomerRequest {
+  nama: string;
+  nomorHP?: string;
+}
+
+export interface UpdateCustomerRequest {
+  nama?: string;
+  nomorHP?: string;
+}
+
+// Customer Purchase Types (for purchases view)
+export interface CustomerPurchase {
+  id: number | null;
+  tanggal: string | null;
+  inventoryId: number | null;
+  customerId: number;
+  hargaJual: string | null;
+  diskon?: string | null;
+  profit: string | null;
+  metodeBayar: string | null;
+  keterangan?: string | null;
+  createdAt: string;
+  customer: Customer;
+  inventory: InventoryItem | null;
+}
+
+export interface CustomerPurchasesResponse {
+  status: string;
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+  data: CustomerPurchase[];
 }

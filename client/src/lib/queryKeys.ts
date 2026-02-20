@@ -22,6 +22,11 @@ export const QUERY_KEYS = {
     all: ["penjualan"] as const,
     list: () => [...QUERY_KEYS.penjualan.all, "list"] as const,
   },
+  customers: {
+    all: ["customers"] as const,
+    list: () => [...QUERY_KEYS.customers.all, "list"] as const,
+    purchases: () => [...QUERY_KEYS.customers.all, "purchases"] as const,
+  },
 };
 
 export const queryKeys = QUERY_KEYS;

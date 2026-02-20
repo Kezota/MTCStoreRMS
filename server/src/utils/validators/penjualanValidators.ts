@@ -8,6 +8,9 @@ export const createPenjualanSchema = z.preprocess(
       return {
         tanggal: data.tanggal,
         inventoryId: data.inventoryId ?? data.inventory_id,
+        customerId: data.customerId ?? data.customer_id,
+        customerNama: data.customerNama ?? data.customer_nama,
+        customerNomorHP: data.customerNomorHP ?? data.customer_nomor_hp,
         hargaJual: data.hargaJual ?? data.harga_jual,
         diskon: data.diskon,
         profit: data.profit,
@@ -26,6 +29,19 @@ export const createPenjualanSchema = z.preprocess(
       .number()
       .int("Inventory ID must be an integer")
       .positive("Inventory ID must be positive"),
+    customerId: z
+      .number()
+      .int("Customer ID must be an integer")
+      .positive("Customer ID must be positive")
+      .optional(),
+    customerNama: z
+      .string()
+      .max(100, "Customer nama max 100 characters")
+      .optional(),
+    customerNomorHP: z
+      .string()
+      .max(20, "Customer nomor HP max 20 characters")
+      .optional(),
     hargaJual: z.number().positive("Harga jual must be positive"),
     diskon: z
       .number()
@@ -54,6 +70,15 @@ export const updatePenjualanSchema = z.preprocess(
       if (hasKey("inventoryId") || hasKey("inventory_id")) {
         output.inventoryId = data.inventoryId ?? data.inventory_id;
       }
+      if (hasKey("customerId") || hasKey("customer_id")) {
+        output.customerId = data.customerId ?? data.customer_id;
+      }
+      if (hasKey("customerNama") || hasKey("customer_nama")) {
+        output.customerNama = data.customerNama ?? data.customer_nama;
+      }
+      if (hasKey("customerNomorHP") || hasKey("customer_nomor_hp")) {
+        output.customerNomorHP = data.customerNomorHP ?? data.customer_nomor_hp;
+      }
       if (hasKey("hargaJual") || hasKey("harga_jual")) {
         output.hargaJual = data.hargaJual ?? data.harga_jual;
       }
@@ -81,6 +106,25 @@ export const updatePenjualanSchema = z.preprocess(
         if (typeof val === "string") return parseInt(val);
         return val;
       }),
+    customerId: z
+      .union([z.number(), z.string(), z.null()])
+      .optional()
+      .transform((val) => {
+        if (val === null) return null;
+        if (typeof val === "string") {
+          const parsed = parseInt(val);
+          return isNaN(parsed) ? undefined : parsed;
+        }
+        return val;
+      }),
+    customerNama: z
+      .string()
+      .max(100, "Customer nama max 100 characters")
+      .optional(),
+    customerNomorHP: z
+      .string()
+      .max(20, "Customer nomor HP max 20 characters")
+      .optional(),
     hargaJual: z
       .union([z.number(), z.string()])
       .optional()

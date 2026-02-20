@@ -9,6 +9,7 @@ import {
   StaffPage,
   InventoryPage,
   PenjualanPage,
+  CustomerPage,
 } from "./pages";
 import { ProtectedRoute, AdminRoute } from "./components";
 
@@ -64,6 +65,11 @@ export const routes = [
             path: "penjualan",
             handle: { title: "Penjualan" },
             element: <PenjualanPage />,
+          },
+          {
+            path: "customers",
+            handle: { title: "Pelanggan" },
+            element: <CustomerPage />,
           },
           {
             path: "laporan",

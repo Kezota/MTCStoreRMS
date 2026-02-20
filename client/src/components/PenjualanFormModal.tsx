@@ -10,6 +10,7 @@ import {
   useCreatePenjualanMutation,
   useUpdatePenjualanMutation,
 } from "@/hooks/mutations/usePenjualanMutations";
+import { useGetCustomers } from "@/hooks/queries/useCustomerQueries";
 import type { PenjualanItem, InventoryItem } from "@/lib/types";
 import {
   Dialog,
@@ -43,6 +44,9 @@ interface PenjualanFormModalProps {
 interface FormData {
   tanggal: string;
   inventoryId: number | null;
+  customerId: number | null;
+  customerNama: string;
+  customerNomorHP: string;
   hargaJual: string;
   diskon: string;
   profit: string;
@@ -60,6 +64,9 @@ export const PenjualanFormModal = ({
   const [form, setForm] = useState<FormData>({
     tanggal: "",
     inventoryId: null,
+    customerId: null,
+    customerNama: "",
+    customerNomorHP: "",
     hargaJual: "",
     diskon: "",
     profit: "",
@@ -69,6 +76,9 @@ export const PenjualanFormModal = ({
 
   const [inventoryOpen, setInventoryOpen] = useState(false);
   const [searchInput, setSearchInput] = useState("");
+  const [customerMode, setCustomerMode] = useState<"existing" | "new">("new");
+  const [customerOpen, setCustomerOpen] = useState(false);
+  const [customerSearchInput, setCustomerSearchInput] = useState("");
 
   const createMutation = useCreatePenjualanMutation();
   const updateMutation = useUpdatePenjualanMutation();
@@ -79,12 +89,17 @@ export const PenjualanFormModal = ({
       setForm({
         tanggal: new Date().toISOString().slice(0, 10),
         inventoryId: null,
+        customerId: null,
+        customerNama: "",
+        customerNomorHP: "",
         hargaJual: "",
         diskon: "",
         profit: "",
         metodeBayar: "CASH",
         keterangan: "",
       });
+      setCustomerMode("new");
+      setCustomerSearchInput("");
       setSearchInput("");
     }
   }, [isOpen, isEditMode]);
@@ -95,12 +110,17 @@ export const PenjualanFormModal = ({
       setForm({
         tanggal: item.tanggal.slice(0, 10),
         inventoryId: item.inventoryId,
+        customerId: item.customerId ?? null,
+        customerNama: item.customer?.nama || "",
+        customerNomorHP: item.customer?.nomorHP || "",
         hargaJual: String(item.hargaJual ?? ""),
         diskon: item.diskon ? String(item.diskon) : "",
         profit: String(item.profit ?? ""),
         metodeBayar: item.metodeBayar || "CASH",
         keterangan: item.keterangan || "",
       });
+      setCustomerMode(item.customerId ? "existing" : "existing");
+      setCustomerSearchInput("");
       setSearchInput("");
     }
   }, [isOpen, isEditMode, item]);
@@ -120,6 +140,30 @@ export const PenjualanFormModal = ({
   const selectedInventory = useMemo(
     () => inventoryOptions.find((inv) => inv.id === form.inventoryId),
     [inventoryOptions, form.inventoryId],
+  );
+
+  const customerSearchValue = customerSearchInput.trim();
+  const customerQueryParams = useMemo(() => {
+    if (!customerSearchValue) {
+      return { page: 1, limit: 20 };
+    }
+
+    if (/^\d+$/.test(customerSearchValue)) {
+      return { page: 1, limit: 20, nomorHP: customerSearchValue };
+    }
+
+    return { page: 1, limit: 20, search: customerSearchValue };
+  }, [customerSearchValue]);
+
+  const { data: customerData } = useGetCustomers(customerQueryParams);
+  const customerOptions = useMemo(
+    () => customerData?.data || [],
+    [customerData],
+  );
+
+  const selectedCustomer = useMemo(
+    () => customerOptions.find((cust) => cust.id === form.customerId),
+    [customerOptions, form.customerId],
   );
 
   // Filter inventory options based on search with smart IMEI prioritization
@@ -195,6 +239,16 @@ export const PenjualanFormModal = ({
     async (event: FormEvent) => {
       event.preventDefault();
 
+      const hasExistingCustomer =
+        customerMode === "existing" && !!form.customerId;
+      const hasNewCustomer =
+        customerMode === "new" && form.customerNama.trim().length > 0;
+
+      if (!hasExistingCustomer && !hasNewCustomer) {
+        alert("Pilih customer atau isi nama customer baru");
+        return;
+      }
+
       if (!form.inventoryId) {
         alert("Silakan pilih inventory");
         return;
@@ -203,6 +257,12 @@ export const PenjualanFormModal = ({
       const baseData = {
         tanggal: form.tanggal,
         inventoryId: form.inventoryId,
+        customerId: hasExistingCustomer ? form.customerId : undefined,
+        customerNama: hasNewCustomer ? form.customerNama.trim() : undefined,
+        customerNomorHP:
+          hasNewCustomer && form.customerNomorHP.trim()
+            ? form.customerNomorHP.trim()
+            : undefined,
         hargaJual: parseFloat(parseFromRupiah(form.hargaJual)),
         diskon: form.diskon
           ? parseFloat(parseFromRupiah(form.diskon))
@@ -225,12 +285,17 @@ export const PenjualanFormModal = ({
         setForm({
           tanggal: "",
           inventoryId: null,
+          customerId: null,
+          customerNama: "",
+          customerNomorHP: "",
           hargaJual: "",
           diskon: "",
           profit: "",
           metodeBayar: "CASH",
           keterangan: "",
         });
+        setCustomerMode("existing");
+        setCustomerSearchInput("");
         setSearchInput("");
         onClose();
       } catch (error) {
@@ -245,6 +310,7 @@ export const PenjualanFormModal = ({
       updateMutation,
       parseFromRupiah,
       onClose,
+      customerMode,
     ],
   );
 
@@ -356,65 +422,69 @@ export const PenjualanFormModal = ({
                 </div>
               </div>
 
-              {/* Price Fields */}
-              <div className="grid grid-cols-2 gap-3 sm:gap-4">
-                {/* Harga Jual */}
-                <div>
-                  <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-1">
-                    Harga Jual
-                  </label>
-                  <div className="flex items-center gap-1">
-                    <span className="text-xs text-slate-500">Rp</span>
-                    <input
-                      type="text"
-                      required
-                      value={formatToRupiah(form.hargaJual)}
-                      onChange={(e) =>
-                        setForm({
-                          ...form,
-                          hargaJual: e.target.value,
-                        })
-                      }
-                      className="flex-1 px-2 sm:px-3 py-1.5 sm:py-2 border border-slate-300 rounded-md text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-                </div>
-
-                {/* Diskon */}
-                <div>
-                  <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-1">
-                    Diskon (Opsional)
-                  </label>
-                  <div className="flex items-center gap-1">
-                    <span className="text-xs text-slate-500">Rp</span>
-                    <input
-                      type="text"
-                      value={formatToRupiah(form.diskon)}
-                      onChange={(e) =>
-                        setForm({
-                          ...form,
-                          diskon: e.target.value,
-                        })
-                      }
-                      className="flex-1 px-2 sm:px-3 py-1.5 sm:py-2 border border-slate-300 rounded-md text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-                  {selectedInventory && form.hargaJual && (
-                    <div
-                      className={cn(
-                        "mt-1 text-[10px] sm:text-xs font-bold",
-                        calculatedProfit > 0 && "text-green-600",
-                        calculatedProfit < 0 && "text-red-600",
-                        calculatedProfit === 0 && "text-slate-600",
-                      )}
-                    >
-                      Profit: Rp {formatToRupiah(form.profit)}
+              {
+                /* Price Fields */
+                <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                  {/* Harga Jual */}
+                  <div>
+                    <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-1">
+                      Harga Jual
+                    </label>
+                    <div className="relative">
+                      <span className="absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 text-xs sm:text-sm text-slate-500">
+                        Rp
+                      </span>
+                      <input
+                        type="text"
+                        required
+                        value={formatToRupiah(form.hargaJual)}
+                        onChange={(e) =>
+                          setForm({
+                            ...form,
+                            hargaJual: e.target.value,
+                          })
+                        }
+                        className="w-full pl-8 sm:pl-9 pr-2 sm:pr-3 py-1.5 sm:py-2 border border-slate-300 rounded-md text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
                     </div>
-                  )}
-                </div>
-              </div>
+                  </div>
 
-              {/* Metode Bayar & Keterangan */}
+                  {/* Diskon */}
+                  <div>
+                    <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-1">
+                      Diskon (Opsional)
+                    </label>
+                    <div className="relative">
+                      <span className="absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 text-xs sm:text-sm text-slate-500">
+                        Rp
+                      </span>
+                      <input
+                        type="text"
+                        value={formatToRupiah(form.diskon)}
+                        onChange={(e) =>
+                          setForm({
+                            ...form,
+                            diskon: e.target.value,
+                          })
+                        }
+                        className="w-full pl-8 sm:pl-9 pr-2 sm:pr-3 py-1.5 sm:py-2 border border-slate-300 rounded-md text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    {selectedInventory && form.hargaJual && (
+                      <div
+                        className={cn(
+                          "mt-1 text-[10px] sm:text-xs font-bold",
+                          calculatedProfit > 0 && "text-green-600",
+                          calculatedProfit < 0 && "text-red-600",
+                          calculatedProfit === 0 && "text-slate-600",
+                        )}
+                      >
+                        Profit: Rp {formatToRupiah(form.profit)}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              }
               <div className="grid grid-cols-2 gap-3 sm:gap-4">
                 {/* Metode Bayar */}
                 <div>
@@ -449,6 +519,164 @@ export const PenjualanFormModal = ({
                     className="w-full px-2 sm:px-3 py-1.5 sm:py-2 border border-slate-300 rounded-md text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
+              </div>
+
+              {/* Customer */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="block text-xs sm:text-sm font-medium text-slate-700">
+                    Customer
+                  </label>
+                  <div className="flex items-center gap-1">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setCustomerMode("existing");
+                        setForm((prev) => ({
+                          ...prev,
+                          customerNama: "",
+                          customerNomorHP: "",
+                        }));
+                      }}
+                      className={cn(
+                        "px-2 py-0.5 text-[10px] sm:text-xs rounded border",
+                        customerMode === "existing"
+                          ? "bg-blue-50 text-blue-700 border-blue-200"
+                          : "bg-white text-slate-600 border-slate-200",
+                      )}
+                    >
+                      Existing
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setCustomerMode("new");
+                        setForm((prev) => ({
+                          ...prev,
+                          customerId: null,
+                        }));
+                      }}
+                      className={cn(
+                        "px-2 py-0.5 text-[10px] sm:text-xs rounded border",
+                        customerMode === "new"
+                          ? "bg-blue-50 text-blue-700 border-blue-200"
+                          : "bg-white text-slate-600 border-slate-200",
+                      )}
+                    >
+                      Baru
+                    </button>
+                  </div>
+                </div>
+
+                {customerMode === "existing" ? (
+                  <div>
+                    <Popover open={customerOpen} onOpenChange={setCustomerOpen}>
+                      <PopoverTrigger asChild>
+                        <button
+                          type="button"
+                          className={cn(
+                            "w-full px-2 sm:px-3 py-1.5 sm:py-2 border border-slate-300 rounded-md text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-left flex items-center justify-between",
+                            !selectedCustomer && "text-slate-500",
+                          )}
+                        >
+                          <span className="truncate">
+                            {selectedCustomer
+                              ? `${selectedCustomer.nama} - ${selectedCustomer.nomorHP}`
+                              : "Pilih customer..."}
+                          </span>
+                          <ChevronsUpDown className="ml-2 h-3 w-3 sm:h-4 sm:w-4 shrink-0 opacity-50" />
+                        </button>
+                      </PopoverTrigger>
+                      <PopoverContent
+                        side="bottom"
+                        className="w-[--radix-popover-trigger-width] p-0"
+                        align="start"
+                      >
+                        <Command shouldFilter={false}>
+                          <CommandInput
+                            placeholder="Cari nama atau nomor HP..."
+                            value={customerSearchInput}
+                            onValueChange={setCustomerSearchInput}
+                          />
+                          <CommandList>
+                            <CommandEmpty>
+                              Tidak ada customer yang ditemukan.
+                            </CommandEmpty>
+                            <CommandGroup>
+                              {customerOptions.map((cust) => (
+                                <CommandItem
+                                  key={cust.id}
+                                  value={String(cust.id)}
+                                  onSelect={() => {
+                                    setForm((prev) => ({
+                                      ...prev,
+                                      customerId: cust.id,
+                                      customerNama: cust.nama,
+                                      customerNomorHP: cust.nomorHP || "",
+                                    }));
+                                    setCustomerOpen(false);
+                                    setCustomerSearchInput("");
+                                  }}
+                                >
+                                  <div className="flex flex-col text-xs sm:text-sm">
+                                    <div className="font-medium">
+                                      {cust.nama}
+                                    </div>
+                                    <div className="text-slate-500 text-[10px] sm:text-xs">
+                                      {cust.nomorHP}
+                                    </div>
+                                  </div>
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
+                    {selectedCustomer && (
+                      <div className="mt-1 text-[10px] sm:text-xs text-slate-600">
+                        {selectedCustomer.nama} • {selectedCustomer.nomorHP}
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                    <div>
+                      <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-1">
+                        Nama Customer
+                      </label>
+                      <input
+                        type="text"
+                        value={form.customerNama}
+                        onChange={(e) =>
+                          setForm((prev) => ({
+                            ...prev,
+                            customerNama: e.target.value,
+                          }))
+                        }
+                        placeholder="Nama customer"
+                        className="w-full px-2 sm:px-3 py-1.5 sm:py-2 border border-slate-300 rounded-md text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-1">
+                        Nomor HP (opsional)
+                      </label>
+                      <input
+                        type="tel"
+                        value={form.customerNomorHP}
+                        onChange={(e) =>
+                          setForm((prev) => ({
+                            ...prev,
+                            customerNomorHP: e.target.value,
+                          }))
+                        }
+                        placeholder="Nomor HP"
+                        className="w-full px-2 sm:px-3 py-1.5 sm:py-2 border border-slate-300 rounded-md text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>

@@ -222,6 +222,7 @@ export const getAllPenjualan = async (
       orderBy,
       include: {
         inventory: true,
+        customer: true,
       },
     });
 
@@ -256,6 +257,7 @@ export const getPenjualanById = async (
       where: { id: parseInt(id) },
       include: {
         inventory: true,
+        customer: true,
       },
     });
 
@@ -294,6 +296,9 @@ export const createPenjualan = async (
     const {
       tanggal,
       inventoryId,
+      customerId,
+      customerNama,
+      customerNomorHP,
       hargaJual,
       diskon,
       profit,
@@ -324,6 +329,36 @@ export const createPenjualan = async (
     const finalDiskon = diskon ? parseFloat(String(diskon)) : 0;
     const calculatedProfit = hargaJual - finalDiskon - modalBase;
 
+    let resolvedCustomerId: number | null = null;
+
+    if (customerId) {
+      const existingCustomer = await prisma.customer.findUnique({
+        where: { id: customerId },
+      });
+
+      if (!existingCustomer) {
+        throw new AppError("Customer not found", 404);
+      }
+
+      resolvedCustomerId = existingCustomer.id;
+    } else if (customerNama && customerNomorHP) {
+      const existingCustomer = await prisma.customer.findUnique({
+        where: { nomorHP: customerNomorHP },
+      });
+
+      if (existingCustomer) {
+        resolvedCustomerId = existingCustomer.id;
+      } else {
+        const newCustomer = await prisma.customer.create({
+          data: {
+            nama: customerNama,
+            nomorHP: customerNomorHP,
+          },
+        });
+        resolvedCustomerId = newCustomer.id;
+      }
+    }
+
     // Create penjualan and update inventory status in a transaction
     const result = await prisma.$transaction(async (tx) => {
       // Create penjualan record
@@ -331,6 +366,7 @@ export const createPenjualan = async (
         data: {
           tanggal: new Date(tanggal),
           inventoryId,
+          customerId: resolvedCustomerId,
           hargaJual,
           diskon: diskon || null,
           profit: calculatedProfit,
@@ -382,8 +418,17 @@ export const updatePenjualan = async (
       );
     }
 
-    const { tanggal, inventoryId, hargaJual, diskon, metodeBayar, keterangan } =
-      validation.data;
+    const {
+      tanggal,
+      inventoryId,
+      customerId,
+      customerNama,
+      customerNomorHP,
+      hargaJual,
+      diskon,
+      metodeBayar,
+      keterangan,
+    } = validation.data;
 
     // Check if penjualan exists
     const existingPenjualan = await prisma.penjualan.findUnique({
@@ -418,6 +463,38 @@ export const updatePenjualan = async (
     if (tanggal) updateData.tanggal = new Date(tanggal);
     if (metodeBayar) updateData.metodeBayar = metodeBayar;
     if (keterangan !== undefined) updateData.keterangan = keterangan;
+
+    if (customerNama && customerNomorHP) {
+      const existingCustomer = await prisma.customer.findUnique({
+        where: { nomorHP: customerNomorHP },
+      });
+
+      if (existingCustomer) {
+        updateData.customerId = existingCustomer.id;
+      } else {
+        const newCustomer = await prisma.customer.create({
+          data: {
+            nama: customerNama,
+            nomorHP: customerNomorHP,
+          },
+        });
+        updateData.customerId = newCustomer.id;
+      }
+    } else if (customerId !== undefined) {
+      if (customerId === null) {
+        updateData.customerId = null;
+      } else {
+        const existingCustomer = await prisma.customer.findUnique({
+          where: { id: customerId },
+        });
+
+        if (!existingCustomer) {
+          throw new AppError("Customer not found", 404);
+        }
+
+        updateData.customerId = existingCustomer.id;
+      }
+    }
 
     // Check if any field that affects profit is being updated
     const isProfitRelatedFieldProvided =

@@ -22,6 +22,7 @@ export const DashboardLayout = () => {
     { name: "Penjualan", path: "/dashboard/penjualan" },
     { name: "Laporan", path: "/dashboard/laporan" },
     { name: "Stock Opname", path: "/dashboard/stock-opname" },
+    { name: "Customer", path: "/dashboard/customers" },
     { name: "Staff", path: "/dashboard/staff" },
   ];
 
