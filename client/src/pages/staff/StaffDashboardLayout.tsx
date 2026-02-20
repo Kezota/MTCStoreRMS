@@ -20,6 +20,7 @@ export const StaffDashboardLayout = () => {
     { name: "Penjualan", path: "/staff/penjualan" },
     { name: "Stock Opname", path: "/staff/stock-opname" },
     { name: "Customer", path: "/staff/customers" },
+    { name: "Laporan", path: "/staff/laporan" },
   ];
 
   return (

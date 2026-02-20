@@ -18,6 +18,7 @@ import {
   StaffPenjualanPage,
   StaffStockOpnamePage,
   StaffCustomerPage,
+  StaffLaporanPage,
 } from "./pages/staff";
 import { ProtectedRoute, AdminRoute } from "./components";
 
@@ -114,6 +115,11 @@ export const routes = [
             path: "customers",
             handle: { title: "Pelanggan" },
             element: <StaffCustomerPage />,
+          },
+          {
+            path: "laporan",
+            handle: { title: "Laporan" },
+            element: <StaffLaporanPage />,
           },
         ],
       },
