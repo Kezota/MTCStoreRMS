@@ -32,7 +32,6 @@ import {
   X,
   Eye,
   ChevronsUpDown,
-  GripHorizontal,
   ArrowUp,
   ArrowDown,
 } from "lucide-react";
@@ -78,10 +77,7 @@ export const CustomerPage = () => {
   });
   const [sorts, setSorts] = useState<SortField[]>([
     { field: "tanggal", order: "desc" },
-    { field: "", order: "desc" },
-    { field: "", order: "desc" },
   ]);
-  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [brandOpen, setBrandOpen] = useState(false);
   const [searchHPOpen, setSearchHPOpen] = useState(false);
   const [searchHPInput, setSearchHPInput] = useState("");
@@ -149,33 +145,11 @@ export const CustomerPage = () => {
     setSorts(newSorts);
   };
 
-  const handleDragStart = (index: number) => {
-    setDraggedIndex(index);
+  const handleClearFilters = () => {
+    setFilters({ searchNama: "", searchNomorHP: "", brand: "", searchHP: "" });
+    setSorts([{ field: "tanggal", order: "desc" }]);
+    setSearchHPInput("");
   };
-
-  const handleDragOver = (index: number) => {
-    if (draggedIndex === null || draggedIndex === index) return;
-    const newSorts = [...sorts];
-    const draggedSort = newSorts[draggedIndex];
-    newSorts.splice(draggedIndex, 1);
-    newSorts.splice(index, 0, draggedSort);
-    setSorts(newSorts);
-    setDraggedIndex(index);
-  };
-
-  const handleDragEnd = () => {
-    setDraggedIndex(null);
-  };
-
-  // const handleClearFilters = () => {
-  //   setFilters({ searchNama: "", searchNomorHP: "", brand: "", searchHP: "" });
-  //   setSorts([
-  //     { field: "tanggal", order: "desc" },
-  //     { field: "", order: "desc" },
-  //     { field: "", order: "desc" },
-  //   ]);
-  //   setSearchHPInput("");
-  // };
 
   const handleOpenCreate = () => {
     setIsEditMode(false);
@@ -580,69 +554,58 @@ export const CustomerPage = () => {
         </div>
 
         {/* Sort Section */}
-        <div className="space-y-1.5 sm:space-y-3 border-t border-slate-200 pt-2 sm:pt-4">
-          {/* <div className="flex items-center justify-between">
-            <div className="text-xs sm:text-sm font-semibold text-slate-700">
-              Urutkan
+        <div className="space-y-1 sm:space-y-3">
+          <div className="flex flex-row gap-2 items-center">
+            <div className="flex-1 grid grid-cols-1 gap-1.5 sm:gap-3">
+              {sorts.map((sort, index) => (
+                <div
+                  key={index}
+                  className="flex items-center gap-1 sm:gap-2 bg-slate-50 p-1.5 sm:p-3 rounded border border-slate-200"
+                >
+                  <select
+                    value={sort.field}
+                    onChange={(e) =>
+                      handleUpdateSort(index, e.target.value, sort.order)
+                    }
+                    className="flex-1 px-1.5 sm:px-2 py-0.5 sm:py-1 border border-slate-200 rounded text-[11px] sm:text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="">-- Kosong --</option>
+                    {SORT_FIELD_OPTIONS.map((opt) => (
+                      <option key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </option>
+                    ))}
+                  </select>
+
+                  {sort.field && (
+                    <button
+                      onClick={() =>
+                        handleUpdateSort(
+                          index,
+                          sort.field,
+                          sort.order === "asc" ? "desc" : "asc",
+                        )
+                      }
+                      className="p-0.5 sm:p-1 hover:bg-slate-200 rounded transition flex-shrink-0"
+                      title="Toggle ascending/descending"
+                    >
+                      {sort.order === "asc" ? (
+                        <ArrowUp className="w-3 h-3 sm:w-4 sm:h-4 text-blue-600" />
+                      ) : (
+                        <ArrowDown className="w-3 h-3 sm:w-4 sm:h-4 text-blue-600" />
+                      )}
+                    </button>
+                  )}
+                </div>
+              ))}
             </div>
+
             <button
               onClick={handleClearFilters}
-              className="text-xs px-2 sm:px-3 py-1 sm:py-1.5 bg-slate-200 text-slate-700 rounded hover:bg-slate-300 transition"
+              className="shrink-0 text-xs px-2 sm:px-3 py-1.5 sm:py-2 bg-slate-200 text-slate-700 rounded hover:bg-slate-300 transition"
             >
               Reset
             </button>
-          </div> */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-1.5 sm:gap-3">
-            {sorts.map((sort, index) => (
-              <div
-                key={index}
-                draggable
-                onDragStart={() => handleDragStart(index)}
-                onDragOver={() => handleDragOver(index)}
-                onDragEnd={handleDragEnd}
-                className={`flex items-center gap-1 sm:gap-2 bg-slate-50 p-1.5 sm:p-3 rounded border transition ${
-                  draggedIndex === index
-                    ? "opacity-50 border-blue-400"
-                    : "border-slate-200"
-                } cursor-move`}
-              >
-                <GripHorizontal className="w-3 h-3 sm:w-4 sm:h-4 text-slate-400 flex-shrink-0" />
-
-                <select
-                  value={sort.field}
-                  onChange={(e) =>
-                    handleUpdateSort(index, e.target.value, sort.order)
-                  }
-                  className="flex-1 px-1.5 sm:px-2 py-0.5 sm:py-1 border border-slate-200 rounded text-[11px] sm:text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="">-- Kosong --</option>
-                  {SORT_FIELD_OPTIONS.map((opt) => (
-                    <option key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </option>
-                  ))}
-                </select>
-
-                {sort.field && (
-                  <button
-                    onClick={() =>
-                      handleUpdateSort(
-                        index,
-                        sort.field,
-                        sort.order === "asc" ? "desc" : "asc",
-                      )
-                    }
-                    className="p-0.5 sm:p-1 hover:bg-slate-200 rounded transition flex-shrink-0"
-                  >
-                    {sort.order === "asc" ? (
-                      <ArrowUp className="w-3 h-3 sm:w-4 sm:h-4 text-blue-600" />
-                    ) : (
-                      <ArrowDown className="w-3 h-3 sm:w-4 sm:h-4 text-blue-600" />
-                    )}
-                  </button>
-                )}
-              </div>
-            ))}
           </div>
         </div>
       </div>

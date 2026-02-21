@@ -35,9 +35,21 @@ interface StaffBrandAnalysisProps {
   brandPieData: PieData[];
   brandTrendSeries: BrandTrendPoint[];
   brandTrendBrands: string[];
-  brandRange: "today" | "yesterday" | "thisWeek" | "thisMonth" | "custom";
+  brandRange:
+    | "today"
+    | "yesterday"
+    | "thisWeek"
+    | "thisMonth"
+    | "thisYear"
+    | "custom";
   onBrandRangeChange: (
-    range: "today" | "yesterday" | "thisWeek" | "thisMonth" | "custom",
+    range:
+      | "today"
+      | "yesterday"
+      | "thisWeek"
+      | "thisMonth"
+      | "thisYear"
+      | "custom",
   ) => void;
   brandStartDate?: string;
   brandEndDate?: string;
@@ -90,6 +102,7 @@ export const StaffBrandAnalysis = ({
             { key: "yesterday", label: "Kemarin" },
             { key: "thisWeek", label: "Minggu Ini" },
             { key: "thisMonth", label: "Bulan Ini" },
+            { key: "thisYear", label: "Tahun Ini" },
             { key: "custom", label: "Custom" },
           ] as const
         ).map((option) => (
@@ -140,7 +153,7 @@ export const StaffBrandAnalysis = ({
 
       {/* Charts & Table */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-2 sm:gap-4">
-        <div className="bg-white rounded-lg border border-gray-200 p-3 sm:p-4 lg:p-6 shadow-sm">
+        <div className="order-3 lg:order-1 bg-white rounded-lg border border-gray-200 p-3 sm:p-4 lg:p-6 shadow-sm">
           <h3 className="text-xs sm:text-sm lg:text-base font-semibold text-gray-900 mb-2 sm:mb-3 lg:mb-4">
             📈 Grafik Brand
           </h3>
@@ -188,7 +201,7 @@ export const StaffBrandAnalysis = ({
           </div>
         </div>
 
-        <div className="bg-white rounded-lg border border-gray-200 p-3 sm:p-4 lg:p-6 shadow-sm">
+        <div className="order-2 lg:order-2 bg-white rounded-lg border border-gray-200 p-3 sm:p-4 lg:p-6 shadow-sm">
           <h3 className="text-xs sm:text-sm lg:text-base font-semibold text-gray-900 mb-2 sm:mb-3 lg:mb-4">
             📊 Distribusi Brand
           </h3>
@@ -221,7 +234,7 @@ export const StaffBrandAnalysis = ({
           </div>
         </div>
 
-        <div className="bg-white rounded-lg border border-gray-200 p-3 sm:p-4 lg:p-6 shadow-sm overflow-x-auto">
+        <div className="order-1 lg:order-3 bg-white rounded-lg border border-gray-200 p-3 sm:p-4 lg:p-6 shadow-sm overflow-x-auto">
           <h3 className="text-xs sm:text-sm lg:text-base font-semibold text-gray-900 mb-2 sm:mb-3 lg:mb-4">
             📋 Detail Per Brand
           </h3>

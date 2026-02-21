@@ -37,7 +37,11 @@ import {
   Eye,
 } from "lucide-react";
 import { brandsList } from "@/lib/constants";
-import { getBrandColor, normalizeDateInput } from "@/lib/utils";
+import {
+  getBrandColor,
+  normalizeDateInput,
+  capitalizeFirstLetter,
+} from "@/lib/utils";
 import type { PenjualanItem, InventoryItem } from "@/lib/types";
 
 interface FilterState {
@@ -675,7 +679,7 @@ export const PenjualanPage = () => {
           </div>
         </div>
         {/* Sort Section */}
-        <div className="space-y-1.5 sm:space-y-3 border-t border-slate-200 pt-2 sm:pt-4">
+        <div className="space-y-1.5 sm:space-y-3">
           <div className="flex items-center gap-1.5 sm:gap-3">
             {sorts.map((sort, index) => (
               <div
@@ -783,6 +787,9 @@ export const PenjualanPage = () => {
                     Keterangan
                   </TableHead>
                   <TableHead className="px-3 py-2 text-sm text-slate-600 border-l border-slate-200/70">
+                    Diinput Oleh
+                  </TableHead>
+                  <TableHead className="px-3 py-2 text-sm text-slate-600 border-l border-slate-200/70">
                     Aksi
                   </TableHead>
                 </TableRow>
@@ -852,6 +859,11 @@ export const PenjualanPage = () => {
                     </TableCell>
                     <TableCell className="px-3 py-2 text-sm text-slate-600 border-l border-slate-200/70 max-w-xs break-words whitespace-normal">
                       {item.keterangan || "-"}
+                    </TableCell>
+                    <TableCell className="px-3 py-2 text-sm text-slate-600 border-l border-slate-200/70">
+                      {item.user?.username
+                        ? capitalizeFirstLetter(item.user.username)
+                        : "-"}
                     </TableCell>
                     <TableCell className="px-3 py-2 text-sm border-l border-slate-200/70">
                       <div className="flex items-center justify-end gap-1">

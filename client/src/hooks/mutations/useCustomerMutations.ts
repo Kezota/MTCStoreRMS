@@ -26,6 +26,10 @@ export const useCreateCustomerMutation = () => {
           queryKey: QUERY_KEYS.customers.list(),
           exact: false,
         });
+        queryClient.invalidateQueries({
+          queryKey: QUERY_KEYS.customers.purchases(),
+          exact: false,
+        });
         showToast.success(data.message || "Customer berhasil ditambahkan");
       },
       onError: (error: any) => {
@@ -57,6 +61,10 @@ export const useUpdateCustomerMutation = () => {
         queryKey: QUERY_KEYS.customers.list(),
         exact: false,
       });
+        queryClient.invalidateQueries({
+          queryKey: QUERY_KEYS.customers.purchases(),
+          exact: false,
+        });
       showToast.success(data.message || "Customer berhasil diperbarui");
     },
     onError: (error: any) => {
@@ -80,6 +88,10 @@ export const useDeleteCustomerMutation = () => {
     onSuccess: (data) => {
       queryClient.invalidateQueries({
         queryKey: QUERY_KEYS.customers.list(),
+        exact: false,
+      });
+      queryClient.invalidateQueries({
+        queryKey: QUERY_KEYS.customers.purchases(),
         exact: false,
       });
       showToast.success(data.message || "Customer berhasil dihapus");

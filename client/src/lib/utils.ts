@@ -98,6 +98,11 @@ export function formatDateInputDDMMYYYY(value: string): string {
   return `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4)}`;
 }
 
+export function capitalizeFirstLetter(text: string): string {
+  if (!text) return "";
+  return text.charAt(0).toUpperCase() + text.slice(1).toLowerCase();
+}
+
 export function getBrandColor(brand: string): string {
   if (!brand) return "#e5e7eb";
   const key = brand.toLowerCase();

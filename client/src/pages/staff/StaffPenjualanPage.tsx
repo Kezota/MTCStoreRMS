@@ -35,7 +35,11 @@ import {
   Eye,
 } from "lucide-react";
 import { brandsList } from "@/lib/constants";
-import { getBrandColor, normalizeDateInput } from "@/lib/utils";
+import {
+  getBrandColor,
+  normalizeDateInput,
+  capitalizeFirstLetter,
+} from "@/lib/utils";
 import type { PenjualanItem, InventoryItem } from "@/lib/types";
 
 interface FilterState {
@@ -780,7 +784,9 @@ export const StaffPenjualanPage = () => {
                       {item.keterangan || "-"}
                     </TableCell>
                     <TableCell className="px-3 py-2 text-sm text-slate-600 border-l border-slate-200/70">
-                      {item.user?.nama || "-"}
+                      {item.user?.username
+                        ? capitalizeFirstLetter(item.user.username)
+                        : "-"}
                     </TableCell>
                     <TableCell className="px-3 py-2 text-sm border-l border-slate-200/70">
                       <div className="flex items-center justify-end gap-1">

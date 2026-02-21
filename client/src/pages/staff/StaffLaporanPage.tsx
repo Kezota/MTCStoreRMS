@@ -33,7 +33,7 @@ export const StaffLaporanPage = () => {
   const today = useMemo(() => new Date(), []);
   const [selectedYear, setSelectedYear] = useState(today.getFullYear());
   const [brandRange, setBrandRange] = useState<
-    "today" | "yesterday" | "thisWeek" | "thisMonth" | "custom"
+    "today" | "yesterday" | "thisWeek" | "thisMonth" | "thisYear" | "custom"
   >("today");
 
   const defaultEnd = toDateInput(today);
@@ -153,6 +153,7 @@ export const StaffLaporanPage = () => {
     startOfWeek.setHours(0, 0, 0, 0);
 
     const startMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const startYear = new Date(now.getFullYear(), 0, 1);
     const rangeStart = new Date(brandStartDate);
     rangeStart.setHours(0, 0, 0, 0);
     const rangeEnd = new Date(brandEndDate);
@@ -176,6 +177,9 @@ export const StaffLaporanPage = () => {
       rangeEndDate = new Date(now);
     } else if (brandRange === "thisMonth") {
       rangeStartDate = startMonth;
+      rangeEndDate = new Date(now);
+    } else if (brandRange === "thisYear") {
+      rangeStartDate = startYear;
       rangeEndDate = new Date(now);
     } else if (brandRange === "custom") {
       rangeStartDate = rangeStart;
