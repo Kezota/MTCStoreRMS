@@ -33,7 +33,7 @@ export const LoginPage = () => {
           );
           // Redirect based on role
           const redirectPath =
-            data.data.user.role === "ADMIN" ? "/dashboard" : "/staff/dashboard";
+            data.data.user.role === "ADMIN" ? "/dashboard/penjualan" : "/staff/penjualan";
           setTimeout(() => navigate(redirectPath), 500);
         },
         onError: (error: unknown) => {
