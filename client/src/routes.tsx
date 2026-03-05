@@ -3,7 +3,6 @@ import HomePage from "./pages/HomePage";
 import {
   LoginPage,
   DashboardLayout,
-  DashboardPage,
   LaporanPage,
   StockOpnamePage,
   StaffPage,
@@ -20,6 +19,7 @@ import {
   StaffLaporanPage,
 } from "./pages/staff";
 import { ProtectedRoute, AdminRoute } from "./components";
+import { Navigate } from "react-router-dom";
 
 export const routes = [
   {
@@ -48,8 +48,8 @@ export const routes = [
     children: [
       {
         index: true,
-        handle: { title: "Dashboard" },
-        element: <DashboardPage />,
+        handle: { title: "Penjualan" },
+        element: <Navigate to="penjualan" replace />,
       },
       {
         path: "stock-opname",

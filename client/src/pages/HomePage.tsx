@@ -19,9 +19,9 @@ function HomePage() {
     if (user) {
       // Redirect based on role
       if (user.role === "ADMIN") {
-        navigate("/dashboard");
+        navigate("/dashboard/penjualan");
       } else if (user.role === "STAFF") {
-        navigate("/staff/dashboard");
+        navigate("/staff/penjualan");
       }
     }
   }, [user, navigate]);
