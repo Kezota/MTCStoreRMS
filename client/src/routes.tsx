@@ -16,7 +16,6 @@ import {
   StaffDashboardPage,
   StaffInventoryPage,
   StaffPenjualanPage,
-  StaffStockOpnamePage,
   StaffCustomerPage,
   StaffLaporanPage,
 } from "./pages/staff";
@@ -105,11 +104,6 @@ export const routes = [
             path: "penjualan",
             handle: { title: "Penjualan" },
             element: <StaffPenjualanPage />,
-          },
-          {
-            path: "stock-opname",
-            handle: { title: "Stock Opname" },
-            element: <StaffStockOpnamePage />,
           },
           {
             path: "customers",

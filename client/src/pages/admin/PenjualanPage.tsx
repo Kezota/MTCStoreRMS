@@ -933,6 +933,12 @@ export const PenjualanPage = () => {
                   Metode
                 </TableHead>
                 <TableHead className="px-1 py-0.5 text-[10px] text-slate-600 border-l border-slate-200/70">
+                  Ket
+                </TableHead>
+                <TableHead className="px-1 py-0.5 text-[10px] text-slate-600 border-l border-slate-200/70">
+                  Oleh
+                </TableHead>
+                <TableHead className="px-1 py-0.5 text-[10px] text-slate-600 border-l border-slate-200/70">
                   Aksi
                 </TableHead>
               </TableRow>
@@ -992,6 +998,20 @@ export const PenjualanPage = () => {
                           ? "BNI"
                           : "Mandiri"}
                     </span>
+                  </TableCell>
+                  <TableCell className="px-1 py-0.5 text-[10px] text-slate-600 border-l border-slate-200/70">
+                    {item.keterangan
+                      ? item.keterangan.substring(0, 8) +
+                        (item.keterangan.length > 8 ? "..." : "")
+                      : "-"}
+                  </TableCell>
+                  <TableCell className="px-1 py-0.5 text-[10px] text-slate-600 border-l border-slate-200/70">
+                    {item.user?.username
+                      ? capitalizeFirstLetter(item.user.username).substring(
+                          0,
+                          6,
+                        )
+                      : "-"}
                   </TableCell>
                   <TableCell className="px-1 py-0.5 text-[10px] border-l border-slate-200/70">
                     <div className="flex items-center justify-end gap-0.5">

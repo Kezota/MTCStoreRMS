@@ -113,7 +113,6 @@ export const InventoryPage = () => {
       const normalizedTanggal =
         normalizeDateInput(filters.tanggal) || filters.tanggal;
       params.tanggalMasuk = normalizedTanggal; // Format: YYYY-MM-DD
-      console.log("[DEBUG] Date filter applied:", normalizedTanggal);
     }
 
     // Build sort params only for non-empty fields
