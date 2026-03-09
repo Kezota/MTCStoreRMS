@@ -15,10 +15,10 @@ export const StaffDashboardLayout = () => {
   };
 
   const navLinks = [
-    { name: "Dashboard", path: "/staff/dashboard" },
+    // { name: "Dashboard", path: "/staff/dashboard" },
     { name: "Inventory", path: "/staff/inventory" },
     { name: "Penjualan", path: "/staff/penjualan" },
-    { name: "Stock Opname", path: "/staff/stock-opname" },
+    // { name: "Stock Opname", path: "/staff/stock-opname" },
     { name: "Customer", path: "/staff/customers" },
     { name: "Laporan", path: "/staff/laporan" },
   ];

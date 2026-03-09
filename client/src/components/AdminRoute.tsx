@@ -27,7 +27,7 @@ export const AdminRoute = ({ children }: AdminRouteProps) => {
   }
 
   if (user.role !== "ADMIN") {
-    return <Navigate to="/staff/dashboard" replace />;
+    return <Navigate to="/staff/penjualan" replace />;
   }
 
   return children ? <>{children}</> : <Outlet />;

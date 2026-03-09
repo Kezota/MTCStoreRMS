@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useGetInventory } from "@/hooks/queries";
+import { useDeleteInventoryMutation } from "@/hooks/mutations";
 import {
   Command,
   CommandEmpty,
@@ -13,7 +14,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { ChevronsUpDown } from "lucide-react";
+import { ChevronsUpDown, Trash2 } from "lucide-react";
 import { brandsList } from "@/lib/constants";
 import { getBrandColor } from "@/lib/utils";
 import type { InventoryItem } from "@/lib/types";
@@ -59,11 +60,13 @@ export const StockOpnamePage = () => {
   const [lastScanned, setLastScanned] = useState<string | null>(() =>
     localStorage.getItem("stock-opname-last"),
   );
+  const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
 
   const { data, isLoading } = useGetInventory({
     page: 1,
     limit: 10000,
   });
+  const deleteMutation = useDeleteInventoryMutation();
 
   const items = useMemo<InventoryItem[]>(() => data?.data ?? [], [data]);
   const readyItems = useMemo(
@@ -286,6 +289,33 @@ export const StockOpnamePage = () => {
   const handleResetScan = () => {
     setScannedImeis(new Set());
     setLastScanned(null);
+  };
+
+  const handleDeleteConfirm = () => {
+    if (!deleteConfirmId) return;
+
+    deleteMutation.mutate(deleteConfirmId, {
+      onSuccess: () => {
+        setDeleteConfirmId(null);
+        // Remove from scanned list if exists
+        const deletedItem = items.find((item) => item.id === deleteConfirmId);
+        if (deletedItem) {
+          setScannedImeis((prev) => {
+            const next = new Set(prev);
+            next.delete(deletedItem.imei.trim());
+            return next;
+          });
+          if (lastScanned === deletedItem.imei.trim()) {
+            setLastScanned(null);
+          }
+        }
+      },
+      onError: (error: any) => {
+        showToast.error(
+          error?.response?.data?.message || "Gagal menghapus product",
+        );
+      },
+    });
   };
 
   return (
@@ -738,6 +768,13 @@ export const StockOpnamePage = () => {
                         )}
                       </div>
                     </div>
+                    <button
+                      onClick={() => setDeleteConfirmId(item.id)}
+                      className="flex-shrink-0 p-1 text-red-600 hover:bg-red-50 rounded transition"
+                      title="Hapus dari inventory"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
                   </div>
 
                   <div className="mt-2 space-y-0.5 text-[10px] sm:text-xs text-gray-600">
@@ -759,6 +796,57 @@ export const StockOpnamePage = () => {
             })}
           </div>
         </>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteConfirmId && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+          onClick={() => setDeleteConfirmId(null)}
+        >
+          <div
+            className="bg-white rounded-lg shadow-xl max-w-md w-full p-6 space-y-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start gap-3">
+              <div className="flex-shrink-0 w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
+                <Trash2 className="w-5 h-5 text-red-600" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-lg font-semibold text-gray-900">
+                  Hapus Product?
+                </h3>
+                <p className="mt-2 text-sm text-gray-600">
+                  Apakah Anda yakin ingin menghapus product ini dari inventory?
+                  Product akan dihapus secara permanen.
+                </p>
+              </div>
+            </div>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setDeleteConfirmId(null)}
+                disabled={deleteMutation.isPending}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition disabled:opacity-50"
+              >
+                Batal
+              </button>
+              <button
+                onClick={handleDeleteConfirm}
+                disabled={deleteMutation.isPending}
+                className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 transition disabled:opacity-50 flex items-center gap-2"
+              >
+                {deleteMutation.isPending ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    Menghapus...
+                  </>
+                ) : (
+                  "Ya, Hapus"
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

@@ -3,7 +3,6 @@ import HomePage from "./pages/HomePage";
 import {
   LoginPage,
   DashboardLayout,
-  DashboardPage,
   LaporanPage,
   StockOpnamePage,
   StaffPage,
@@ -16,11 +15,11 @@ import {
   StaffDashboardPage,
   StaffInventoryPage,
   StaffPenjualanPage,
-  StaffStockOpnamePage,
   StaffCustomerPage,
   StaffLaporanPage,
 } from "./pages/staff";
 import { ProtectedRoute, AdminRoute } from "./components";
+import { Navigate } from "react-router-dom";
 
 export const routes = [
   {
@@ -49,8 +48,8 @@ export const routes = [
     children: [
       {
         index: true,
-        handle: { title: "Dashboard" },
-        element: <DashboardPage />,
+        handle: { title: "Penjualan" },
+        element: <Navigate to="penjualan" replace />,
       },
       {
         path: "stock-opname",
@@ -105,11 +104,6 @@ export const routes = [
             path: "penjualan",
             handle: { title: "Penjualan" },
             element: <StaffPenjualanPage />,
-          },
-          {
-            path: "stock-opname",
-            handle: { title: "Stock Opname" },
-            element: <StaffStockOpnamePage />,
           },
           {
             path: "customers",
