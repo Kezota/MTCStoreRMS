@@ -343,10 +343,10 @@ export const PenjualanPage = () => {
                   </div>
                   <div>
                     <p className="text-[11px] sm:text-xs text-slate-600 mb-0.5 sm:mb-1">
-                      Modal Final
+                      Modal
                     </p>
                     <p className="text-xs sm:text-sm font-medium text-slate-900">
-                      {formatRupiah(viewingItem.inventory?.modalFinal || 0)}
+                      {formatRupiah(Number(viewingItem.inventory?.modalFinal || 0) > 0 ? viewingItem.inventory.modalFinal : viewingItem.inventory?.modalAwal || 0)}
                     </p>
                   </div>
                   <div>
@@ -772,7 +772,7 @@ export const PenjualanPage = () => {
                     Harga Jual
                   </TableHead>
                   <TableHead className="px-3 py-2 text-sm text-slate-600 border-l border-slate-200/70">
-                    Modal Final
+                    Modal
                   </TableHead>
                   <TableHead className="px-3 py-2 text-sm text-slate-600 border-l border-slate-200/70">
                     Diskon
@@ -828,7 +828,7 @@ export const PenjualanPage = () => {
                       {formatRupiah(item.hargaJual)}
                     </TableCell>
                     <TableCell className="px-3 py-2 text-sm text-slate-600 border-l border-slate-200/70">
-                      {formatRupiah(item.inventory?.modalFinal || 0)}
+                      {formatRupiah(item.inventory?.modalFinal && Number(item.inventory.modalFinal) > 0 ? item.inventory.modalFinal : item.inventory?.modalAwal || 0)}
                     </TableCell>
                     <TableCell className="px-3 py-2 text-sm text-slate-600 border-l border-slate-200/70">
                       {item.diskon && Number(item.diskon) > 0
