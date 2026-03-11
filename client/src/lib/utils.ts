@@ -5,6 +5,36 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+export function formatMetodeBayar(metode: string): string {
+  switch (metode) {
+    case "CASH":
+      return "CASH";
+    case "TRANSFER_BNI":
+      return "TF BNI";
+    case "TRANSFER_BRI":
+      return "TF BRI";
+    case "TRANSFER_MANDIRI":
+      return "TF Mandiri";
+    default:
+      return metode;
+  }
+}
+
+export function getMetodeBayarColor(metode: string): string {
+  switch (metode) {
+    case "CASH":
+      return "bg-green-100 text-green-800";
+    case "TRANSFER_BNI":
+      return "bg-purple-100 text-purple-800";
+    case "TRANSFER_BRI":
+      return "bg-yellow-100 text-yellow-800";
+    case "TRANSFER_MANDIRI":
+      return "bg-blue-100 text-blue-800";
+    default:
+      return "bg-gray-100 text-gray-800";
+  }
+}
+
 export function formatRupiah(value: number): string {
   return new Intl.NumberFormat("id-ID", {
     style: "currency",

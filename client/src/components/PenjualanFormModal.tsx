@@ -553,6 +553,7 @@ export const PenjualanFormModal = ({
                     <option value="CASH">CASH</option>
                     <option value="TRANSFER_BNI">Transfer BNI</option>
                     <option value="TRANSFER_BRI">Transfer BRI</option>
+                    <option value="TRANSFER_MANDIRI">Transfer Mandiri</option>
                   </select>
                 </div>
 
