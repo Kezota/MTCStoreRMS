@@ -10,6 +10,13 @@ import {
 
 const prisma = new PrismaClient();
 
+const customerSafeSelect = {
+  id: true,
+  nama: true,
+  nomorHP: true,
+  createdAt: true,
+};
+
 /**
  * Get all customer purchases with filters and pagination
  * Each row represents one purchase transaction or customer without purchase
@@ -68,7 +75,8 @@ export const getAllCustomerPurchases = async (
     // Get all customers matching filter
     const allCustomers = await prisma.customer.findMany({
       where: customerWhere,
-      include: {
+      select: {
+        ...customerSafeSelect,
         penjualan: {
           include: {
             inventory: true,
@@ -101,7 +109,7 @@ export const getAllCustomerPurchases = async (
             nama: customer.nama,
             nomorHP: customer.nomorHP,
             createdAt: customer.createdAt,
-            updatedAt: customer.updatedAt,
+              updatedAt: null,
           },
           inventory: null,
         });
@@ -124,7 +132,7 @@ export const getAllCustomerPurchases = async (
               nama: customer.nama,
               nomorHP: customer.nomorHP,
               createdAt: customer.createdAt,
-              updatedAt: customer.updatedAt,
+              updatedAt: null,
             },
             inventory: penjualan.inventory,
           });
@@ -278,6 +286,7 @@ export const getAllCustomers = async (
       orderBy: { [sortByField]: sortOrderValue },
       skip,
       take: limitNum,
+      select: customerSafeSelect,
     });
 
     res.json({
@@ -308,6 +317,7 @@ export const getCustomerById = async (
 
     const customer = await prisma.customer.findUnique({
       where: { id: parseInt(id) },
+      select: customerSafeSelect,
     });
 
     if (!customer) {
@@ -348,6 +358,9 @@ export const createCustomer = async (
     const existingCustomer = nomorHP
       ? await prisma.customer.findFirst({
           where: { nomorHP },
+          select: {
+            id: true,
+          },
         })
       : null;
 
@@ -398,6 +411,10 @@ export const updateCustomer = async (
     // Check if customer exists
     const existingCustomer = await prisma.customer.findUnique({
       where: { id: parseInt(id) },
+      select: {
+        id: true,
+        nomorHP: true,
+      },
     });
 
     if (!existingCustomer) {
@@ -408,6 +425,9 @@ export const updateCustomer = async (
     if (nomorHP && nomorHP !== existingCustomer.nomorHP) {
       const duplicatePhone = await prisma.customer.findFirst({
         where: { nomorHP },
+        select: {
+          id: true,
+        },
       });
 
       if (duplicatePhone) {
@@ -449,6 +469,9 @@ export const deleteCustomer = async (
     // Check if customer exists
     const existingCustomer = await prisma.customer.findUnique({
       where: { id: parseInt(id) },
+      select: {
+        id: true,
+      },
     });
 
     if (!existingCustomer) {

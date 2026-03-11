@@ -34,7 +34,7 @@ import {
   Eye,
 } from "lucide-react";
 import { brandsList } from "@/lib/constants";
-import { getBrandColor, normalizeDateInput } from "@/lib/utils";
+import { formatMetodeBayar, getBrandColor, getMetodeBayarColor, normalizeDateInput } from "@/lib/utils";
 import type { InventoryItem } from "@/lib/types";
 
 interface FilterState {
@@ -687,12 +687,10 @@ export const InventoryPage = () => {
                         </p>
                         <span
                           className={`inline-block px-2 py-0.5 sm:py-1 rounded text-[10px] sm:text-xs font-medium ${
-                            viewingItem.penjualan[0].metodeBayar === "CASH"
-                              ? "bg-green-100 text-green-800"
-                              : "bg-blue-100 text-blue-800"
+                            getMetodeBayarColor(viewingItem.penjualan[0].metodeBayar)
                           }`}
                         >
-                          {viewingItem.penjualan[0].metodeBayar}
+                          {formatMetodeBayar(viewingItem.penjualan[0].metodeBayar)}
                         </span>
                       </div>
                       <div className="col-span-1 sm:col-span-2">

@@ -39,6 +39,8 @@ import {
   getBrandColor,
   normalizeDateInput,
   capitalizeFirstLetter,
+  formatMetodeBayar,
+  getMetodeBayarColor,
 } from "@/lib/utils";
 import type { PenjualanItem, InventoryItem } from "@/lib/types";
 
@@ -355,18 +357,10 @@ export const StaffPenjualanPage = () => {
                     </p>
                     <span
                       className={`inline-block px-2 py-0.5 sm:py-1 rounded text-[10px] sm:text-xs font-medium ${
-                        viewingItem.metodeBayar === "CASH"
-                          ? "bg-green-100 text-green-800"
-                          : viewingItem.metodeBayar === "TRANSFER_BNI"
-                            ? "bg-purple-100 text-purple-800"
-                            : "bg-blue-100 text-blue-800"
+                        getMetodeBayarColor(viewingItem.metodeBayar)
                       }`}
                     >
-                      {viewingItem.metodeBayar === "TRANSFER_BNI"
-                        ? "Transfer BNI"
-                        : viewingItem.metodeBayar === "TRANSFER_BRI"
-                          ? "Transfer BRI"
-                          : viewingItem.metodeBayar}
+                      {formatMetodeBayar(viewingItem.metodeBayar)}
                     </span>
                   </div>
                   {viewingItem.user && (
@@ -766,18 +760,10 @@ export const StaffPenjualanPage = () => {
                     <TableCell className="px-3 py-2 text-sm border-l border-slate-200/70">
                       <span
                         className={`px-2 py-1 rounded text-xs font-medium ${
-                          item.metodeBayar === "CASH"
-                            ? "bg-green-100 text-green-800"
-                            : item.metodeBayar === "TRANSFER_BNI"
-                              ? "bg-purple-100 text-purple-800"
-                              : "bg-blue-100 text-blue-800"
+                          getMetodeBayarColor(item.metodeBayar)
                         }`}
                       >
-                        {item.metodeBayar === "TRANSFER_BNI"
-                          ? "Transfer BNI"
-                          : item.metodeBayar === "TRANSFER_BRI"
-                            ? "Transfer BRI"
-                            : item.metodeBayar}
+                        {formatMetodeBayar(item.metodeBayar)}
                       </span>
                     </TableCell>
                     <TableCell className="px-3 py-2 text-sm text-slate-600 border-l border-slate-200/70 max-w-xs break-words whitespace-normal">
@@ -892,7 +878,9 @@ export const StaffPenjualanPage = () => {
                         ? "Cash"
                         : item.metodeBayar === "TRANSFER_BNI"
                           ? "BNI"
-                          : "Mandiri"}
+                          : item.metodeBayar === "TRANSFER_BRI"
+                            ? "BRI"
+                            : "Mandiri"}
                     </span>
                   </TableCell>
                   <TableCell className="px-1 py-0.5 text-[10px] text-slate-600 border-l border-slate-200/70">

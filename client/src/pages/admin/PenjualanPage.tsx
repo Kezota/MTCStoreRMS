@@ -409,18 +409,10 @@ export const PenjualanPage = () => {
                     </p>
                     <span
                       className={`inline-block px-2 py-0.5 sm:py-1 rounded text-[10px] sm:text-xs font-medium ${
-                        viewingItem.metodeBayar === "CASH"
-                          ? "bg-green-100 text-green-800"
-                          : viewingItem.metodeBayar === "TRANSFER_BNI"
-                            ? "bg-purple-100 text-purple-800"
-                            : "bg-blue-100 text-blue-800"
+                        getMetodeBayarColor(viewingItem.metodeBayar)
                       }`}
                     >
-                      {viewingItem.metodeBayar === "TRANSFER_BNI"
-                        ? "TF BNI"
-                        : viewingItem.metodeBayar === "TRANSFER_BRI"
-                          ? "TF BRI"
-                          : viewingItem.metodeBayar}
+                      {formatMetodeBayar(viewingItem.metodeBayar)}
                     </span>
                   </div>
                   <div>
@@ -990,7 +982,9 @@ export const PenjualanPage = () => {
                         ? "Cash"
                         : item.metodeBayar === "TRANSFER_BNI"
                           ? "BNI"
-                          : "Mandiri"}
+                          : item.metodeBayar === "TRANSFER_BRI"
+                            ? "BRI"
+                            : "Mandiri"}
                     </span>
                   </TableCell>
                   <TableCell className="px-1 py-0.5 text-[10px] text-slate-600 border-l border-slate-200/70">

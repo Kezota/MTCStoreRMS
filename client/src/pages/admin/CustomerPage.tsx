@@ -36,7 +36,7 @@ import {
   ArrowDown,
 } from "lucide-react";
 import { brandsList } from "@/lib/constants";
-import { getBrandColor } from "@/lib/utils";
+import { getBrandColor, getMetodeBayarColor } from "@/lib/utils";
 import type { Customer, CustomerPurchase } from "@/lib/types";
 
 interface FilterState {
@@ -347,9 +347,7 @@ export const CustomerPage = () => {
                           </p>
                           <span
                             className={`inline-block px-2 py-0.5 sm:py-1 rounded text-[10px] sm:text-xs font-medium ${
-                              viewingItem.metodeBayar === "CASH"
-                                ? "bg-green-100 text-green-800"
-                                : "bg-blue-100 text-blue-800"
+                              getMetodeBayarColor(viewingItem.metodeBayar)
                             }`}
                           >
                             {viewingItem.metodeBayar}

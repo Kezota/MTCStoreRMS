@@ -9,6 +9,13 @@ import {
 
 const prisma = new PrismaClient();
 
+const customerSafeSelect = {
+  id: true,
+  nama: true,
+  nomorHP: true,
+  createdAt: true,
+};
+
 /**
  * Get all penjualan with filters and pagination
  */
@@ -222,7 +229,9 @@ export const getAllPenjualan = async (
       orderBy,
       include: {
         inventory: true,
-        customer: true,
+        customer: {
+          select: customerSafeSelect,
+        },
         user: {
           select: {
             id: true,
@@ -265,7 +274,9 @@ export const getPenjualanById = async (
       where: { id: parseInt(id) },
       include: {
         inventory: true,
-        customer: true,
+        customer: {
+          select: customerSafeSelect,
+        },
         user: {
           select: {
             id: true,
@@ -357,6 +368,9 @@ export const createPenjualan = async (
     if (customerId) {
       const existingCustomer = await prisma.customer.findUnique({
         where: { id: customerId },
+        select: {
+          id: true,
+        },
       });
 
       if (!existingCustomer) {
@@ -367,6 +381,9 @@ export const createPenjualan = async (
     } else if (customerNama && customerNomorHP) {
       const existingCustomer = await prisma.customer.findFirst({
         where: { nomorHP: customerNomorHP },
+        select: {
+          id: true,
+        },
       });
 
       if (existingCustomer) {
@@ -499,6 +516,9 @@ export const updatePenjualan = async (
     if (customerNama && customerNomorHP) {
       const existingCustomer = await prisma.customer.findFirst({
         where: { nomorHP: customerNomorHP },
+        select: {
+          id: true,
+        },
       });
 
       if (existingCustomer) {
@@ -518,6 +538,9 @@ export const updatePenjualan = async (
       } else {
         const existingCustomer = await prisma.customer.findUnique({
           where: { id: customerId },
+          select: {
+            id: true,
+          },
         });
 
         if (!existingCustomer) {
