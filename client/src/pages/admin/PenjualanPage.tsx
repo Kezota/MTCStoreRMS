@@ -980,7 +980,7 @@ export const PenjualanPage = () => {
                     {formatRupiah(item.hargaJual)}
                   </TableCell>
                   <TableCell className="px-1 py-0.5 text-[10px] text-slate-600 border-l border-slate-200/70">
-                    {formatRupiah(item.inventory?.modalFinal || 0)}
+                    {item.inventory?.modalFinal && Number(item.inventory.modalFinal) > 0 ? formatRupiah(item.inventory.modalFinal) : formatRupiah(item.inventory?.modalAwal || 0)}
                   </TableCell>
                   <TableCell className="px-1 py-0.5 text-[10px] text-slate-600 border-l border-slate-200/70">
                     {item.diskon ? formatRupiah(item.diskon) : "-"}
