@@ -35,8 +35,8 @@ const monthNames = [
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const getModalValue = (item: any): number => {
-  const modalFinal = parseNumber(item.inventory?.modalFinal);
-  const modalAwal = parseNumber(item.inventory?.modalAwal);
+  const modalFinal = parseNumber(item.modalFinal ?? item.inventory?.modalFinal);
+  const modalAwal = parseNumber(item.modalAwal ?? item.inventory?.modalAwal);
   return modalFinal || modalAwal || 0;
 };
 
