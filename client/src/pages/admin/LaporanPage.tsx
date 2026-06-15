@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { useGetPenjualan } from "@/hooks/queries/usePenjualanQueries";
 import { useGetInventory } from "@/hooks/queries/useInventoryQueries";
+import { formatRupiah } from "@/lib/utils";
 import {
   FilterSection,
   SummaryCards,
@@ -83,6 +84,15 @@ export const LaporanPage = () => {
     () => inventoryData?.data ?? [],
     [inventoryData],
   );
+
+  const readyStockSummary = useMemo(() => {
+    const readyItems = inventoryItems.filter((item) => item.status === "READY");
+
+    return {
+      count: readyItems.length,
+      value: readyItems.reduce((total, item) => total + getModalValue(item), 0),
+    };
+  }, [inventoryItems]);
 
   const brandOptions = useMemo(() => {
     const set = new Set(items.map((item) => item.inventory?.brand || "-"));
@@ -534,6 +544,24 @@ export const LaporanPage = () => {
         </div>
       ) : (
         <>
+          <div className="bg-gradient-to-r from-emerald-500 via-green-500 to-teal-500 rounded-lg sm:rounded-xl p-3 sm:p-4 lg:p-6 shadow-md text-white">
+            <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
+              <div>
+                <p className="text-xs sm:text-sm text-emerald-50/90 font-medium">
+                  Nilai Stok READY Saat Ini
+                </p>
+                <h3 className="text-lg sm:text-2xl lg:text-3xl font-bold mt-1">
+                  {formatRupiah(readyStockSummary.value)}
+                </h3>
+              </div>
+              <div className="bg-white/15 backdrop-blur-sm rounded-lg px-3 py-2 border border-white/20 inline-flex items-center">
+                <span className="text-sm sm:text-base font-semibold">
+                  {readyStockSummary.count} barang ready
+                </span>
+              </div>
+            </div>
+          </div>
+
           <SummaryCards summary={summary} yearSummary={yearSummary} />
 
           <Charts
