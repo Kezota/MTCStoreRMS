@@ -14,7 +14,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { ChevronsUpDown, Trash2 } from "lucide-react";
+import { ChevronsUpDown, RotateCcw, Trash2 } from "lucide-react";
 import { brandsList } from "@/lib/constants";
 import { getBrandColor } from "@/lib/utils";
 import type { InventoryItem } from "@/lib/types";
@@ -61,6 +61,8 @@ export const StockOpnamePage = () => {
     localStorage.getItem("stock-opname-last"),
   );
   const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
+  const [resetModalOpen, setResetModalOpen] = useState(false);
+  const [resetBrands, setResetBrands] = useState<string[]>([]);
 
   const { data, isLoading } = useGetInventory({
     page: 1,
@@ -240,6 +242,18 @@ export const StockOpnamePage = () => {
     0,
   );
 
+  const scannedBrandCounts = useMemo(() => {
+    const counts = new Map<string, number>();
+    readyItems.forEach((item) => {
+      if (scannedImeis.has(item.imei.trim())) {
+        counts.set(item.brand, (counts.get(item.brand) ?? 0) + 1);
+      }
+    });
+    return Array.from(counts.entries()).sort(([a], [b]) =>
+      a.localeCompare(b),
+    );
+  }, [readyItems, scannedImeis]);
+
   useEffect(() => {
     localStorage.setItem(
       "stock-opname-scanned",
@@ -286,9 +300,60 @@ export const StockOpnamePage = () => {
     setImeiInput("");
   };
 
+  const handleOpenResetModal = () => {
+    // Pre-select brands from the active filter that have scanned items
+    setResetBrands(
+      brandFilters.filter((brand) =>
+        scannedBrandCounts.some(([scannedBrand]) => scannedBrand === brand),
+      ),
+    );
+    setResetModalOpen(true);
+  };
+
+  const handleToggleResetBrand = (brand: string) => {
+    setResetBrands((prev) =>
+      prev.includes(brand) ? prev.filter((b) => b !== brand) : [...prev, brand],
+    );
+  };
+
   const handleResetScan = () => {
     setScannedImeis(new Set());
     setLastScanned(null);
+    setResetModalOpen(false);
+  };
+
+  const handleResetBrands = () => {
+    if (resetBrands.length === 0) return;
+
+    setScannedImeis((prev) => {
+      const next = new Set(prev);
+      prev.forEach((imei) => {
+        const item = imeiMap.get(imei);
+        if (item && resetBrands.includes(item.brand)) {
+          next.delete(imei);
+        }
+      });
+      return next;
+    });
+    if (lastScanned) {
+      const lastItem = imeiMap.get(lastScanned);
+      if (lastItem && resetBrands.includes(lastItem.brand)) {
+        setLastScanned(null);
+      }
+    }
+    setResetModalOpen(false);
+    showToast.success(`Scan ${resetBrands.join(", ")} berhasil di-reset`);
+  };
+
+  const handleUnscan = (imei: string) => {
+    setScannedImeis((prev) => {
+      const next = new Set(prev);
+      next.delete(imei);
+      return next;
+    });
+    if (lastScanned === imei) {
+      setLastScanned(null);
+    }
   };
 
   const handleDeleteConfirm = () => {
@@ -531,7 +596,7 @@ export const StockOpnamePage = () => {
             </button>
             <button
               type="button"
-              onClick={handleResetScan}
+              onClick={handleOpenResetModal}
               className="px-3 py-2 bg-gray-100 text-gray-700 rounded-md text-sm font-medium hover:bg-gray-200 transition whitespace-nowrap"
             >
               Reset
@@ -714,7 +779,7 @@ export const StockOpnamePage = () => {
             </button>
             <button
               type="button"
-              onClick={handleResetScan}
+              onClick={handleOpenResetModal}
               className="px-3 py-2 bg-gray-100 text-gray-700 rounded-md text-sm font-medium hover:bg-gray-200 transition whitespace-nowrap"
             >
               Reset
@@ -768,13 +833,28 @@ export const StockOpnamePage = () => {
                         )}
                       </div>
                     </div>
-                    <button
-                      onClick={() => setDeleteConfirmId(item.id)}
-                      className="flex-shrink-0 p-1 text-red-600 hover:bg-red-50 rounded transition"
-                      title="Hapus dari inventory"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                    <div className="flex flex-shrink-0 items-center gap-1">
+                      {isScanned && (
+                        <label
+                          className="p-1 rounded hover:bg-emerald-100 cursor-pointer transition"
+                          title="Uncheck scan"
+                        >
+                          <input
+                            type="checkbox"
+                            checked
+                            onChange={() => handleUnscan(item.imei.trim())}
+                            className="w-4 h-4 rounded border-gray-300 accent-emerald-600 cursor-pointer align-middle"
+                          />
+                        </label>
+                      )}
+                      <button
+                        onClick={() => setDeleteConfirmId(item.id)}
+                        className="p-1 text-red-600 hover:bg-red-50 rounded transition"
+                        title="Hapus dari inventory"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
 
                   <div className="mt-2 space-y-0.5 text-[10px] sm:text-xs text-gray-600">
@@ -796,6 +876,90 @@ export const StockOpnamePage = () => {
             })}
           </div>
         </>
+      )}
+
+      {/* Reset Scan Modal */}
+      {resetModalOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+          onClick={() => setResetModalOpen(false)}
+        >
+          <div
+            className="bg-white rounded-lg shadow-xl max-w-md w-full p-6 space-y-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start gap-3">
+              <div className="flex-shrink-0 w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center">
+                <RotateCcw className="w-5 h-5 text-amber-600" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-lg font-semibold text-gray-900">
+                  Reset Scan
+                </h3>
+                <p className="mt-2 text-sm text-gray-600">
+                  Pilih brand yang mau di-reset, atau reset semua. Untuk uncheck
+                  satu per satu, klik centang di kartu HP.
+                </p>
+              </div>
+            </div>
+
+            {scannedBrandCounts.length === 0 ? (
+              <p className="py-4 text-center text-sm text-gray-500">
+                Belum ada HP yang di-scan.
+              </p>
+            ) : (
+              <div className="max-h-64 overflow-y-auto rounded-md border border-gray-200 divide-y divide-gray-100">
+                {scannedBrandCounts.map(([brand, count]) => (
+                  <label
+                    key={brand}
+                    className="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 cursor-pointer"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={resetBrands.includes(brand)}
+                      onChange={() => handleToggleResetBrand(brand)}
+                      className="w-4 h-4 rounded border-gray-300"
+                    />
+                    <span
+                      className="text-xs px-2 py-0.5 rounded text-white font-medium"
+                      style={{ backgroundColor: getBrandColor(brand) }}
+                    >
+                      {brand}
+                    </span>
+                    <span className="ml-auto text-xs text-gray-500">
+                      {count} scan
+                    </span>
+                  </label>
+                ))}
+              </div>
+            )}
+
+            <div className="flex flex-wrap gap-3 justify-end">
+              <button
+                onClick={() => setResetModalOpen(false)}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition"
+              >
+                Batal
+              </button>
+              <button
+                onClick={handleResetScan}
+                disabled={scannedImeis.size === 0}
+                className="px-4 py-2 text-sm font-medium text-red-600 bg-white border border-red-300 rounded-md hover:bg-red-50 transition disabled:opacity-50"
+              >
+                Reset Semua
+              </button>
+              <button
+                onClick={handleResetBrands}
+                disabled={resetBrands.length === 0}
+                className="px-4 py-2 text-sm font-medium text-white bg-amber-600 rounded-md hover:bg-amber-700 transition disabled:opacity-50"
+              >
+                {resetBrands.length > 0
+                  ? `Reset ${resetBrands.length} Brand`
+                  : "Reset Brand"}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Delete Confirmation Modal */}
