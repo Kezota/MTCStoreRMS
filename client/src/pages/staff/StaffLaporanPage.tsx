@@ -283,7 +283,14 @@ export const StaffLaporanPage = () => {
     const points: Array<{ date: string; [brand: string]: number | string }> =
       [];
     for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-      points.push({ date: toDateInput(d) });
+      // Every brand starts at 0 so days without sales draw as 0, not as a gap
+      const point: { date: string; [brand: string]: number | string } = {
+        date: toDateInput(d),
+      };
+      brandTrendBrands.forEach((brand) => {
+        point[brand] = 0;
+      });
+      points.push(point);
     }
 
     const map = new Map(points.map((point) => [point.date, point]));
@@ -304,7 +311,7 @@ export const StaffLaporanPage = () => {
     });
 
     return points;
-  }, [brandRangeInfo]);
+  }, [brandRangeInfo, brandTrendBrands]);
 
   const brandPieData = useMemo(() => {
     return brandSummary.map((row) => ({

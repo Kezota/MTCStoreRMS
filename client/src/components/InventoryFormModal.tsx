@@ -56,9 +56,9 @@ interface PhoneVariant {
 
 const FORM_STORAGE_KEY = "inventory_form_draft";
 
-const labelClass = "block text-sm font-medium text-slate-700 mb-1.5 md:mb-1";
+const labelClass = "block text-xs sm:text-sm font-medium text-slate-700 mb-1";
 const fieldBase =
-  "w-full min-h-11 md:min-h-0 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500";
+  "w-full min-h-10 md:min-h-0 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500";
 const inputClass = `${fieldBase} px-3`;
 const moneyInputClass = `${fieldBase} pl-10 pr-3`;
 const triggerClass = `${inputClass} text-left flex items-center justify-between gap-2`;
@@ -262,10 +262,11 @@ export const InventoryFormModal = ({
       const modalFinalStr = form.modalFinal.trim();
 
       if (!modalFinalStr || modalFinalStr === "0") {
-        // ModalFinal cleared or set to 0 -> cashback = modalAwal
+        // ModalFinal cleared -> no cashback; on save it falls back to modalAwal.
+        // (Setting cashback = modalAwal here used to save Modal Final as Rp 0.)
         setForm((prev) => ({
           ...prev,
-          cashback: String(modalAwalNum),
+          cashback: "",
         }));
       } else {
         const modalFinalNum = parseFloat(parseFromRupiah(modalFinalStr));
@@ -315,6 +316,14 @@ export const InventoryFormModal = ({
       const modalFinalValue = form.modalFinal
         ? parseFloat(parseFromRupiah(form.modalFinal))
         : modalAwalValue - (cashbackValue || 0); // Default to modalAwal if not provided
+
+      // A phone can't cost Rp 0; this usually means cashback equals modal awal
+      if (!(modalFinalValue > 0)) {
+        alert(
+          "Modal Final tidak boleh Rp 0 atau minus. Cek lagi Modal Awal dan Cashback.",
+        );
+        return;
+      }
 
       const normalizedTanggalMasuk =
         normalizeDateInput(form.tanggalMasuk) || form.tanggalMasuk;
@@ -385,12 +394,12 @@ export const InventoryFormModal = ({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="flex w-[calc(100%-1.5rem)] max-h-[85dvh] sm:max-h-[90vh] flex-col gap-0 overflow-hidden rounded-xl border p-0 max-w-lg sm:max-w-4xl [&>button:last-child]:hidden">
         <DialogHeader className="flex-row items-center justify-between gap-2 space-y-0 px-4 sm:px-6 py-2 sm:py-3 border-b bg-white text-left flex-shrink-0">
-          <DialogTitle className="text-lg sm:text-xl">
+          <DialogTitle className="text-base sm:text-lg">
             {isEditMode ? "Edit Inventory" : "Tambah Inventory"}
           </DialogTitle>
           <DialogClose
             aria-label="Tutup"
-            className="-mr-2 flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-900 active:bg-slate-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+            className="-mr-2 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-900 active:bg-slate-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
           >
             <X className="h-5 w-5" />
           </DialogClose>
@@ -401,9 +410,9 @@ export const InventoryFormModal = ({
           className="flex flex-col flex-1 min-h-0 overflow-hidden"
         >
           <div className="px-4 sm:px-6 py-4 overflow-y-auto overscroll-contain flex-1">
-            <div className="space-y-5 sm:space-y-6">
+            <div className="space-y-4">
               {/* Common Fields */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 {/* Tanggal Masuk */}
                 <div>
                   <label htmlFor="inventory-tanggal-masuk" className={labelClass}>
@@ -737,7 +746,7 @@ export const InventoryFormModal = ({
                     <button
                       type="button"
                       onClick={handleAddVariant}
-                      className="flex min-h-11 md:min-h-0 items-center gap-1.5 md:gap-1 px-4 md:px-3 py-2 md:py-1.5 bg-blue-600 text-white text-sm md:text-xs font-medium rounded-lg md:rounded hover:bg-blue-700 active:bg-blue-800 whitespace-nowrap"
+                      className="flex min-h-10 md:min-h-0 items-center gap-1.5 md:gap-1 px-4 md:px-3 py-2 md:py-1.5 bg-blue-600 text-white text-sm md:text-xs font-medium rounded-lg md:rounded hover:bg-blue-700 active:bg-blue-800 whitespace-nowrap"
                     >
                       <Plus className="w-4 h-4 md:w-3.5 md:h-3.5" />
                       Tambah HP
@@ -842,14 +851,14 @@ export const InventoryFormModal = ({
             <button
               type="button"
               onClick={onClose}
-              className="min-h-11 sm:min-h-0 px-4 py-2 bg-white border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 active:bg-slate-100 text-base sm:text-sm font-medium"
+              className="min-h-10 sm:min-h-0 px-4 py-2 bg-white border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 active:bg-slate-100 text-sm font-medium"
             >
               Batal
             </button>
             <button
               type="submit"
               disabled={isLoading}
-              className="min-h-11 sm:min-h-0 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 active:bg-blue-800 text-base sm:text-sm font-semibold shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              className="min-h-10 sm:min-h-0 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 active:bg-blue-800 text-sm font-semibold shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? "Menyimpan..." : "Simpan"}
             </button>

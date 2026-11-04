@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback } from "react";
+import { ColorName } from "@/components/ui/color-name";
 import { useGetInventory } from "@/hooks/queries/useInventoryQueries";
 import { useDeleteInventoryMutation } from "@/hooks/mutations/useInventoryMutations";
 import { InventoryFormModal } from "@/components/InventoryFormModal";
@@ -624,7 +625,7 @@ export const InventoryPage = () => {
                       Warna
                     </p>
                     <p className="text-xs sm:text-sm font-medium text-slate-900">
-                      {viewingItem.warna || "-"}
+                      <ColorName name={viewingItem.warna} />
                     </p>
                   </div>
                   <div>
@@ -907,7 +908,7 @@ export const InventoryPage = () => {
                       </div>
                     </TableCell>
                     <TableCell className="px-2 py-2 text-sm text-slate-600 border-l border-slate-200/70">
-                      {item.warna || "-"}
+                      <ColorName name={item.warna} />
                     </TableCell>
                     <TableCell className="px-2 py-2 text-sm text-slate-600 border-l border-slate-200/70">
                       Rp {parseFloat(item.modalAwal).toLocaleString("id-ID")}

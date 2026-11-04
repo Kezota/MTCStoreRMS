@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { ColorName } from "@/components/ui/color-name";
 import { useGetPenjualan } from "@/hooks/queries/usePenjualanQueries";
 import { useDeletePenjualanMutation } from "@/hooks/mutations/usePenjualanMutations";
 import { useGetInventory } from "@/hooks/queries/useInventoryQueries";
@@ -351,7 +352,7 @@ export const PenjualanPage = () => {
                       Warna
                     </p>
                     <p className="text-xs sm:text-sm font-medium text-slate-900">
-                      {viewingItem.inventory?.warna || "-"}
+                      <ColorName name={viewingItem.inventory?.warna} />
                     </p>
                   </div>
                   <div>

@@ -128,9 +128,17 @@
   }
 }
 
-/* Phones: 16px inputs stop iOS from zooming in on focus and are easier to read.
+/* Quiet placeholders: light grey and never bold, even inside bold inputs */
+input::placeholder,
+textarea::placeholder {
+  color: #94a3b8;
+  font-weight: 400;
+  opacity: 1;
+}
+
+/* Touch phones: 16px inputs stop iOS from zooming in on focus.
    Unlayered on purpose so it wins over text-xs/text-sm utilities. */
-@media (max-width: 767px) {
+@media (max-width: 767px) and (pointer: coarse) {
   input:not([type="checkbox"]):not([type="radio"]),
   select,
   textarea {

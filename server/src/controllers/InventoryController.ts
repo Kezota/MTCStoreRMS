@@ -401,6 +401,14 @@ export const createInventory = async (
       finalModalFinal = modalAwal;
     }
 
+    // Cashback equal to modal awal used to save modal final as 0
+    if (!(finalModalFinal > 0)) {
+      throw new AppError(
+        "Modal final must be greater than 0. Check modal awal and cashback.",
+        400,
+      );
+    }
+
     const inventory = await prisma.inventoryHP.create({
       data: {
         tanggalMasuk: new Date(tanggalMasuk),
@@ -510,6 +518,13 @@ export const updateInventory = async (
     }
 
     if (status) updateData.status = status;
+
+    if (updateData.modalFinal !== undefined && !(updateData.modalFinal > 0)) {
+      throw new AppError(
+        "Modal final must be greater than 0. Check modal awal and cashback.",
+        400,
+      );
+    }
 
     // Update inventory and recalculate penjualan profit if modalAwal or modalFinal changed
     const inventory = await prisma.$transaction(async (tx) => {
@@ -638,6 +653,13 @@ export const createBulkInventory = async (
         } else {
           // Default: modalFinal = modalAwal, cashback = 0 or null
           finalModalFinal = item.modalAwal;
+        }
+
+        if (!(finalModalFinal > 0)) {
+          throw new AppError(
+            `IMEI ${item.imei}: modal final must be greater than 0. Check modal awal and cashback.`,
+            400,
+          );
         }
 
         return prisma.inventoryHP.create({

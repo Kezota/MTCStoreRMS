@@ -158,9 +158,15 @@ export const StaffBrandAnalysis = ({
           <div className="h-56">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={brandTrendSeries} margin={{ left: 8, right: 8 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                <XAxis dataKey="date" tick={{ fontSize: 10 }} />
-                <YAxis tick={{ fontSize: 10 }} />
+                <CartesianGrid vertical={false} stroke="#eef2f7" />
+                <XAxis
+                  dataKey="date"
+                  tick={{ fontSize: 10 }}
+                  tickFormatter={(value: string) =>
+                    value.split("-").reverse().slice(0, 2).join("/")
+                  }
+                />
+                <YAxis tick={{ fontSize: 10 }} allowDecimals={false} width={28} />
                 <Tooltip
                   content={({ active, payload }) => {
                     if (!active || !payload || !payload.length) return null;
@@ -189,9 +195,9 @@ export const StaffBrandAnalysis = ({
                     dataKey={brand}
                     stroke={getBrandColor(brand)}
                     strokeWidth={2}
-                    dot={{ r: 2 }}
+                    // Daily dots pile up into a solid bar on long ranges
+                    dot={brandTrendSeries.length > 31 ? false : { r: 2 }}
                     activeDot={{ r: 4 }}
-                    connectNulls
                   />
                 ))}
               </LineChart>

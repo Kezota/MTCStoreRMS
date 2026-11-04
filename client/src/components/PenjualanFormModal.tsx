@@ -59,14 +59,14 @@ interface FormData {
 
 const STORAGE_KEY = "penjualan-form-draft";
 
-const labelClass = "block text-sm font-medium text-slate-700 mb-1.5 md:mb-1";
+const labelClass = "block text-xs sm:text-sm font-medium text-slate-700 mb-1";
 const fieldBase =
-  "w-full min-h-11 md:min-h-0 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500";
+  "w-full min-h-9 md:min-h-0 py-1.5 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500";
 const inputClass = `${fieldBase} px-3`;
 const moneyInputClass = `${fieldBase} pl-10 pr-3`;
 const triggerClass = `${inputClass} text-left flex items-center justify-between gap-2`;
 const commandItemClass = "py-3 md:py-1.5";
-const sectionTitleClass = "text-sm font-semibold text-slate-800";
+const sectionTitleClass = "text-xs sm:text-sm font-semibold text-slate-800";
 
 const METODE_BAYAR_CHOICES = [
   { value: "CASH", label: "Cash" },
@@ -409,12 +409,12 @@ export const PenjualanFormModal = ({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="flex w-[calc(100%-1.5rem)] max-h-[85dvh] sm:max-h-[90vh] flex-col gap-0 overflow-hidden rounded-xl border p-0 max-w-lg sm:max-w-3xl [&>button:last-child]:hidden">
         <DialogHeader className="flex-row items-center justify-between gap-2 space-y-0 px-4 sm:px-6 py-2 sm:py-3 border-b bg-white text-left flex-shrink-0">
-          <DialogTitle className="text-lg sm:text-xl">
+          <DialogTitle className="text-base sm:text-lg">
             {isEditMode ? "Edit Penjualan" : "Tambah Penjualan"}
           </DialogTitle>
           <DialogClose
             aria-label="Tutup"
-            className="-mr-2 flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-900 active:bg-slate-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+            className="-mr-2 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-900 active:bg-slate-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
           >
             <X className="h-5 w-5" />
           </DialogClose>
@@ -425,7 +425,7 @@ export const PenjualanFormModal = ({
           className="flex flex-col flex-1 min-h-0 overflow-hidden"
         >
           <div className="px-4 sm:px-6 py-4 overflow-y-auto overscroll-contain flex-1">
-            <div className="space-y-5">
+            <div className="space-y-4">
               {/* 1. HP yang dijual */}
               <div>
                 <label className={labelClass}>HP yang dijual</label>
@@ -435,7 +435,7 @@ export const PenjualanFormModal = ({
                       type="button"
                       className={cn(
                         triggerClass,
-                        !selectedInventory && "text-slate-500",
+                        !selectedInventory && "text-slate-400",
                       )}
                     >
                       <span className="truncate">
@@ -538,7 +538,7 @@ export const PenjualanFormModal = ({
                         hargaJual: e.target.value,
                       })
                     }
-                    className={cn(moneyInputClass, "text-base font-semibold")}
+                    className={cn(moneyInputClass, "font-semibold")}
                   />
                 </div>
 
@@ -601,7 +601,7 @@ export const PenjualanFormModal = ({
                 <div
                   role="radiogroup"
                   aria-label="Metode Bayar"
-                  className="grid grid-cols-2 sm:grid-cols-4 gap-2"
+                  className="grid grid-cols-4 gap-1.5 sm:gap-2"
                 >
                   {METODE_BAYAR_CHOICES.map((choice) => {
                     const active = form.metodeBayar === choice.value;
@@ -615,7 +615,7 @@ export const PenjualanFormModal = ({
                           setForm({ ...form, metodeBayar: choice.value })
                         }
                         className={cn(
-                          "min-h-11 rounded-lg border text-sm font-semibold transition",
+                          "min-h-9 rounded-lg border px-1 text-xs sm:text-sm font-semibold transition",
                           active
                             ? "border-blue-600 bg-blue-600 text-white shadow-sm"
                             : "border-slate-300 bg-white text-slate-700 hover:bg-slate-50 active:bg-slate-100",
@@ -626,6 +626,23 @@ export const PenjualanFormModal = ({
                     );
                   })}
                 </div>
+              </div>
+
+              {/* Tanggal (defaults to today) */}
+              <div>
+                <label htmlFor="penjualan-tanggal" className={labelClass}>
+                  Tanggal
+                </label>
+                <input
+                  id="penjualan-tanggal"
+                  type="date"
+                  required
+                  value={form.tanggal}
+                  onChange={(e) =>
+                    setForm({ ...form, tanggal: e.target.value })
+                  }
+                  className={inputClass}
+                />
               </div>
 
               {/* 4. Customer */}
@@ -646,7 +663,7 @@ export const PenjualanFormModal = ({
                       }));
                     }}
                     className={cn(
-                      "min-h-10 rounded-md text-sm font-medium transition",
+                      "min-h-8 rounded-md text-xs sm:text-sm font-medium transition",
                       customerMode === "new"
                         ? "bg-white text-slate-900 shadow-sm"
                         : "text-slate-600",
@@ -666,7 +683,7 @@ export const PenjualanFormModal = ({
                       }));
                     }}
                     className={cn(
-                      "min-h-10 rounded-md text-sm font-medium transition",
+                      "min-h-8 rounded-md text-xs sm:text-sm font-medium transition",
                       customerMode === "existing"
                         ? "bg-white text-slate-900 shadow-sm"
                         : "text-slate-600",
@@ -684,7 +701,7 @@ export const PenjualanFormModal = ({
                           type="button"
                           className={cn(
                             triggerClass,
-                            !selectedCustomer && "text-slate-500",
+                            !selectedCustomer && "text-slate-400",
                           )}
                         >
                           <span className="truncate">
@@ -801,7 +818,7 @@ export const PenjualanFormModal = ({
               </div>
 
               {/* 5. Lain-lain */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
                 <div>
                   <label htmlFor="penjualan-keterangan" className={labelClass}>
                     Keterangan{" "}
@@ -819,21 +836,6 @@ export const PenjualanFormModal = ({
                     className={inputClass}
                   />
                 </div>
-                <div>
-                  <label htmlFor="penjualan-tanggal" className={labelClass}>
-                    Tanggal
-                  </label>
-                  <input
-                    id="penjualan-tanggal"
-                    type="date"
-                    required
-                    value={form.tanggal}
-                    onChange={(e) =>
-                      setForm({ ...form, tanggal: e.target.value })
-                    }
-                    className={inputClass}
-                  />
-                </div>
               </div>
             </div>
           </div>
@@ -843,14 +845,14 @@ export const PenjualanFormModal = ({
             <button
               type="button"
               onClick={onClose}
-              className="min-h-11 sm:min-h-0 px-4 py-2 bg-white border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 active:bg-slate-100 text-base sm:text-sm font-medium"
+              className="min-h-10 sm:min-h-0 px-4 py-2 bg-white border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 active:bg-slate-100 text-sm font-medium"
             >
               Batal
             </button>
             <button
               type="submit"
               disabled={isLoading}
-              className="min-h-11 sm:min-h-0 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 active:bg-blue-800 text-base sm:text-sm font-semibold shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              className="min-h-10 sm:min-h-0 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 active:bg-blue-800 text-sm font-semibold shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? "Menyimpan..." : "Simpan"}
             </button>

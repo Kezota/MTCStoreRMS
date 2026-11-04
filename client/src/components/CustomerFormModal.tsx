@@ -19,9 +19,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
-const labelClass = "block text-sm font-medium text-slate-700 mb-1.5 md:mb-1";
+const labelClass = "block text-xs sm:text-sm font-medium text-slate-700 mb-1";
 const inputClass =
-  "w-full min-h-11 md:min-h-0 px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500";
+  "w-full min-h-10 md:min-h-0 px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500";
 
 // On phones the keyboard's "next" key sends Enter, which would submit the
 // form early. On touch devices move focus to the next field instead.
@@ -129,12 +129,12 @@ export const CustomerFormModal = ({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="flex w-[calc(100%-1.5rem)] max-h-[85dvh] sm:max-h-[90vh] flex-col gap-0 overflow-hidden rounded-xl border p-0 max-w-lg sm:max-w-lg [&>button:last-child]:hidden">
         <DialogHeader className="flex-row items-center justify-between gap-2 space-y-0 px-4 sm:px-6 py-2 sm:py-3 border-b bg-white text-left flex-shrink-0">
-          <DialogTitle className="text-lg sm:text-xl">
+          <DialogTitle className="text-base sm:text-lg">
             {isEditMode ? "Edit Pelanggan" : "Tambah Pelanggan"}
           </DialogTitle>
           <DialogClose
             aria-label="Tutup"
-            className="-mr-2 flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-900 active:bg-slate-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+            className="-mr-2 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-900 active:bg-slate-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
           >
             <X className="h-5 w-5" />
           </DialogClose>
@@ -145,7 +145,7 @@ export const CustomerFormModal = ({
           className="flex flex-col flex-1 min-h-0 overflow-hidden"
         >
           <div className="px-4 sm:px-6 py-4 overflow-y-auto overscroll-contain flex-1">
-            <div className="space-y-5 sm:space-y-6">
+            <div className="space-y-4">
               {/* Nama */}
               <div>
                 <label htmlFor="customer-nama" className={labelClass}>
@@ -193,14 +193,14 @@ export const CustomerFormModal = ({
             <button
               type="button"
               onClick={onClose}
-              className="min-h-11 sm:min-h-0 px-4 py-2 bg-white border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 active:bg-slate-100 text-base sm:text-sm font-medium"
+              className="min-h-10 sm:min-h-0 px-4 py-2 bg-white border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 active:bg-slate-100 text-sm font-medium"
             >
               Batal
             </button>
             <button
               type="submit"
               disabled={isLoading}
-              className="min-h-11 sm:min-h-0 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 active:bg-blue-800 text-base sm:text-sm font-semibold shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              className="min-h-10 sm:min-h-0 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 active:bg-blue-800 text-sm font-semibold shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? "Menyimpan..." : "Simpan"}
             </button>

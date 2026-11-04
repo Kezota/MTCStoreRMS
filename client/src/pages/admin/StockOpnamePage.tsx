@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { ColorName } from "@/components/ui/color-name";
 import { useGetInventory } from "@/hooks/queries";
 import { useDeleteInventoryMutation } from "@/hooks/mutations";
 import {
@@ -861,19 +862,22 @@ export const StockOpnamePage = () => {
                   <p className="mt-1.5 text-sm font-semibold leading-snug text-slate-900 break-words">
                     {item.namaHP}
                   </p>
-                  <p className="mt-0.5 text-xs text-slate-500">
-                    {[
-                      item.warna,
-                      item.tanggalMasuk
+                  <p className="mt-0.5 flex flex-wrap items-center gap-x-1.5 text-xs text-slate-500">
+                    {item.warna && (
+                      <>
+                        <ColorName name={item.warna} />
+                        <span>·</span>
+                      </>
+                    )}
+                    <span>
+                      {item.tanggalMasuk
                         ? item.tanggalMasuk
                             .slice(0, 10)
                             .split("-")
                             .reverse()
                             .join("/")
-                        : null,
-                    ]
-                      .filter(Boolean)
-                      .join(" · ") || "-"}
+                        : "-"}
+                    </span>
                   </p>
                   <p className="mt-1 font-mono text-xs text-slate-600 break-all">
                     {item.imei}
