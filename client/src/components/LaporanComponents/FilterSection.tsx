@@ -36,40 +36,38 @@ export const FilterSection = ({
         </p>
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-200 p-3 sm:p-4 lg:p-6 shadow-sm">
+      <div className="bg-white rounded-xl border border-slate-200 p-3 sm:p-4 lg:p-5 shadow-sm">
         <div className="grid grid-cols-2 lg:grid-cols-5 gap-2 sm:gap-3 lg:gap-4">
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">
-              Start Date
+            <label className="block text-xs font-medium text-slate-500 mb-1">
+              Dari
             </label>
             <input
               type="date"
-              placeholder="Pilih tanggal"
-              value={startDate}
+                            value={startDate}
               onChange={(e) => onStartDateChange(e.target.value)}
-              className="w-full px-2 py-1 sm:py-1.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none"
+              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">
-              End Date
+            <label className="block text-xs font-medium text-slate-500 mb-1">
+              Sampai
             </label>
             <input
               type="date"
-              placeholder="Pilih tanggal"
-              value={endDate}
+                            value={endDate}
               onChange={(e) => onEndDateChange(e.target.value)}
-              className="w-full px-2 py-1 sm:py-1.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none"
+              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">
+            <label className="block text-xs font-medium text-slate-500 mb-1">
               Brand
             </label>
             <select
               value={filterBrand}
               onChange={(e) => onFilterBrandChange(e.target.value)}
-              className="w-full px-2 py-2 border border-gray-300 rounded-md text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="all">Semua Brand</option>
               {brandOptions.map((brand) => (
@@ -80,13 +78,13 @@ export const FilterSection = ({
             </select>
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">
+            <label className="block text-xs font-medium text-slate-500 mb-1">
               Metode Bayar
             </label>
             <select
               value={filterMetode}
               onChange={(e) => onFilterMetodeChange(e.target.value)}
-              className="w-full px-2 py-2 border border-gray-300 rounded-md text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="all">Semua Metode</option>
               {metodeOptions.map((metode) => (
@@ -97,15 +95,16 @@ export const FilterSection = ({
             </select>
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">
+            <label className="block text-xs font-medium text-slate-500 mb-1">
               Periode Preset
             </label>
             <select
               value={filterPreset}
               onChange={(e) => onFilterPresetChange(e.target.value)}
-              className="w-full px-2 py-2 border border-gray-300 rounded-md text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="all">Semua</option>
+              <option value="custom">Custom</option>
               <option value="today">Hari Ini</option>
               <option value="7days">7 Hari</option>
               <option value="30days">30 Hari</option>

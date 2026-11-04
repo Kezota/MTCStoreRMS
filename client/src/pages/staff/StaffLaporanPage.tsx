@@ -314,7 +314,7 @@ export const StaffLaporanPage = () => {
   }, [brandSummary]);
 
   return (
-    <div className="space-y-6 sm:space-y-8">
+    <div className="space-y-6 sm:space-y-8 md:px-8 lg:px-12 xl:px-20">
       {isYearLoading ? (
         <div className="text-center py-12">
           <div className="inline-flex flex-col items-center">

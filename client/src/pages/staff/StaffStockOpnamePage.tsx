@@ -354,7 +354,7 @@ export const StaffStockOpnamePage = () => {
               <PopoverContent
                 align="start"
                 sideOffset={4}
-                className="p-0 w-[--radix-popover-trigger-width]"
+                className="p-0 w-[var(--radix-popover-trigger-width)]"
                 style={{ zIndex: 9999 }}
               >
                 <Command shouldFilter={false}>
@@ -536,7 +536,7 @@ export const StaffStockOpnamePage = () => {
                 <PopoverContent
                   align="start"
                   sideOffset={4}
-                  className="p-0 w-[--radix-popover-trigger-width]"
+                  className="p-0 w-[var(--radix-popover-trigger-width)]"
                   style={{ zIndex: 9999 }}
                 >
                   <Command shouldFilter={false}>

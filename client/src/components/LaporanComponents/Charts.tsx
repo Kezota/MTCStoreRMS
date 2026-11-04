@@ -50,7 +50,7 @@ export const Charts = ({ dailySeries, startDate, endDate }: ChartsProps) => {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 sm:gap-3 lg:gap-4">
       {/* Sales & Profit Trend */}
-      <div className="bg-white rounded-lg border border-gray-200 p-3 sm:p-4 lg:p-6 shadow-sm">
+      <div className="bg-white rounded-xl border border-slate-200 p-3 sm:p-4 lg:p-5 shadow-sm">
         <h3 className="text-xs sm:text-sm lg:text-base font-semibold text-gray-900 mb-2 sm:mb-3">
           📈 Tren Penjualan & Profit
         </h3>
@@ -70,12 +70,21 @@ export const Charts = ({ dailySeries, startDate, endDate }: ChartsProps) => {
                   <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-              <XAxis dataKey="date" tick={{ fontSize: 10 }} stroke="#9ca3af" />
+              <CartesianGrid vertical={false} stroke="#eef2f7" />
+              <XAxis
+                dataKey="date"
+                tick={{ fontSize: 10 }}
+                stroke="#9ca3af"
+                tickFormatter={(value: string) =>
+                  value.split("-").reverse().slice(0, 2).join("/")
+                }
+              />
               <YAxis
                 tick={{ fontSize: 10 }}
                 stroke="#9ca3af"
-                tickFormatter={(value) => `${(value / 1000000).toFixed(0)}M`}
+                tickFormatter={(value) =>
+                  `${(value / 1000000).toLocaleString("id-ID", { maximumFractionDigits: 1 })}jt`
+                }
               />
               <Tooltip content={<CustomTooltip />} />
               <Area
@@ -102,7 +111,7 @@ export const Charts = ({ dailySeries, startDate, endDate }: ChartsProps) => {
       </div>
 
       {/* Transaction Count */}
-      <div className="bg-white rounded-lg border border-gray-200 p-3 sm:p-4 lg:p-6 shadow-sm">
+      <div className="bg-white rounded-xl border border-slate-200 p-3 sm:p-4 lg:p-5 shadow-sm">
         <h3 className="text-xs sm:text-sm lg:text-base font-semibold text-gray-900 mb-2 sm:mb-3">
           📊 Jumlah Transaksi Per Hari
         </h3>
@@ -112,14 +121,22 @@ export const Charts = ({ dailySeries, startDate, endDate }: ChartsProps) => {
         <div className="h-64 sm:h-80">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={dailySeries}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-              <XAxis dataKey="date" tick={{ fontSize: 10 }} stroke="#9ca3af" />
-              <YAxis tick={{ fontSize: 10 }} stroke="#9ca3af" />
+              <CartesianGrid vertical={false} stroke="#eef2f7" />
+              <XAxis
+                dataKey="date"
+                tick={{ fontSize: 10 }}
+                stroke="#9ca3af"
+                tickFormatter={(value: string) =>
+                  value.split("-").reverse().slice(0, 2).join("/")
+                }
+              />
+              <YAxis tick={{ fontSize: 10 }} stroke="#9ca3af" allowDecimals={false} />
               <Tooltip content={<CustomTooltip />} />
               <Bar
                 dataKey="transaksi"
                 fill="#8b5cf6"
-                radius={[8, 8, 0, 0]}
+                radius={[4, 4, 0, 0]}
+                maxBarSize={28}
                 name="Transaksi"
               />
             </BarChart>

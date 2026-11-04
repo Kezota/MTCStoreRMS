@@ -34,7 +34,7 @@ export const MonthlyFinanceTable = ({
   );
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-3 sm:p-4 lg:p-6 shadow-sm">
+    <div className="bg-white rounded-xl border border-slate-200 p-3 sm:p-4 lg:p-5 shadow-sm">
       <div className="flex items-center justify-between mb-2 sm:mb-3 lg:mb-4 flex-col sm:flex-row gap-2 sm:gap-0">
         <h3 className="text-xs sm:text-sm lg:text-base font-semibold text-gray-900">
           📅 Keuangan Per Bulan
@@ -54,7 +54,7 @@ export const MonthlyFinanceTable = ({
       <div className="overflow-x-auto">
         <table className="min-w-full text-xs">
           <thead>
-            <tr className="bg-gradient-to-r from-slate-50 to-slate-100 text-gray-700 border-b-2 border-gray-300">
+            <tr className="bg-slate-50 text-slate-600 border-y border-slate-200">
               <th className="px-2 py-1 sm:px-3 sm:py-2 lg:px-4 lg:py-3 text-left font-semibold">
                 Bulan
               </th>
@@ -79,7 +79,7 @@ export const MonthlyFinanceTable = ({
             {data.map((row, index) => (
               <tr
                 key={row.month}
-                className={`border-b border-gray-200 transition hover:bg-blue-50 ${
+                className={`border-b border-slate-100 transition hover:bg-blue-50/60 ${
                   index % 2 === 0 ? "bg-white" : "bg-gray-50/50"
                 }`}
               >
@@ -103,7 +103,7 @@ export const MonthlyFinanceTable = ({
                 </td>
               </tr>
             ))}
-            <tr className="bg-gradient-to-r from-amber-50 to-amber-100 border-t-2 border-gray-300 font-semibold">
+            <tr className="bg-amber-50 border-t-2 border-amber-200 font-semibold">
               <td className="px-2 py-1 sm:px-3 sm:py-2 lg:px-4 lg:py-3 font-bold text-gray-900">
                 TOTAL
               </td>

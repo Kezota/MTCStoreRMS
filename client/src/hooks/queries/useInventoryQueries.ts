@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { API } from "@/lib/API";
 import { queryKeys } from "@/lib/queryKeys";
 
@@ -71,6 +71,8 @@ export const useGetInventory = (params: GetInventoryParams = {}) => {
       const response = await API.get("/inventory", { params });
       return response.data;
     },
+    // Keep the old rows on screen while a new sort/filter loads
+    placeholderData: keepPreviousData,
     staleTime: 2 * 60 * 1000,
   });
 };

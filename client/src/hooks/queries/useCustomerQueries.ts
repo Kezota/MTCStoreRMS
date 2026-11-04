@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { API } from "@/lib/API";
 import { QUERY_KEYS } from "@/lib/queryKeys";
 import type { CustomerResponse, CustomerPurchasesResponse } from "@/lib/types";
@@ -28,6 +28,7 @@ export const useGetCustomers = (params: UseGetCustomersParams = {}) => {
       });
       return response.data;
     },
+    placeholderData: keepPreviousData,
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
 };
@@ -68,6 +69,7 @@ export const useGetCustomerPurchases = (
       );
       return response.data;
     },
+    placeholderData: keepPreviousData,
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
 };

@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { useGetPenjualan } from "@/hooks/queries/usePenjualanQueries";
 import { useGetInventory } from "@/hooks/queries/useInventoryQueries";
+import { Package } from "lucide-react";
 import { formatRupiah } from "@/lib/utils";
 import {
   FilterSection,
@@ -53,11 +54,6 @@ export const LaporanPage = () => {
   const [filterMetode, setFilterMetode] = useState("all");
   const [filterPreset, setFilterPreset] = useState("30days");
   const [selectedYear, setSelectedYear] = useState(today.getFullYear());
-  const [brandRange, setBrandRange] = useState<
-    "today" | "month" | "year" | "custom"
-  >("month");
-  const [brandStartDate, setBrandStartDate] = useState(defaultStart);
-  const [brandEndDate, setBrandEndDate] = useState(defaultEnd);
 
   const startOfYear = toDateInput(new Date(today.getFullYear(), 0, 1));
   const endOfYear = toDateInput(new Date(today.getFullYear(), 11, 31));
@@ -372,37 +368,8 @@ export const LaporanPage = () => {
     return Array.from(map.values());
   }, [yearItems, selectedYear]);
 
-  const brandFilteredItems = useMemo(() => {
-    const now = new Date();
-    const todayKey = toDateInput(now);
-    const startMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    const rangeStart = new Date(brandStartDate);
-    const rangeEnd = new Date(brandEndDate);
-
-    return yearItems.filter((item) => {
-      const date = new Date(item.tanggal);
-      const dateKey = date.toISOString().slice(0, 10);
-      if (filterBrand !== "all") {
-        const brand = item.inventory?.brand || "-";
-        if (brand !== filterBrand) return false;
-      }
-      if (filterMetode !== "all") {
-        if ((item.metodeBayar || "-") !== filterMetode) return false;
-      }
-
-      if (brandRange === "today") return dateKey === todayKey;
-      if (brandRange === "month") return date >= startMonth;
-      if (brandRange === "year") return true;
-      return date >= rangeStart && date <= rangeEnd;
-    });
-  }, [
-    yearItems,
-    brandRange,
-    brandStartDate,
-    brandEndDate,
-    filterBrand,
-    filterMetode,
-  ]);
+  // Brand analysis uses the same period and filters as the rest of the page
+  const brandFilteredItems = filteredItems;
 
   const brandSummary = useMemo(() => {
     const groups = new Map<
@@ -448,8 +415,88 @@ export const LaporanPage = () => {
     }));
   }, [brandSummary]);
 
+  const handlePresetChange = (preset: string) => {
+    setFilterPreset(preset);
+    const now = new Date();
+
+    switch (preset) {
+      case "all":
+        setStartDate(startOfYear);
+        setEndDate(endOfYear);
+        break;
+      case "today": {
+        const todayKey = toDateInput(now);
+        setStartDate(todayKey);
+        setEndDate(todayKey);
+        break;
+      }
+      case "7days": {
+        const start = new Date(now);
+        start.setDate(start.getDate() - 6);
+        setStartDate(toDateInput(start));
+        setEndDate(toDateInput(now));
+        break;
+      }
+      case "30days": {
+        const start = new Date(now);
+        start.setDate(start.getDate() - 29);
+        setStartDate(toDateInput(start));
+        setEndDate(toDateInput(now));
+        break;
+      }
+      case "thisMonth": {
+        const start = new Date(now.getFullYear(), now.getMonth(), 1);
+        setStartDate(toDateInput(start));
+        setEndDate(toDateInput(now));
+        break;
+      }
+      case "thisYear": {
+        const start = new Date(now.getFullYear(), 0, 1);
+        setStartDate(toDateInput(start));
+        setEndDate(toDateInput(now));
+        break;
+      }
+      case "q1": {
+        const start = new Date(now.getFullYear(), 0, 1);
+        const end = new Date(now.getFullYear(), 3, 0); // Last day of March
+        setStartDate(toDateInput(start));
+        setEndDate(toDateInput(end));
+        break;
+      }
+      case "q2": {
+        const start = new Date(now.getFullYear(), 3, 1);
+        const end = new Date(now.getFullYear(), 6, 0); // Last day of June
+        setStartDate(toDateInput(start));
+        setEndDate(toDateInput(end));
+        break;
+      }
+      case "q3": {
+        const start = new Date(now.getFullYear(), 6, 1);
+        const end = new Date(now.getFullYear(), 9, 0); // Last day of September
+        setStartDate(toDateInput(start));
+        setEndDate(toDateInput(end));
+        break;
+      }
+      case "q4": {
+        const start = new Date(now.getFullYear(), 9, 1);
+        const end = new Date(now.getFullYear(), 12, 0); // Last day of December
+        setStartDate(toDateInput(start));
+        setEndDate(toDateInput(end));
+        break;
+      }
+    }
+  };
+
+  const formatPeriodDate = (value: string) =>
+    new Date(`${value}T00:00:00`).toLocaleDateString("id-ID", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    });
+  const periodLabel = `${formatPeriodDate(startDate)} – ${formatPeriodDate(endDate)}`;
+
   return (
-    <div className="space-y-3 sm:space-y-4">
+    <div className="space-y-3 sm:space-y-4 md:px-8 lg:px-12 xl:px-20">
       <FilterSection
         startDate={startDate}
         endDate={endDate}
@@ -462,77 +509,7 @@ export const LaporanPage = () => {
         onEndDateChange={setEndDate}
         onFilterBrandChange={setFilterBrand}
         onFilterMetodeChange={setFilterMetode}
-        onFilterPresetChange={(preset) => {
-          setFilterPreset(preset);
-          const now = new Date();
-
-          switch (preset) {
-            case "all":
-              setStartDate(startOfYear);
-              setEndDate(endOfYear);
-              break;
-            case "today": {
-              const todayKey = toDateInput(now);
-              setStartDate(todayKey);
-              setEndDate(todayKey);
-              break;
-            }
-            case "7days": {
-              const start = new Date(now);
-              start.setDate(start.getDate() - 6);
-              setStartDate(toDateInput(start));
-              setEndDate(toDateInput(now));
-              break;
-            }
-            case "30days": {
-              const start = new Date(now);
-              start.setDate(start.getDate() - 29);
-              setStartDate(toDateInput(start));
-              setEndDate(toDateInput(now));
-              break;
-            }
-            case "thisMonth": {
-              const start = new Date(now.getFullYear(), now.getMonth(), 1);
-              setStartDate(toDateInput(start));
-              setEndDate(toDateInput(now));
-              break;
-            }
-            case "thisYear": {
-              const start = new Date(now.getFullYear(), 0, 1);
-              setStartDate(toDateInput(start));
-              setEndDate(toDateInput(now));
-              break;
-            }
-            case "q1": {
-              const start = new Date(now.getFullYear(), 0, 1);
-              const end = new Date(now.getFullYear(), 3, 0); // Last day of March
-              setStartDate(toDateInput(start));
-              setEndDate(toDateInput(end));
-              break;
-            }
-            case "q2": {
-              const start = new Date(now.getFullYear(), 3, 1);
-              const end = new Date(now.getFullYear(), 6, 0); // Last day of June
-              setStartDate(toDateInput(start));
-              setEndDate(toDateInput(end));
-              break;
-            }
-            case "q3": {
-              const start = new Date(now.getFullYear(), 6, 1);
-              const end = new Date(now.getFullYear(), 9, 0); // Last day of September
-              setStartDate(toDateInput(start));
-              setEndDate(toDateInput(end));
-              break;
-            }
-            case "q4": {
-              const start = new Date(now.getFullYear(), 9, 1);
-              const end = new Date(now.getFullYear(), 12, 0); // Last day of December
-              setStartDate(toDateInput(start));
-              setEndDate(toDateInput(end));
-              break;
-            }
-          }
-        }}
+        onFilterPresetChange={handlePresetChange}
       />
 
       {isLoading || isYearLoading ? (
@@ -544,25 +521,70 @@ export const LaporanPage = () => {
         </div>
       ) : (
         <>
-          <div className="bg-gradient-to-r from-emerald-500 via-green-500 to-teal-500 rounded-lg sm:rounded-xl p-3 sm:p-4 lg:p-6 shadow-md text-white">
-            <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
+          <div className="relative overflow-hidden rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 p-4 sm:p-5 text-white shadow-md">
+            <Package className="pointer-events-none absolute -right-3 -bottom-5 h-28 w-28 text-white/10" />
+            <div className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div>
                 <p className="text-xs sm:text-sm text-emerald-50/90 font-medium">
                   Nilai Stok READY Saat Ini
                 </p>
-                <h3 className="text-lg sm:text-2xl lg:text-3xl font-bold mt-1">
+                <h3 className="text-2xl lg:text-3xl font-bold mt-1">
                   {formatRupiah(readyStockSummary.value)}
                 </h3>
               </div>
-              <div className="bg-white/15 backdrop-blur-sm rounded-lg px-3 py-2 border border-white/20 inline-flex items-center">
-                <span className="text-sm sm:text-base font-semibold">
-                  {readyStockSummary.count} barang ready
-                </span>
-              </div>
+              <span className="inline-flex w-fit items-center gap-2 rounded-full bg-white/15 px-3.5 py-1.5 text-sm font-semibold ring-1 ring-white/25">
+                <Package className="h-4 w-4" />
+                {readyStockSummary.count} barang ready
+              </span>
             </div>
           </div>
 
           <SummaryCards summary={summary} yearSummary={yearSummary} />
+
+          {/* Quick period switch, so there's no need to scroll back to the top */}
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs font-medium text-slate-500">Periode:</span>
+            {(
+              [
+                { value: "today", label: "Hari Ini" },
+                { value: "7days", label: "7 Hari" },
+                { value: "30days", label: "30 Hari" },
+                { value: "thisMonth", label: "Bulan Ini" },
+                { value: "thisYear", label: "Tahun Ini" },
+                { value: "custom", label: "Custom" },
+              ] as const
+            ).map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                onClick={() => handlePresetChange(option.value)}
+                className={`rounded-full border px-3 py-1 text-xs sm:text-sm font-medium transition ${
+                  filterPreset === option.value
+                    ? "border-blue-600 bg-blue-600 text-white shadow-sm"
+                    : "border-slate-200 bg-white text-slate-700 hover:border-blue-300 hover:bg-blue-50"
+                }`}
+              >
+                {option.label}
+              </button>
+            ))}
+            {filterPreset === "custom" && (
+              <div className="flex items-center gap-1.5">
+                <input
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  className="px-2 py-1 border border-slate-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <span className="text-slate-400">–</span>
+                <input
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  className="px-2 py-1 border border-slate-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+            )}
+          </div>
 
           <Charts
             dailySeries={dailySeries}
@@ -570,22 +592,17 @@ export const LaporanPage = () => {
             endDate={endDate}
           />
 
+          <BrandAnalysis
+            brandSummary={brandSummary}
+            brandPieData={brandPieData}
+            periodLabel={periodLabel}
+          />
+
           <MonthlyFinanceTable
             data={monthlyFinance}
             selectedYear={selectedYear}
             availableYears={availableYears}
             onYearChange={setSelectedYear}
-          />
-
-          <BrandAnalysis
-            brandSummary={brandSummary}
-            brandPieData={brandPieData}
-            brandRange={brandRange}
-            onBrandRangeChange={setBrandRange}
-            brandStartDate={brandStartDate}
-            brandEndDate={brandEndDate}
-            onBrandStartDateChange={setBrandStartDate}
-            onBrandEndDateChange={setBrandEndDate}
           />
         </>
       )}

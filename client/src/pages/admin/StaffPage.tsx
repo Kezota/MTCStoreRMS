@@ -16,7 +16,21 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { SortableTableHead } from "@/components/ui/sortable-head";
+import { applyHeaderSort, type SortField } from "@/lib/sort";
 import type { User } from "../../lib/types";
+
+// Dates read best newest first on the first click
+const DESC_FIRST_FIELDS = ["createdAt"];
+
+const compareUsers = (a: User, b: User, field: string): number => {
+  if (field === "createdAt") {
+    return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+  }
+  const aValue = String(a[field as keyof User] ?? "");
+  const bValue = String(b[field as keyof User] ?? "");
+  return aValue.localeCompare(bValue, "id-ID", { sensitivity: "base" });
+};
 
 const emptyForm = {
   username: "",
@@ -35,13 +49,30 @@ export const StaffPage = () => {
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [form, setForm] = useState(emptyForm);
   const [showPassword, setShowPassword] = useState(false);
+  const [sorts, setSorts] = useState<SortField[]>([
+    { field: "createdAt", order: "desc" },
+  ]);
 
+  // Client-side only: the users endpoint has no server sort
   const sortedUsers = useMemo(() => {
-    return [...(users ?? [])].sort(
-      (a, b) =>
-        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+    return [...(users ?? [])].sort((a, b) => {
+      for (const sort of sorts) {
+        const result = compareUsers(a, b, sort.field);
+        if (result !== 0) return sort.order === "asc" ? result : -result;
+      }
+      return 0;
+    });
+  }, [users, sorts]);
+
+  const handleHeaderSort = (field: string) => {
+    setSorts((prev) =>
+      applyHeaderSort(
+        prev,
+        field,
+        DESC_FIRST_FIELDS.includes(field) ? "desc" : "asc",
+      ),
     );
-  }, [users]);
+  };
 
   const openCreate = () => {
     setEditingUser(null);
@@ -139,7 +170,7 @@ export const StaffPage = () => {
   }
 
   return (
-    <div className="space-y-3 sm:space-y-4">
+    <div className="space-y-3 sm:space-y-4 md:px-8 lg:px-12 xl:px-20">
       <div className="flex items-center justify-between gap-4">
         <div>
           <h1 className="text-lg sm:text-xl font-bold text-gray-900">Staff</h1>
@@ -149,40 +180,66 @@ export const StaffPage = () => {
         </div>
         <button
           onClick={openCreate}
-          className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition text-sm sm:text-base"
+          className="inline-flex min-h-11 shrink-0 items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white rounded-lg transition font-semibold text-sm shadow-sm"
         >
-          <UserPlus className="w-4 h-4" />
+          <UserPlus className="w-5 h-5" />
           <span>Tambah User</span>
         </button>
       </div>
 
       {/* Desktop Table */}
-      <div className="hidden md:block rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden bg-white/90">
+      <div className="rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden bg-white/90">
         <Table>
           <TableHeader>
             <TableRow className="bg-slate-50">
-              <TableHead className="px-6 text-slate-600">Nama</TableHead>
-              <TableHead className="px-6 text-slate-600 border-l border-slate-200/70">
+              <TableHead className="px-6 text-slate-600 w-16">No.</TableHead>
+              <SortableTableHead
+                field="nama"
+                sorts={sorts}
+                onSort={handleHeaderSort}
+                className="text-slate-600 border-l border-slate-200/70 [&>button]:px-6"
+              >
+                Nama
+              </SortableTableHead>
+              <SortableTableHead
+                field="username"
+                sorts={sorts}
+                onSort={handleHeaderSort}
+                className="text-slate-600 border-l border-slate-200/70 [&>button]:px-6"
+              >
                 Username
-              </TableHead>
-              <TableHead className="px-6 text-slate-600 border-l border-slate-200/70">
+              </SortableTableHead>
+              <SortableTableHead
+                field="role"
+                sorts={sorts}
+                onSort={handleHeaderSort}
+                className="text-slate-600 border-l border-slate-200/70 [&>button]:px-6"
+              >
                 Role
-              </TableHead>
-              <TableHead className="px-6 text-slate-600 border-l border-slate-200/70">
+              </SortableTableHead>
+              <SortableTableHead
+                field="createdAt"
+                sorts={sorts}
+                onSort={handleHeaderSort}
+                className="text-slate-600 border-l border-slate-200/70 [&>button]:px-6"
+              >
                 Dibuat
-              </TableHead>
+              </SortableTableHead>
               <TableHead className="px-6 text-right text-slate-600 border-l border-slate-200/70">
                 Aksi
               </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {sortedUsers.map((user) => (
+            {sortedUsers.map((user, index) => (
               <TableRow
                 key={user.id}
                 className="odd:bg-white even:bg-slate-50/70 hover:bg-blue-50/40"
               >
-                <TableCell className="px-6 font-medium text-slate-900">
+                <TableCell className="px-6 text-slate-500 w-16">
+                  {index + 1}
+                </TableCell>
+                <TableCell className="px-6 font-medium text-slate-900 border-l border-slate-200/70">
                   {user.nama}
                 </TableCell>
                 <TableCell className="px-6 text-slate-600 border-l border-slate-200/70">
@@ -226,78 +283,6 @@ export const StaffPage = () => {
         </Table>
       </div>
 
-      {/* Mobile Table - Scrollable */}
-      <div className="md:hidden overflow-x-auto rounded-lg border border-slate-200/80 bg-white/90">
-        <Table>
-          <TableHeader>
-            <TableRow className="bg-slate-50">
-              <TableHead className="px-1.5 py-1 text-[10px] text-slate-600">
-                Nama
-              </TableHead>
-              <TableHead className="px-1.5 py-1 text-[10px] text-slate-600 border-l border-slate-200/70">
-                Username
-              </TableHead>
-              <TableHead className="px-1.5 py-1 text-[10px] text-slate-600 border-l border-slate-200/70">
-                Role
-              </TableHead>
-              <TableHead className="px-1.5 py-1 text-[10px] text-slate-600 border-l border-slate-200/70">
-                Dibuat
-              </TableHead>
-              <TableHead className="px-1.5 py-1 text-[10px] text-slate-600 border-l border-slate-200/70">
-                Aksi
-              </TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {sortedUsers.map((user) => (
-              <TableRow
-                key={user.id}
-                className="odd:bg-white even:bg-slate-50/70 hover:bg-blue-50/40"
-              >
-                <TableCell className="px-1.5 py-1 text-[10px] font-medium text-slate-900">
-                  {user.nama}
-                </TableCell>
-                <TableCell className="px-1.5 py-1 text-[10px] text-slate-600 border-l border-slate-200/70">
-                  {user.username}
-                </TableCell>
-                <TableCell className="px-1.5 py-1 text-[10px] border-l border-slate-200/70">
-                  <span
-                    className={`px-0.5 py-0.5 rounded text-[8px] font-medium ${
-                      user.role === "ADMIN"
-                        ? "bg-blue-100 text-blue-700"
-                        : "bg-slate-100 text-slate-700"
-                    }`}
-                  >
-                    {user.role}
-                  </span>
-                </TableCell>
-                <TableCell className="px-1.5 py-1 text-[10px] text-slate-600 border-l border-slate-200/70 whitespace-nowrap">
-                  {new Date(user.createdAt).toLocaleDateString("id-ID")}
-                </TableCell>
-                <TableCell className="px-1.5 py-1 text-[10px] border-l border-slate-200/70">
-                  <div className="flex items-center justify-end gap-0.5">
-                    <button
-                      onClick={() => openEdit(user)}
-                      className="inline-flex items-center gap-0.5 px-1 py-0.5 text-blue-600 hover:bg-blue-50 rounded text-[8px] transition"
-                    >
-                      <Pencil className="w-2 h-2" />
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => handleDelete(user)}
-                      className="inline-flex items-center gap-0.5 px-1 py-0.5 text-red-600 hover:bg-red-50 rounded text-[8px] transition"
-                    >
-                      <Trash2 className="w-2 h-2" />
-                      Hapus
-                    </button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
-
       {/* Form Modal */}
       {isFormOpen && (
         <div
@@ -305,7 +290,7 @@ export const StaffPage = () => {
           onClick={closeForm}
         >
           <div
-            className="bg-white w-full max-w-lg rounded-xl shadow-xl p-4 sm:p-6"
+            className="bg-white w-full max-w-lg rounded-xl shadow-xl p-4 sm:p-6 max-h-[90vh] overflow-y-auto"
             onClick={(event) => event.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-4">
@@ -313,8 +298,10 @@ export const StaffPage = () => {
                 {editingUser ? "Edit User" : "Tambah User"}
               </h2>
               <button
+                type="button"
                 onClick={closeForm}
-                className="text-gray-500 hover:text-gray-700"
+                className="flex min-h-11 min-w-11 md:min-h-8 md:min-w-8 items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-700"
+                aria-label="Tutup"
               >
                 ✕
               </button>
@@ -322,7 +309,7 @@ export const StaffPage = () => {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs font-medium text-gray-600">
+                  <label className="text-sm md:text-xs font-medium text-gray-600">
                     Username
                   </label>
                   <input
@@ -331,12 +318,12 @@ export const StaffPage = () => {
                     onChange={(e) =>
                       setForm((prev) => ({ ...prev, username: e.target.value }))
                     }
-                    className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="mt-1 w-full min-h-11 md:min-h-0 rounded-lg border border-gray-300 bg-white px-3 py-2 text-base md:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                     required
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-medium text-gray-600">
+                  <label className="text-sm md:text-xs font-medium text-gray-600">
                     Nama
                   </label>
                   <input
@@ -345,12 +332,12 @@ export const StaffPage = () => {
                     onChange={(e) =>
                       setForm((prev) => ({ ...prev, nama: e.target.value }))
                     }
-                    className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="mt-1 w-full min-h-11 md:min-h-0 rounded-lg border border-gray-300 bg-white px-3 py-2 text-base md:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                     required
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-medium text-gray-600">
+                  <label className="text-sm md:text-xs font-medium text-gray-600">
                     Role
                   </label>
                   <select
@@ -361,14 +348,14 @@ export const StaffPage = () => {
                         role: e.target.value as "ADMIN" | "STAFF",
                       }))
                     }
-                    className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="mt-1 w-full min-h-11 md:min-h-0 rounded-lg border border-gray-300 bg-white px-3 py-2 text-base md:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="ADMIN">ADMIN</option>
                     <option value="STAFF">STAFF</option>
                   </select>
                 </div>
                 <div>
-                  <label className="text-xs font-medium text-gray-600">
+                  <label className="text-sm md:text-xs font-medium text-gray-600">
                     Password {editingUser ? "(opsional)" : ""}
                   </label>
                   <div className="mt-1 relative">
@@ -381,13 +368,16 @@ export const StaffPage = () => {
                           password: e.target.value,
                         }))
                       }
-                      className="w-full rounded-lg border border-gray-300 px-3 py-2 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full min-h-11 md:min-h-0 rounded-lg border border-gray-300 px-3 py-2 pr-12 md:pr-10 text-base md:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                       required={!editingUser}
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                      className="absolute right-0 top-0 flex h-full w-11 md:w-10 items-center justify-center text-gray-500 hover:text-gray-700"
+                      aria-label={
+                        showPassword ? "Sembunyikan password" : "Lihat password"
+                      }
                     >
                       {showPassword ? (
                         <EyeOff className="w-4 h-4" />
@@ -398,18 +388,18 @@ export const StaffPage = () => {
                   </div>
                 </div>
               </div>
-              <div className="flex items-center justify-end gap-2 pt-2">
+              <div className="flex items-center justify-end gap-2 pt-2 [&>button]:flex-1 sm:[&>button]:flex-none">
                 <button
                   type="button"
                   onClick={closeForm}
-                  className="px-3 sm:px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 text-sm"
+                  className="min-h-11 md:min-h-0 px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 text-sm font-medium"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
                   disabled={createUser.isPending || updateUser.isPending}
-                  className="px-3 sm:px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 text-sm disabled:opacity-60"
+                  className="min-h-11 md:min-h-0 px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 active:bg-blue-800 text-sm font-semibold disabled:opacity-60"
                 >
                   {editingUser ? "Simpan" : "Tambah"}
                 </button>

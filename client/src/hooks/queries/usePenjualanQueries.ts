@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { API } from "@/lib/API";
 import { queryKeys } from "@/lib/queryKeys";
 import type { PenjualanResponse } from "@/lib/types";
@@ -26,6 +26,8 @@ export const useGetPenjualan = (params: GetPenjualanParams = {}) => {
       const response = await API.get("/penjualan", { params });
       return response.data;
     },
+    // Keep the old rows on screen while a new sort/filter loads
+    placeholderData: keepPreviousData,
     staleTime: 2 * 60 * 1000,
   });
 };

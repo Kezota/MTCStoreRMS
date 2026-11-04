@@ -4,8 +4,9 @@ import {
   useMemo,
   useCallback,
   type FormEvent,
+  type KeyboardEvent,
 } from "react";
-import { Plus, Trash2, Check, ChevronsUpDown } from "lucide-react";
+import { Plus, Trash2, Check, ChevronsUpDown, X } from "lucide-react";
 import { brandsList } from "@/lib/constants";
 import {
   useCreateInventoryMutation,
@@ -19,6 +20,7 @@ import {
 import type { InventoryItem } from "@/lib/types";
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogHeader,
   DialogTitle,
@@ -53,6 +55,32 @@ interface PhoneVariant {
 }
 
 const FORM_STORAGE_KEY = "inventory_form_draft";
+
+const labelClass = "block text-sm font-medium text-slate-700 mb-1.5 md:mb-1";
+const fieldBase =
+  "w-full min-h-11 md:min-h-0 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500";
+const inputClass = `${fieldBase} px-3`;
+const moneyInputClass = `${fieldBase} pl-10 pr-3`;
+const triggerClass = `${inputClass} text-left flex items-center justify-between gap-2`;
+const commandItemClass = "py-3 md:py-1.5";
+
+// On phones the keyboard's "next" key sends Enter, which would submit the
+// form early. On touch devices move focus to the next field instead.
+const focusNextFieldOnEnter = (e: KeyboardEvent<HTMLInputElement>) => {
+  if (e.key !== "Enter" || e.nativeEvent.isComposing) return;
+  if (!window.matchMedia("(pointer: coarse)").matches) return;
+  const formEl = e.currentTarget.form;
+  if (!formEl) return;
+  e.preventDefault();
+  const fields = Array.from(
+    formEl.querySelectorAll<HTMLElement>("input, select, textarea"),
+  ).filter(
+    (el) => !(el as HTMLInputElement).disabled && el.offsetParent !== null,
+  );
+  const next = fields[fields.indexOf(e.currentTarget) + 1];
+  if (next) next.focus();
+  else e.currentTarget.blur();
+};
 
 interface FormData {
   tanggalMasuk: string;
@@ -355,27 +383,34 @@ export const InventoryFormModal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl sm:max-w-4xl max-h-[95vh] p-0 overflow-hidden flex flex-col">
-        <DialogHeader className="px-4 sm:px-6 pt-4 sm:pt-6 pb-3 sm:pb-4 border-b sticky top-0 bg-white z-10 flex-shrink-0">
+      <DialogContent className="flex w-[calc(100%-1.5rem)] max-h-[85dvh] sm:max-h-[90vh] flex-col gap-0 overflow-hidden rounded-xl border p-0 max-w-lg sm:max-w-4xl [&>button:last-child]:hidden">
+        <DialogHeader className="flex-row items-center justify-between gap-2 space-y-0 px-4 sm:px-6 py-2 sm:py-3 border-b bg-white text-left flex-shrink-0">
           <DialogTitle className="text-lg sm:text-xl">
             {isEditMode ? "Edit Inventory" : "Tambah Inventory"}
           </DialogTitle>
+          <DialogClose
+            aria-label="Tutup"
+            className="-mr-2 flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-900 active:bg-slate-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+          >
+            <X className="h-5 w-5" />
+          </DialogClose>
         </DialogHeader>
 
         <form
           onSubmit={handleSubmitForm}
-          className="flex flex-col h-full flex-1 overflow-hidden"
+          className="flex flex-col flex-1 min-h-0 overflow-hidden"
         >
-          <div className="px-4 sm:px-6 py-3 sm:py-4 overflow-y-auto flex-1">
-            <div className="space-y-4 sm:space-y-6">
+          <div className="px-4 sm:px-6 py-4 overflow-y-auto overscroll-contain flex-1">
+            <div className="space-y-5 sm:space-y-6">
               {/* Common Fields */}
-              <div className="grid grid-cols-2 gap-3 sm:gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-4">
                 {/* Tanggal Masuk */}
                 <div>
-                  <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-1">
+                  <label htmlFor="inventory-tanggal-masuk" className={labelClass}>
                     Tanggal Masuk
                   </label>
                   <input
+                    id="inventory-tanggal-masuk"
                     type="date"
                     required
                     placeholder="Pilih tanggal"
@@ -383,34 +418,32 @@ export const InventoryFormModal = ({
                     onChange={(e) =>
                       setForm({ ...form, tanggalMasuk: e.target.value })
                     }
-                    className="w-full px-2 sm:px-3 py-1 sm:py-1.5 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none"
+                    className={inputClass}
                   />
                 </div>
 
                 {/* Brand */}
                 <div>
-                  <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-1">
-                    Brand
-                  </label>
+                  <label className={labelClass}>Brand</label>
                   <Popover open={brandOpen} onOpenChange={setBrandOpen}>
                     <PopoverTrigger asChild>
                       <button
                         type="button"
                         className={cn(
-                          "w-full px-2 sm:px-3 py-1.5 sm:py-2 border border-slate-300 rounded-md text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-left flex items-center justify-between",
+                          triggerClass,
                           !form.brand && "text-slate-500",
                         )}
                       >
                         <span className="truncate">
                           {form.brand || "Pilih atau ketik brand..."}
                         </span>
-                        <ChevronsUpDown className="ml-2 h-3 w-3 sm:h-4 sm:w-4 shrink-0 opacity-50" />
+                        <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
                       </button>
                     </PopoverTrigger>
                     {brandOpen && (
                       <PopoverContent
                         side="bottom"
-                        className="w-[--radix-popover-trigger-width] p-0"
+                        className="w-[var(--radix-popover-trigger-width)] p-0"
                         align="start"
                       >
                         <Command>
@@ -420,10 +453,11 @@ export const InventoryFormModal = ({
                             onValueChange={(value) =>
                               setForm({ ...form, brand: value })
                             }
+                            autoComplete="off"
                           />
                           <CommandList>
                             <CommandEmpty>
-                              <div className="py-2 px-3 text-xs sm:text-sm">
+                              <div className="py-2 px-3 text-sm">
                                 Ketik untuk menambah brand baru:{" "}
                                 <span className="font-semibold">
                                   {form.brand}
@@ -439,7 +473,10 @@ export const InventoryFormModal = ({
                                     setForm({ ...form, brand: value });
                                     setBrandOpen(false);
                                   }}
-                                  className="flex items-center justify-between"
+                                  className={cn(
+                                    "flex items-center justify-between",
+                                    commandItemClass,
+                                  )}
                                 >
                                   <div className="flex items-center gap-2">
                                     <span
@@ -453,7 +490,7 @@ export const InventoryFormModal = ({
                                   </div>
                                   <Check
                                     className={cn(
-                                      "h-3 w-3 sm:h-4 sm:w-4",
+                                      "h-4 w-4",
                                       form.brand === brand
                                         ? "opacity-100"
                                         : "opacity-0",
@@ -471,28 +508,26 @@ export const InventoryFormModal = ({
 
                 {/* Nama HP */}
                 <div>
-                  <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-1">
-                    Nama HP
-                  </label>
+                  <label className={labelClass}>Nama HP</label>
                   <Popover open={namaHPOpen} onOpenChange={setNamaHPOpen}>
                     <PopoverTrigger asChild>
                       <button
                         type="button"
                         className={cn(
-                          "w-full px-2 sm:px-3 py-1.5 sm:py-2 border border-slate-300 rounded-md text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-left flex items-center justify-between",
+                          triggerClass,
                           !form.namaHP && "text-slate-500",
                         )}
                       >
                         <span className="truncate">
                           {form.namaHP || "Pilih atau ketik nama HP..."}
                         </span>
-                        <ChevronsUpDown className="ml-2 h-3 w-3 sm:h-4 sm:w-4 shrink-0 opacity-50" />
+                        <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
                       </button>
                     </PopoverTrigger>
                     {namaHPOpen && (
                       <PopoverContent
                         side="bottom"
-                        className="w-[--radix-popover-trigger-width] p-0"
+                        className="w-[var(--radix-popover-trigger-width)] p-0"
                         align="start"
                       >
                         <Command>
@@ -502,10 +537,11 @@ export const InventoryFormModal = ({
                             onValueChange={(value) =>
                               setForm({ ...form, namaHP: value })
                             }
+                            autoComplete="off"
                           />
                           <CommandList>
                             <CommandEmpty>
-                              <div className="py-2 px-3 text-xs sm:text-sm">
+                              <div className="py-2 px-3 text-sm">
                                 Ketik untuk menambah:{" "}
                                 <span className="font-semibold">
                                   {form.namaHP}
@@ -530,12 +566,15 @@ export const InventoryFormModal = ({
                                       setForm({ ...form, namaHP: value });
                                       setNamaHPOpen(false);
                                     }}
-                                    className="flex items-center justify-between"
+                                    className={cn(
+                                      "flex items-center justify-between",
+                                      commandItemClass,
+                                    )}
                                   >
                                     <span className="truncate">{hp}</span>
                                     <Check
                                       className={cn(
-                                        "h-3 w-3 sm:h-4 sm:w-4 shrink-0",
+                                        "h-4 w-4 shrink-0",
                                         form.namaHP === hp
                                           ? "opacity-100"
                                           : "opacity-0",
@@ -553,18 +592,19 @@ export const InventoryFormModal = ({
 
                 {/* Modal Awal */}
                 <div className="sm:col-span-1">
-                  <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-1">
+                  <label htmlFor="inventory-modal-awal" className={labelClass}>
                     Modal Awal
                   </label>
                   {modalOptions.length > 0 && (
                     <select
+                      aria-label="Pilih modal awal dari history"
                       value=""
                       onChange={(e) => {
                         if (e.target.value) {
                           setForm({ ...form, modalAwal: e.target.value });
                         }
                       }}
-                      className="w-full px-2 sm:px-3 py-1.5 sm:py-2 border border-slate-300 rounded-md text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 mb-1.5"
+                      className={cn(inputClass, "mb-2 md:mb-1.5")}
                     >
                       <option value="">-- Pilih dari History --</option>
                       {modalOptions.map((modal) => (
@@ -575,11 +615,16 @@ export const InventoryFormModal = ({
                     </select>
                   )}
                   <div className="relative">
-                    <span className="absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs sm:text-sm pointer-events-none">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm pointer-events-none">
                       Rp
                     </span>
                     <input
+                      id="inventory-modal-awal"
                       type="text"
+                      inputMode="numeric"
+                      autoComplete="off"
+                      enterKeyHint="next"
+                      onKeyDown={focusNextFieldOnEnter}
                       required
                       value={formatToRupiah(form.modalAwal)}
                       onChange={(e) =>
@@ -588,23 +633,28 @@ export const InventoryFormModal = ({
                           modalAwal: parseFromRupiah(e.target.value),
                         })
                       }
-                      placeholder="0"
-                      className="w-full pl-7 sm:pl-10 pr-2 sm:pr-3 py-1.5 sm:py-2 border border-slate-300 rounded-md text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="contoh: 2.500.000"
+                      className={moneyInputClass}
                     />
                   </div>
                 </div>
 
                 {/* Cashback */}
                 <div className="sm:col-span-1">
-                  <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-1">
+                  <label htmlFor="inventory-cashback" className={labelClass}>
                     Cashback (Opsional)
                   </label>
                   <div className="relative">
-                    <span className="absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs sm:text-sm pointer-events-none">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm pointer-events-none">
                       Rp
                     </span>
                     <input
+                      id="inventory-cashback"
                       type="text"
+                      inputMode="numeric"
+                      autoComplete="off"
+                      enterKeyHint="next"
+                      onKeyDown={focusNextFieldOnEnter}
                       value={formatToRupiah(form.cashback)}
                       onChange={(e) => {
                         setLastEditedField("cashback");
@@ -614,22 +664,27 @@ export const InventoryFormModal = ({
                         });
                       }}
                       placeholder="0"
-                      className="w-full pl-7 sm:pl-10 pr-2 sm:pr-3 py-1.5 sm:py-2 border border-slate-300 rounded-md text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className={moneyInputClass}
                     />
                   </div>
                 </div>
 
                 {/* Modal Final */}
                 <div className="sm:col-span-1">
-                  <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-1">
+                  <label htmlFor="inventory-modal-final" className={labelClass}>
                     Modal Final (Opsional)
                   </label>
                   <div className="relative">
-                    <span className="absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs sm:text-sm pointer-events-none">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm pointer-events-none">
                       Rp
                     </span>
                     <input
+                      id="inventory-modal-final"
                       type="text"
+                      inputMode="numeric"
+                      autoComplete="off"
+                      enterKeyHint="next"
+                      onKeyDown={focusNextFieldOnEnter}
                       value={formatToRupiah(form.modalFinal)}
                       onChange={(e) => {
                         setLastEditedField("modalFinal");
@@ -639,7 +694,7 @@ export const InventoryFormModal = ({
                         });
                       }}
                       placeholder="0"
-                      className="w-full pl-7 sm:pl-10 pr-2 sm:pr-3 py-1.5 sm:py-2 border border-slate-300 rounded-md text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className={moneyInputClass}
                     />
                   </div>
                 </div>
@@ -647,10 +702,11 @@ export const InventoryFormModal = ({
                 {/* Status - only on edit */}
                 {isEditMode && (
                   <div className="sm:col-span-1">
-                    <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-1">
+                    <label htmlFor="inventory-status" className={labelClass}>
                       Status
                     </label>
                     <select
+                      id="inventory-status"
                       value={form.status}
                       onChange={(e) =>
                         setForm({
@@ -661,7 +717,7 @@ export const InventoryFormModal = ({
                             | "DIKEMBALIKAN",
                         })
                       }
-                      className="w-full px-2 sm:px-3 py-1.5 sm:py-2 border border-slate-300 rounded-md text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className={inputClass}
                     >
                       <option value="READY">Ready</option>
                       <option value="TERJUAL">Terjual</option>
@@ -672,38 +728,47 @@ export const InventoryFormModal = ({
               </div>
 
               {/* Phone Variants Section */}
-              <div className="border-t pt-3 sm:pt-4">
-                <div className="flex flex-row items-start sm:items-center justify-between gap-2 sm:gap-3 mb-2 sm:mb-3">
-                  <label className="block text-xs sm:text-sm font-semibold text-slate-900">
+              <div className="border-t pt-4">
+                <div className="flex flex-row items-center justify-between gap-2 sm:gap-3 mb-3">
+                  <span className="block text-sm font-semibold text-slate-900">
                     {isEditMode ? "IMEI & Warna" : "Daftar HP (IMEI & Warna)"}
-                  </label>
+                  </span>
                   {!isEditMode && (
                     <button
                       type="button"
                       onClick={handleAddVariant}
-                      className="flex items-center gap-1 px-2.5 sm:px-3 py-1 sm:py-1.5 bg-blue-600 text-white text-xs font-medium rounded hover:bg-blue-700 whitespace-nowrap"
+                      className="flex min-h-11 md:min-h-0 items-center gap-1.5 md:gap-1 px-4 md:px-3 py-2 md:py-1.5 bg-blue-600 text-white text-sm md:text-xs font-medium rounded-lg md:rounded hover:bg-blue-700 active:bg-blue-800 whitespace-nowrap"
                     >
-                      <Plus className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                      <Plus className="w-4 h-4 md:w-3.5 md:h-3.5" />
                       Tambah HP
                     </button>
                   )}
                 </div>
 
-                <div className="max-h-[40vh] overflow-y-auto pr-2 space-y-2 sm:space-y-3 border rounded-lg p-2 sm:p-3 bg-slate-50/50">
+                <div className="space-y-3 border rounded-lg p-2 sm:p-3 bg-slate-50/50 sm:max-h-[40vh] sm:overflow-y-auto sm:pr-2">
                   {phoneVariants.map((variant, index) => (
                     <div
                       key={variant.id}
-                      className="flex flex-row items-start gap-2 sm:gap-3 p-2 sm:p-3 bg-white rounded-lg border border-slate-200"
+                      className="flex flex-row items-start gap-2 sm:gap-3 p-3 bg-white rounded-lg border border-slate-200"
                     >
-                      <div className="flex-1 w-full grid grid-cols-2 gap-2 sm:gap-3">
+                      <div className="flex-1 min-w-0 grid grid-cols-1 sm:grid-cols-2 gap-3">
                         {/* IMEI */}
                         <div>
-                          <label className="block text-xs font-medium text-slate-600 mb-0.5 sm:mb-1">
+                          <label
+                            htmlFor={`inventory-imei-${variant.id}`}
+                            className={labelClass}
+                          >
                             IMEI {!isEditMode && `#${index + 1}`}
                           </label>
                           <input
+                            id={`inventory-imei-${variant.id}`}
                             type="text"
+                            inputMode="numeric"
+                            autoComplete="off"
+                            enterKeyHint="next"
+                            onKeyDown={focusNextFieldOnEnter}
                             required
+                            placeholder="15 digit IMEI"
                             value={variant.imei}
                             onChange={(e) =>
                               handleVariantChange(
@@ -712,18 +777,34 @@ export const InventoryFormModal = ({
                                 e.target.value,
                               )
                             }
-                            className="w-full px-2 sm:px-3 py-1.5 sm:py-2 border border-slate-300 rounded-md text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className={inputClass}
                           />
                         </div>
 
                         {/* Warna */}
                         <div>
-                          <label className="block text-xs font-medium text-slate-600 mb-0.5 sm:mb-1">
+                          <label
+                            htmlFor={`inventory-warna-${variant.id}`}
+                            className={labelClass}
+                          >
                             Warna
                           </label>
                           <input
+                            id={`inventory-warna-${variant.id}`}
                             type="text"
+                            autoComplete="off"
+                            enterKeyHint={
+                              index < phoneVariants.length - 1
+                                ? "next"
+                                : "done"
+                            }
+                            onKeyDown={
+                              index < phoneVariants.length - 1
+                                ? focusNextFieldOnEnter
+                                : undefined
+                            }
                             required
+                            placeholder="contoh: Hitam"
                             value={variant.warna}
                             onChange={(e) =>
                               handleVariantChange(
@@ -732,7 +813,7 @@ export const InventoryFormModal = ({
                                 e.target.value,
                               )
                             }
-                            className="w-full px-2 sm:px-3 py-1.5 sm:py-2 border border-slate-300 rounded-md text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className={inputClass}
                           />
                         </div>
                       </div>
@@ -742,10 +823,11 @@ export const InventoryFormModal = ({
                         <button
                           type="button"
                           onClick={() => handleRemoveVariant(variant.id)}
-                          className="flex-shrink-0 p-1.5 sm:p-2 text-red-600 hover:bg-red-50 rounded transition-colors mt-0"
+                          className="flex-shrink-0 mt-[26px] md:mt-6 flex h-11 w-11 md:h-9 md:w-9 items-center justify-center text-red-600 hover:bg-red-50 active:bg-red-100 rounded-lg transition-colors"
                           title="Hapus HP ini"
+                          aria-label={`Hapus HP #${index + 1}`}
                         >
-                          <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                          <Trash2 className="w-5 h-5 md:w-4 md:h-4" />
                         </button>
                       )}
                     </div>
@@ -755,19 +837,19 @@ export const InventoryFormModal = ({
             </div>
           </div>
 
-          {/* Footer */}
-          <div className="flex flex-col-reverse sm:flex-row gap-2 sm:gap-3 justify-end px-4 sm:px-6 py-3 sm:py-4 border-t bg-slate-50 flex-shrink-0">
+          {/* Footer - stays visible at the bottom */}
+          <div className="grid grid-cols-2 gap-3 px-4 py-3 border-t bg-slate-50 flex-shrink-0 sm:flex sm:justify-end sm:px-6">
             <button
               type="button"
               onClick={onClose}
-              className="px-3 sm:px-4 py-1.5 sm:py-2 bg-white border border-slate-300 text-slate-700 rounded-md hover:bg-slate-50 text-xs sm:text-sm font-medium"
+              className="min-h-11 sm:min-h-0 px-4 py-2 bg-white border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 active:bg-slate-100 text-base sm:text-sm font-medium"
             >
               Batal
             </button>
             <button
               type="submit"
               disabled={isLoading}
-              className="px-3 sm:px-4 py-1.5 sm:py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-xs sm:text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              className="min-h-11 sm:min-h-0 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 active:bg-blue-800 text-base sm:text-sm font-semibold shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? "Menyimpan..." : "Simpan"}
             </button>

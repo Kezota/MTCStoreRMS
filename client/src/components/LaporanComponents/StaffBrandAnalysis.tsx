@@ -125,27 +125,25 @@ export const StaffBrandAnalysis = ({
       {brandRange === "custom" && (
         <div className="grid grid-cols-2 lg:grid-cols-2 gap-2 sm:gap-3 bg-blue-50 p-3 sm:p-4 rounded-lg border border-blue-200">
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">
-              Start Date
+            <label className="block text-xs font-medium text-slate-500 mb-1">
+              Dari
             </label>
             <input
               type="date"
-              placeholder="Pilih tanggal"
-              value={brandStartDate}
+                            value={brandStartDate}
               onChange={(e) => onBrandStartDateChange?.(e.target.value)}
-              className="w-full px-2 py-1 sm:py-1.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none"
+              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">
-              End Date
+            <label className="block text-xs font-medium text-slate-500 mb-1">
+              Sampai
             </label>
             <input
               type="date"
-              placeholder="Pilih tanggal"
-              value={brandEndDate}
+                            value={brandEndDate}
               onChange={(e) => onBrandEndDateChange?.(e.target.value)}
-              className="w-full px-2 py-1 sm:py-1.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none"
+              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
         </div>
@@ -153,7 +151,7 @@ export const StaffBrandAnalysis = ({
 
       {/* Charts & Table */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-2 sm:gap-4">
-        <div className="order-3 lg:order-1 bg-white rounded-lg border border-gray-200 p-3 sm:p-4 lg:p-6 shadow-sm">
+        <div className="order-3 lg:order-1 bg-white rounded-xl border border-slate-200 p-3 sm:p-4 lg:p-5 shadow-sm">
           <h3 className="text-xs sm:text-sm lg:text-base font-semibold text-gray-900 mb-2 sm:mb-3 lg:mb-4">
             📈 Grafik Brand
           </h3>
@@ -201,7 +199,7 @@ export const StaffBrandAnalysis = ({
           </div>
         </div>
 
-        <div className="order-2 lg:order-2 bg-white rounded-lg border border-gray-200 p-3 sm:p-4 lg:p-6 shadow-sm">
+        <div className="order-2 lg:order-2 bg-white rounded-xl border border-slate-200 p-3 sm:p-4 lg:p-5 shadow-sm">
           <h3 className="text-xs sm:text-sm lg:text-base font-semibold text-gray-900 mb-2 sm:mb-3 lg:mb-4">
             📊 Distribusi Brand
           </h3>
@@ -234,13 +232,13 @@ export const StaffBrandAnalysis = ({
           </div>
         </div>
 
-        <div className="order-1 lg:order-3 bg-white rounded-lg border border-gray-200 p-3 sm:p-4 lg:p-6 shadow-sm overflow-x-auto">
+        <div className="order-1 lg:order-3 bg-white rounded-xl border border-slate-200 p-3 sm:p-4 lg:p-5 shadow-sm overflow-x-auto">
           <h3 className="text-xs sm:text-sm lg:text-base font-semibold text-gray-900 mb-2 sm:mb-3 lg:mb-4">
             📋 Detail Per Brand
           </h3>
           <table className="min-w-full text-xs sm:text-sm">
             <thead>
-              <tr className="bg-gradient-to-r from-slate-50 to-slate-100 text-gray-700 border-b-2 border-gray-300">
+              <tr className="bg-slate-50 text-slate-600 border-y border-slate-200">
                 <th className="px-2 sm:px-3 py-2 text-left font-semibold">
                   Brand
                 </th>
@@ -256,7 +254,7 @@ export const StaffBrandAnalysis = ({
               {brandSummary.map((row, index) => (
                 <tr
                   key={row.brand}
-                  className={`border-b border-gray-200 transition hover:bg-blue-50 ${
+                  className={`border-b border-slate-100 transition hover:bg-blue-50/60 ${
                     index % 2 === 0 ? "bg-white" : "bg-gray-50/50"
                   }`}
                 >

@@ -11,6 +11,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { SortableTableHead } from "@/components/ui/sortable-head";
+import { applyHeaderSort, type SortField } from "@/lib/sort";
 import {
   Command,
   CommandEmpty,
@@ -35,6 +37,7 @@ import {
   X,
   ChevronsUpDown,
   Eye,
+  SlidersHorizontal,
 } from "lucide-react";
 import { brandsList } from "@/lib/constants";
 import {
@@ -53,12 +56,10 @@ interface FilterState {
   tanggal: string;
 }
 
-interface SortField {
-  field: string;
-  order: "asc" | "desc";
-}
-
 const METODE_BAYAR_OPTIONS = ["CASH", "TRANSFER_BNI", "TRANSFER_BRI"];
+
+// Numbers and dates read best biggest/newest first on the first click
+const DESC_FIRST_FIELDS = ["tanggal", "hargaJual", "modalFinal", "diskon", "profit"];
 
 const SORT_FIELD_OPTIONS = [
   { value: "tanggal", label: "Tanggal" },
@@ -83,6 +84,8 @@ export const PenjualanPage = () => {
     { field: "tanggal", order: "desc" },
   ]);
   const [searchOpen, setSearchOpen] = useState(false);
+  // Phones show only the search box until the user taps Filter
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const [searchInput, setSearchInput] = useState("");
   const [brandDropdownOpen, setBrandDropdownOpen] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -127,7 +130,10 @@ export const PenjualanPage = () => {
     return params;
   }, [filters, sorts, page, searchValue]);
 
-  const { data, isLoading, error } = useGetPenjualan(queryParams);
+  const { data, isLoading, error, isPlaceholderData } = useGetPenjualan(queryParams);
+  // Old rows stay on screen while a new sort/filter loads; show that it's working
+  const isRefreshing = isPlaceholderData;
+
 
   const handleToggleBrand = (brand: string) => {
     setFilters((prev) => ({
@@ -147,6 +153,17 @@ export const PenjualanPage = () => {
     const newSorts = [...sorts];
     newSorts[index] = { field, order };
     setSorts(newSorts);
+  };
+
+  const handleHeaderSort = (field: string) => {
+    setSorts((prev) =>
+      applyHeaderSort(
+        prev,
+        field,
+        DESC_FIRST_FIELDS.includes(field) ? "desc" : "asc",
+      ),
+    );
+    setPage(1);
   };
 
   const handleClearFilters = () => {
@@ -246,6 +263,8 @@ export const PenjualanPage = () => {
     () => inventoryData?.data || [],
     [inventoryData],
   );
+
+  const activeFilterCount = [filters.metodeBayar, filters.brands.length > 0, filters.tanggal].filter(Boolean).length;
 
   return (
     <div className="w-full h-full flex flex-col overflow-hidden">
@@ -499,7 +518,7 @@ export const PenjualanPage = () => {
       />
 
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-3">
         <div>
           <h1 className="text-lg sm:text-xl font-bold text-slate-900">
             Penjualan
@@ -510,23 +529,26 @@ export const PenjualanPage = () => {
         </div>
         <button
           onClick={handleOpenCreate}
-          className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-1.5 sm:py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium text-xs sm:text-sm"
+          className="flex min-h-11 items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 active:bg-blue-800 transition font-semibold text-sm shadow-sm"
         >
-          <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+          <Plus className="w-5 h-5" />
           Tambah Penjualan
         </button>
       </div>
 
       {/* Filter & Sort Panel */}
-      <div className="bg-white/90 rounded-lg border border-slate-200/80 my-3 sm:my-4 p-2 sm:p-4 space-y-2 sm:space-y-4">
+      <div className="bg-white rounded-xl border border-slate-200 shadow-sm my-3 sm:my-4 p-2 sm:p-4 space-y-2 sm:space-y-3 md:flex md:items-center md:gap-3 md:space-y-0">
         {/* Basic Filters - Compact on mobile */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 sm:gap-3">
-          <div>
+        <div
+          className={`md:flex-1 grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 ${filtersOpen ? "" : "max-sm:[&>*:not(:first-child)]:hidden"}`}
+        >
+          <div className="col-span-2 sm:col-span-1 flex gap-2">
+            <div className="flex-1 min-w-0">
             <Popover open={searchOpen} onOpenChange={setSearchOpen}>
               <PopoverTrigger asChild>
                 <button
                   type="button"
-                  className={`w-full px-2 sm:px-3 py-1.5 sm:py-2 border border-slate-200 rounded text-xs sm:text-sm text-left focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white flex items-center justify-between ${
+                  className={`w-full min-h-11 md:min-h-0 px-3 py-2 border border-slate-200 rounded-lg text-sm text-left focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white flex items-center justify-between ${
                     filters.search ? "text-slate-900" : "text-slate-500"
                   }`}
                 >
@@ -540,7 +562,7 @@ export const PenjualanPage = () => {
               </PopoverTrigger>
               <PopoverContent
                 align="start"
-                className="p-0 w-[--radix-popover-trigger-width]"
+                className="p-0 w-[var(--radix-popover-trigger-width)]"
               >
                 <Command shouldFilter={false}>
                   <CommandInput
@@ -607,6 +629,25 @@ export const PenjualanPage = () => {
                 </Command>
               </PopoverContent>
             </Popover>
+            </div>
+            <button
+              type="button"
+              onClick={() => setFiltersOpen((open) => !open)}
+              aria-expanded={filtersOpen}
+              className={`sm:hidden flex min-h-11 shrink-0 items-center gap-1.5 rounded-lg border px-3 text-sm font-medium transition ${
+                filtersOpen
+                  ? "border-blue-300 bg-blue-50 text-blue-700"
+                  : "border-slate-200 bg-white text-slate-700"
+              }`}
+            >
+              <SlidersHorizontal className="h-4 w-4" />
+              Filter
+              {activeFilterCount > 0 && (
+                <span className="rounded-full bg-blue-600 px-1.5 text-xs font-semibold text-white">
+                  {activeFilterCount}
+                </span>
+              )}
+            </button>
           </div>
 
           <select
@@ -615,9 +656,9 @@ export const PenjualanPage = () => {
               setFilters((prev) => ({ ...prev, metodeBayar: e.target.value }));
               setPage(1);
             }}
-            className="w-full px-2 sm:px-3 py-1.5 sm:py-2 border border-slate-200 rounded text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full min-h-11 md:min-h-0 px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            <option value="">Semua Metode Bayar</option>
+            <option value="">Semua Metode</option>
             {METODE_BAYAR_OPTIONS.map((metode) => (
               <option key={metode} value={metode}>
                 {metode}
@@ -629,7 +670,7 @@ export const PenjualanPage = () => {
           <div className="relative">
             <button
               onClick={() => setBrandDropdownOpen(!brandDropdownOpen)}
-              className="w-full px-2 sm:px-3 py-1.5 sm:py-2 border border-slate-200 rounded text-xs sm:text-sm text-left focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+              className="w-full min-h-11 md:min-h-0 px-3 py-2 border border-slate-200 rounded-lg text-sm text-left focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
             >
               {filters.brands.length === 0
                 ? "Semua Brand"
@@ -640,13 +681,13 @@ export const PenjualanPage = () => {
                 {brandsList.map((brand) => (
                   <label
                     key={brand}
-                    className="flex items-center gap-2 px-2 sm:px-3 py-1.5 sm:py-2 hover:bg-slate-50 cursor-pointer"
+                    className="flex items-center gap-3 px-3 py-2.5 md:py-2 hover:bg-slate-50 cursor-pointer"
                   >
                     <input
                       type="checkbox"
                       checked={filters.brands.includes(brand)}
                       onChange={() => handleToggleBrand(brand)}
-                      className="w-3 h-3 sm:w-4 sm:h-4 rounded border-slate-300"
+                      className="w-5 h-5 md:w-4 md:h-4 rounded border-slate-300"
                     />
                     <span
                       className="text-xs sm:text-sm px-1.5 sm:px-2 py-0.5 sm:py-1 rounded text-white font-medium"
@@ -660,7 +701,7 @@ export const PenjualanPage = () => {
             )}
           </div>
 
-          <div className="relative">
+          <div className="relative col-span-2 sm:col-span-1">
             <input
               type="date"
               placeholder="Pilih tanggal"
@@ -668,26 +709,26 @@ export const PenjualanPage = () => {
               onChange={(e) =>
                 setFilters((prev) => ({ ...prev, tanggal: e.target.value }))
               }
-              className="w-full px-2 sm:px-3 py-1 sm:py-1.5 border border-slate-200 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none"
+              className="w-full min-h-11 md:min-h-0 px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
         </div>
         {/* Sort Section */}
-        <div className="space-y-1.5 sm:space-y-3">
+        <div className={`md:shrink-0 space-y-1.5 sm:space-y-3 ${filtersOpen ? "" : "max-sm:hidden"}`}>
           <div className="flex items-center gap-1.5 sm:gap-3">
             {sorts.map((sort, index) => (
               <div
                 key={index}
-                className="flex items-center gap-1 sm:gap-2 bg-slate-50 p-1.5 sm:p-3 rounded border border-slate-200 flex-1"
+                className="flex md:hidden items-center gap-2 bg-slate-50 p-1.5 sm:p-2 rounded-lg border border-slate-200 flex-1"
               >
                 <select
                   value={sort.field}
                   onChange={(e) =>
                     handleUpdateSort(index, e.target.value, sort.order)
                   }
-                  className="flex-1 px-1.5 sm:px-2 py-0.5 sm:py-1 border border-slate-200 rounded text-[11px] sm:text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="flex-1 min-h-10 md:min-h-0 px-2 py-1.5 border border-slate-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
-                  <option value="">-- Pilih Sort --</option>
+                  <option value="">-- Urutkan --</option>
                   {SORT_FIELD_OPTIONS.map((opt) => (
                     <option key={opt.value} value={opt.value}>
                       {opt.label}
@@ -704,13 +745,13 @@ export const PenjualanPage = () => {
                         sort.order === "asc" ? "desc" : "asc",
                       )
                     }
-                    className="p-0.5 sm:p-1 hover:bg-slate-200 rounded transition flex-shrink-0"
-                    title="Toggle ascending/descending"
+                    className="flex min-h-10 min-w-10 md:min-h-8 md:min-w-8 items-center justify-center bg-white border border-slate-200 hover:bg-slate-100 rounded-lg transition flex-shrink-0"
+                    title="Balik urutan (naik/turun)"
                   >
                     {sort.order === "asc" ? (
-                      <ArrowUp className="w-3 h-3 sm:w-4 sm:h-4 text-blue-600" />
+                      <ArrowUp className="w-4 h-4 text-blue-600" />
                     ) : (
-                      <ArrowDown className="w-3 h-3 sm:w-4 sm:h-4 text-blue-600" />
+                      <ArrowDown className="w-4 h-4 text-blue-600" />
                     )}
                   </button>
                 )}
@@ -719,7 +760,7 @@ export const PenjualanPage = () => {
 
             <button
               onClick={handleClearFilters}
-              className="shrink-0 text-xs px-2 sm:px-3 py-1.5 sm:py-2 bg-slate-200 text-slate-700 rounded hover:bg-slate-300 transition"
+              className="shrink-0 min-h-10 md:min-h-0 text-sm px-3 py-2 bg-slate-200 text-slate-700 rounded-lg hover:bg-slate-300 transition"
             >
               Reset
             </button>
@@ -743,47 +784,105 @@ export const PenjualanPage = () => {
             Tidak ada data penjualan
           </div>
         ) : (
-          <div className="hidden md:block rounded-lg border border-slate-200/80 bg-white/90 overflow-hidden">
+          <>
+          <div
+            className={`rounded-lg border border-slate-200/80 bg-white/90 overflow-hidden transition-opacity ${isRefreshing ? "opacity-60" : ""}`}
+            aria-busy={isRefreshing}
+          >
             <Table>
               <TableHeader>
                 <TableRow className="bg-slate-50">
-                  <TableHead className="px-3 py-2 text-sm text-slate-600 w-12">
+                  <TableHead className="px-2 py-2 text-sm text-slate-600 w-12">
                     No.
                   </TableHead>
-                  <TableHead className="px-3 py-2 text-sm text-slate-600 border-l border-slate-200/70">
+                  <SortableTableHead
+                    field="tanggal"
+                    sorts={sorts}
+                    onSort={handleHeaderSort}
+                    loading={isRefreshing}
+                    className="text-sm text-slate-600 border-l border-slate-200/70"
+                  >
                     Tanggal
-                  </TableHead>
-                  <TableHead className="px-3 py-2 text-sm text-slate-600 border-l border-slate-200/70">
+                  </SortableTableHead>
+                  <SortableTableHead
+                    field="imei"
+                    sorts={sorts}
+                    onSort={handleHeaderSort}
+                    loading={isRefreshing}
+                    className="text-sm text-slate-600 border-l border-slate-200/70"
+                  >
                     IMEI
-                  </TableHead>
-                  <TableHead className="px-3 py-2 text-sm text-slate-600 border-l border-slate-200/70">
+                  </SortableTableHead>
+                  <SortableTableHead
+                    field="brand"
+                    sorts={sorts}
+                    onSort={handleHeaderSort}
+                    loading={isRefreshing}
+                    className="text-sm text-slate-600 border-l border-slate-200/70"
+                  >
                     Brand
-                  </TableHead>
-                  <TableHead className="px-3 py-2 text-sm text-slate-600 border-l border-slate-200/70">
+                  </SortableTableHead>
+                  <SortableTableHead
+                    field="namaHP"
+                    sorts={sorts}
+                    onSort={handleHeaderSort}
+                    loading={isRefreshing}
+                    className="text-sm text-slate-600 border-l border-slate-200/70"
+                  >
                     Nama HP
-                  </TableHead>
-                  <TableHead className="px-3 py-2 text-sm text-slate-600 border-l border-slate-200/70">
+                  </SortableTableHead>
+                  <SortableTableHead
+                    field="hargaJual"
+                    sorts={sorts}
+                    onSort={handleHeaderSort}
+                    loading={isRefreshing}
+                    className="text-sm text-slate-600 border-l border-slate-200/70"
+                  >
                     Harga Jual
-                  </TableHead>
-                  <TableHead className="px-3 py-2 text-sm text-slate-600 border-l border-slate-200/70">
+                  </SortableTableHead>
+                  <SortableTableHead
+                    field="modalFinal"
+                    sorts={sorts}
+                    onSort={handleHeaderSort}
+                    loading={isRefreshing}
+                    className="text-sm text-slate-600 border-l border-slate-200/70"
+                  >
                     Modal
-                  </TableHead>
-                  <TableHead className="px-3 py-2 text-sm text-slate-600 border-l border-slate-200/70">
+                  </SortableTableHead>
+                  <SortableTableHead
+                    field="diskon"
+                    sorts={sorts}
+                    onSort={handleHeaderSort}
+                    loading={isRefreshing}
+                    className="text-sm text-slate-600 border-l border-slate-200/70"
+                  >
                     Diskon
-                  </TableHead>
-                  <TableHead className="px-3 py-2 text-sm text-slate-600 border-l border-slate-200/70">
+                  </SortableTableHead>
+                  <SortableTableHead
+                    field="profit"
+                    sorts={sorts}
+                    onSort={handleHeaderSort}
+                    loading={isRefreshing}
+                    className="text-sm text-slate-600 border-l border-slate-200/70"
+                  >
                     Profit
-                  </TableHead>
-                  <TableHead className="px-3 py-2 text-sm text-slate-600 border-l border-slate-200/70">
-                    Metode Bayar
-                  </TableHead>
-                  <TableHead className="px-3 py-2 text-sm text-slate-600 border-l border-slate-200/70">
+                  </SortableTableHead>
+                  <SortableTableHead
+                    field="metodeBayar"
+                    sorts={sorts}
+                    onSort={handleHeaderSort}
+                    loading={isRefreshing}
+                    className="text-sm text-slate-600 border-l border-slate-200/70"
+                  >
+                    Bayar
+                  </SortableTableHead>
+                  <TableHead className="px-2 py-2 text-sm text-slate-600 border-l border-slate-200/70">
                     Keterangan
                   </TableHead>
-                  <TableHead className="px-3 py-2 text-sm text-slate-600 border-l border-slate-200/70">
-                    Diinput Oleh
+                  <TableHead className="px-2 py-2 text-sm text-slate-600 border-l border-slate-200/70">
+                    Oleh
                   </TableHead>
-                  <TableHead className="px-3 py-2 text-sm text-slate-600 border-l border-slate-200/70">
+                  <TableHead className="px-2 py-2 text-sm text-slate-600 border-l border-slate-200/70">
                     Aksi
                   </TableHead>
                 </TableRow>
@@ -794,16 +893,16 @@ export const PenjualanPage = () => {
                     key={item.id}
                     className="odd:bg-white even:bg-slate-50/70 hover:bg-blue-50/40"
                   >
-                    <TableCell className="px-3 py-2 text-sm font-medium text-slate-600 w-12">
+                    <TableCell className="px-2 py-2 text-sm font-medium text-slate-600 w-12">
                       {(page - 1) * limit + index + 1}
                     </TableCell>
-                    <TableCell className="px-3 py-2 text-sm font-medium text-slate-900 border-l border-slate-200/70">
+                    <TableCell className="px-2 py-2 text-sm font-medium text-slate-900 border-l border-slate-200/70">
                       {new Date(item.tanggal).toLocaleDateString("id-ID")}
                     </TableCell>
-                    <TableCell className="px-3 py-2 text-sm text-slate-600 border-l border-slate-200/70">
+                    <TableCell className="px-2 py-2 text-xs font-mono text-slate-600 border-l border-slate-200/70">
                       {item.inventory?.imei}
                     </TableCell>
-                    <TableCell className="px-3 py-2 text-sm border-l border-slate-200/70">
+                    <TableCell className="px-2 py-2 text-sm border-l border-slate-200/70">
                       <span
                         style={{
                           backgroundColor: getBrandColor(
@@ -815,26 +914,28 @@ export const PenjualanPage = () => {
                         {item.inventory?.brand || "-"}
                       </span>
                     </TableCell>
-                    <TableCell className="px-3 py-2 text-sm text-slate-600 border-l border-slate-200/70">
-                      {item.inventory?.namaHP}
+                    <TableCell className="px-2 py-2 text-sm text-slate-600 border-l border-slate-200/70 whitespace-normal">
+                      <div className="min-w-[8rem] max-w-[13rem] break-words">
+                        {item.inventory?.namaHP}
+                      </div>
                     </TableCell>
-                    <TableCell className="px-3 py-2 text-sm text-slate-600 border-l border-slate-200/70">
+                    <TableCell className="px-2 py-2 text-sm text-slate-600 border-l border-slate-200/70">
                       {formatRupiah(item.hargaJual)}
                     </TableCell>
-                    <TableCell className="px-3 py-2 text-sm text-slate-600 border-l border-slate-200/70">
+                    <TableCell className="px-2 py-2 text-sm text-slate-600 border-l border-slate-200/70">
                       {formatRupiah(item.inventory?.modalFinal && Number(item.inventory.modalFinal) > 0 ? item.inventory.modalFinal : item.inventory?.modalAwal || 0)}
                     </TableCell>
-                    <TableCell className="px-3 py-2 text-sm text-slate-600 border-l border-slate-200/70">
+                    <TableCell className="px-2 py-2 text-sm text-slate-600 border-l border-slate-200/70">
                       {item.diskon && Number(item.diskon) > 0
                         ? formatRupiah(item.diskon)
                         : "-"}
                     </TableCell>
                     <TableCell
-                      className={`px-3 py-2 text-sm font-semibold border-l border-slate-200/70 ${Number(item.profit) < 0 ? "text-red-600" : "text-green-600"}`}
+                      className={`px-2 py-2 text-sm font-semibold border-l border-slate-200/70 ${Number(item.profit) < 0 ? "text-red-600" : "text-green-600"}`}
                     >
                       {formatRupiah(item.profit)}
                     </TableCell>
-                    <TableCell className="px-3 py-2 text-sm border-l border-slate-200/70">
+                    <TableCell className="px-2 py-2 text-sm border-l border-slate-200/70">
                       <span
                         className={`px-2 py-1 rounded text-xs font-medium ${
                           getMetodeBayarColor(item.metodeBayar)
@@ -843,33 +944,35 @@ export const PenjualanPage = () => {
                         {formatMetodeBayar(item.metodeBayar)}
                       </span>
                     </TableCell>
-                    <TableCell className="px-3 py-2 text-sm text-slate-600 border-l border-slate-200/70 max-w-xs break-words whitespace-normal">
-                      {item.keterangan || "-"}
+                    <TableCell className="px-2 py-2 text-sm text-slate-600 border-l border-slate-200/70 whitespace-normal">
+                      <div className="min-w-[7rem] max-w-[11rem] break-words">
+                        {item.keterangan || "-"}
+                      </div>
                     </TableCell>
-                    <TableCell className="px-3 py-2 text-sm text-slate-600 border-l border-slate-200/70">
+                    <TableCell className="px-2 py-2 text-sm text-slate-600 border-l border-slate-200/70">
                       {item.user?.username
                         ? capitalizeFirstLetter(item.user.username)
                         : "-"}
                     </TableCell>
-                    <TableCell className="px-3 py-2 text-sm border-l border-slate-200/70">
-                      <div className="flex items-center justify-end gap-1">
+                    <TableCell className="px-2 py-2 text-sm border-l border-slate-200/70">
+                      <div className="flex items-center justify-end gap-0.5">
                         <button
                           onClick={() => setViewingItem(item)}
-                          className="inline-flex items-center gap-0.5 p-1.5 text-slate-600 hover:bg-slate-100 rounded transition"
+                          className="inline-flex items-center gap-0.5 p-1 text-slate-600 hover:bg-slate-100 rounded transition"
                           title="View"
                         >
                           <Eye className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => handleOpenEdit(item)}
-                          className="inline-flex items-center gap-0.5 p-1.5 text-blue-600 hover:bg-blue-50 rounded transition"
+                          className="inline-flex items-center gap-0.5 p-1 text-blue-600 hover:bg-blue-50 rounded transition"
                           title="Edit"
                         >
                           <Edit2 className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => handleDeletePenjualan(item.id)}
-                          className="inline-flex items-center gap-0.5 p-1.5 text-red-600 hover:bg-red-50 rounded transition"
+                          className="inline-flex items-center gap-0.5 p-1 text-red-600 hover:bg-red-50 rounded transition"
                           title="Hapus"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -881,156 +984,8 @@ export const PenjualanPage = () => {
               </TableBody>
             </Table>
           </div>
+          </>
         )}
-
-        {/* Mobile Table */}
-        <div className="md:hidden overflow-x-auto rounded-lg border border-slate-200/80 bg-white/90">
-          <Table>
-            <TableHeader>
-              <TableRow className="bg-slate-50">
-                <TableHead className="px-1 py-0.5 text-[10px] text-slate-600 w-8">
-                  No.
-                </TableHead>
-                <TableHead className="px-1 py-0.5 text-[10px] text-slate-600 border-l border-slate-200/70">
-                  Tgl
-                </TableHead>
-                <TableHead className="px-1 py-0.5 text-[10px] text-slate-600 border-l border-slate-200/70">
-                  IMEI
-                </TableHead>
-                <TableHead className="px-1 py-0.5 text-[10px] text-slate-600 border-l border-slate-200/70">
-                  Brand
-                </TableHead>
-                <TableHead className="px-1 py-0.5 text-[10px] text-slate-600 border-l border-slate-200/70">
-                  Nama
-                </TableHead>
-                <TableHead className="px-1 py-0.5 text-[10px] text-slate-600 border-l border-slate-200/70">
-                  Harga
-                </TableHead>
-                <TableHead className="px-1 py-0.5 text-[10px] text-slate-600 border-l border-slate-200/70">
-                  Modal
-                </TableHead>
-                <TableHead className="px-1 py-0.5 text-[10px] text-slate-600 border-l border-slate-200/70">
-                  Diskon
-                </TableHead>
-                <TableHead className="px-1 py-0.5 text-[10px] text-slate-600 border-l border-slate-200/70">
-                  Profit
-                </TableHead>
-                <TableHead className="px-1 py-0.5 text-[10px] text-slate-600 border-l border-slate-200/70">
-                  Metode
-                </TableHead>
-                <TableHead className="px-1 py-0.5 text-[10px] text-slate-600 border-l border-slate-200/70">
-                  Ket
-                </TableHead>
-                <TableHead className="px-1 py-0.5 text-[10px] text-slate-600 border-l border-slate-200/70">
-                  Oleh
-                </TableHead>
-                <TableHead className="px-1 py-0.5 text-[10px] text-slate-600 border-l border-slate-200/70">
-                  Aksi
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {penjualan.map((item, index) => (
-                <TableRow
-                  key={item.id}
-                  className="odd:bg-white even:bg-slate-50/70 hover:bg-blue-50/40"
-                >
-                  <TableCell className="px-1 py-0.5 text-[10px] font-medium text-slate-600 w-8">
-                    {(page - 1) * limit + index + 1}
-                  </TableCell>
-                  <TableCell className="px-1 py-0.5 text-[10px] font-medium text-slate-900 border-l border-slate-200/70">
-                    {new Date(item.tanggal).toLocaleDateString("id-ID", {
-                      month: "2-digit",
-                      day: "2-digit",
-                    })}
-                  </TableCell>
-                  <TableCell className="px-1 py-0.5 text-[10px] text-slate-600 border-l border-slate-200/70">
-                    {item.inventory?.imei}
-                  </TableCell>
-                  <TableCell className="px-1 py-0.5 text-[10px] border-l border-slate-200/70">
-                    <span
-                      style={{
-                        backgroundColor: getBrandColor(
-                          item.inventory?.brand || "",
-                        ),
-                      }}
-                      className="px-1 py-0.5 rounded text-[8px] font-medium text-white"
-                    >
-                      {item.inventory?.brand || "-"}
-                    </span>
-                  </TableCell>
-                  <TableCell className="px-1 py-0.5 text-[10px] text-slate-600 border-l border-slate-200/70">
-                    {item.inventory?.namaHP?.substring(0, 12) || "-"}
-                  </TableCell>
-                  <TableCell className="px-1 py-0.5 text-[10px] text-slate-600 border-l border-slate-200/70">
-                    {formatRupiah(item.hargaJual)}
-                  </TableCell>
-                  <TableCell className="px-1 py-0.5 text-[10px] text-slate-600 border-l border-slate-200/70">
-                    {item.inventory?.modalFinal && Number(item.inventory.modalFinal) > 0 ? formatRupiah(item.inventory.modalFinal) : formatRupiah(item.inventory?.modalAwal || 0)}
-                  </TableCell>
-                  <TableCell className="px-1 py-0.5 text-[10px] text-slate-600 border-l border-slate-200/70">
-                    {item.diskon ? formatRupiah(item.diskon) : "-"}
-                  </TableCell>
-                  <TableCell
-                    className={`px-1 py-0.5 text-[10px] font-semibold border-l border-slate-200/70 ${Number(item.profit) < 0 ? "text-red-600" : "text-green-600"}`}
-                  >
-                    {formatRupiah(item.profit)}
-                  </TableCell>
-                  <TableCell className="px-1 py-0.5 text-[10px] text-slate-600 border-l border-slate-200/70">
-                    <span className="text-[8px]">
-                      {item.metodeBayar === "CASH"
-                        ? "Cash"
-                        : item.metodeBayar === "TRANSFER_BNI"
-                          ? "BNI"
-                          : item.metodeBayar === "TRANSFER_BRI"
-                            ? "BRI"
-                            : "Mandiri"}
-                    </span>
-                  </TableCell>
-                  <TableCell className="px-1 py-0.5 text-[10px] text-slate-600 border-l border-slate-200/70">
-                    {item.keterangan
-                      ? item.keterangan.substring(0, 8) +
-                        (item.keterangan.length > 8 ? "..." : "")
-                      : "-"}
-                  </TableCell>
-                  <TableCell className="px-1 py-0.5 text-[10px] text-slate-600 border-l border-slate-200/70">
-                    {item.user?.username
-                      ? capitalizeFirstLetter(item.user.username).substring(
-                          0,
-                          6,
-                        )
-                      : "-"}
-                  </TableCell>
-                  <TableCell className="px-1 py-0.5 text-[10px] border-l border-slate-200/70">
-                    <div className="flex items-center justify-end gap-0.5">
-                      <button
-                        onClick={() => setViewingItem(item)}
-                        className="inline-flex items-center gap-0.5 p-1 text-slate-600 hover:bg-slate-100 rounded transition"
-                        title="View"
-                      >
-                        <Eye className="w-3 h-3" />
-                      </button>
-                      <button
-                        onClick={() => handleOpenEdit(item)}
-                        className="inline-flex items-center gap-0.5 p-1 text-blue-600 hover:bg-blue-50 rounded transition"
-                        title="Edit"
-                      >
-                        <Edit2 className="w-3 h-3" />
-                      </button>
-                      <button
-                        onClick={() => handleDeletePenjualan(item.id)}
-                        className="inline-flex items-center gap-0.5 p-1 text-red-600 hover:bg-red-50 rounded transition"
-                        title="Hapus"
-                      >
-                        <Trash2 className="w-3 h-3" />
-                      </button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
       </div>
 
       {/* Modal Template */}
@@ -1065,24 +1020,24 @@ export const PenjualanPage = () => {
 
       {/* Pagination */}
       {data?.pagination && (
-        <div className="flex-shrink-0 sm:px-6 py-3 sm:py-4 border-t border-slate-200 bg-slate-50/50 flex items-center justify-between">
-          <div className="text-xs sm:text-sm text-slate-600">
-            Showing {(page - 1) * limit + 1} to{" "}
-            {Math.min(page * limit, data.pagination.total)} of{" "}
-            {data.pagination.total} results
+        <div className="flex-shrink-0 sm:px-6 py-3 sm:py-4 border-t border-slate-200 bg-slate-50/50 flex flex-col sm:flex-row gap-2 sm:items-center sm:justify-between">
+          <div className="text-xs sm:text-sm text-slate-600 text-center sm:text-left">
+            Menampilkan {(page - 1) * limit + 1}–
+            {Math.min(page * limit, data.pagination.total)} dari{" "}
+            {data.pagination.total} data
           </div>
 
-          <div className="flex gap-1 sm:gap-2 items-center">
+          <div className="flex gap-2 items-center justify-between sm:justify-end">
             <button
               onClick={() => setPage(Math.max(1, page - 1))}
               disabled={page === 1}
-              className="px-2 sm:px-3 py-1 border border-slate-200 rounded text-xs disabled:opacity-50 hover:bg-slate-100 transition"
+              className="min-h-11 md:min-h-0 px-3 py-1.5 border border-slate-200 bg-white rounded-lg text-sm disabled:opacity-50 hover:bg-slate-100 transition"
             >
-              Previous
+              Sebelumnya
             </button>
 
-            <div className="text-xs sm:text-sm text-slate-600">
-              Page {page} of {data.pagination.totalPages}
+            <div className="text-xs sm:text-sm text-slate-600 whitespace-nowrap">
+              Hal {page} / {data.pagination.totalPages}
             </div>
 
             <button
@@ -1090,9 +1045,9 @@ export const PenjualanPage = () => {
                 setPage(Math.min(data.pagination.totalPages, page + 1))
               }
               disabled={page === data.pagination.totalPages}
-              className="px-2 sm:px-3 py-1 border border-slate-200 rounded text-xs disabled:opacity-50 hover:bg-slate-100 transition"
+              className="min-h-11 md:min-h-0 px-3 py-1.5 border border-slate-200 bg-white rounded-lg text-sm disabled:opacity-50 hover:bg-slate-100 transition"
             >
-              Next
+              Berikutnya
             </button>
 
             <select
@@ -1101,7 +1056,7 @@ export const PenjualanPage = () => {
                 setLimit(parseInt(e.target.value));
                 setPage(1);
               }}
-              className="px-2 py-1 border border-slate-200 rounded text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="hidden sm:block px-2 py-1 border border-slate-200 rounded text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="10">10</option>
               <option value="20">20</option>

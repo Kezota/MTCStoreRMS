@@ -14,7 +14,14 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { ChevronsUpDown, RotateCcw, Trash2 } from "lucide-react";
+import {
+  CheckCircle2,
+  ChevronsUpDown,
+  Circle,
+  RotateCcw,
+  Trash2,
+  Undo2,
+} from "lucide-react";
 import { brandsList } from "@/lib/constants";
 import { getBrandColor } from "@/lib/utils";
 import type { InventoryItem } from "@/lib/types";
@@ -61,6 +68,11 @@ export const StockOpnamePage = () => {
     localStorage.getItem("stock-opname-last"),
   );
   const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
+  // Ticking a HP by hand or undoing a scan both ask for confirmation first
+  const [scanConfirm, setScanConfirm] = useState<{
+    item: InventoryItem;
+    mode: "scan" | "unscan";
+  } | null>(null);
   const [resetModalOpen, setResetModalOpen] = useState(false);
   const [resetBrands, setResetBrands] = useState<string[]>([]);
 
@@ -345,6 +357,22 @@ export const StockOpnamePage = () => {
     showToast.success(`Scan ${resetBrands.join(", ")} berhasil di-reset`);
   };
 
+  const handleConfirmScanChange = () => {
+    if (!scanConfirm) return;
+    const imei = scanConfirm.item.imei.trim();
+    if (scanConfirm.mode === "unscan") {
+      handleUnscan(imei);
+    } else {
+      setScannedImeis((prev) => {
+        const next = new Set(prev);
+        next.add(imei);
+        return next;
+      });
+      setLastScanned(imei);
+    }
+    setScanConfirm(null);
+  };
+
   const handleUnscan = (imei: string) => {
     setScannedImeis((prev) => {
       const next = new Set(prev);
@@ -397,22 +425,22 @@ export const StockOpnamePage = () => {
       </div>
 
       <div className="grid grid-cols-3 gap-2 sm:gap-4">
-        <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
-          <p className="text-xs text-gray-500">Total READY</p>
+        <div className="bg-white rounded-xl border border-slate-200 p-3 sm:p-4 shadow-sm">
+          <p className="text-xs font-medium text-slate-500">Total READY</p>
           <p className="text-2xl font-semibold text-gray-900">
             {search || brandFilters.length > 0
               ? `${sortedItems.length}/${totalReady}`
               : totalReady}
           </p>
         </div>
-        <div className="bg-emerald-50 rounded-lg border border-emerald-200 p-4 shadow-sm">
-          <p className="text-xs text-emerald-700">Sudah Scan</p>
+        <div className="bg-emerald-50 rounded-xl border border-emerald-200 p-3 sm:p-4 shadow-sm">
+          <p className="text-xs font-medium text-emerald-700">Sudah Scan</p>
           <p className="text-2xl font-semibold text-emerald-800">
             {filteredScannedCount}
           </p>
         </div>
-        <div className="bg-amber-50 rounded-lg border border-amber-200 p-4 shadow-sm">
-          <p className="text-xs text-amber-700">Belum Scan</p>
+        <div className="bg-amber-50 rounded-xl border border-amber-200 p-3 sm:p-4 shadow-sm">
+          <p className="text-xs font-medium text-amber-700">Belum Scan</p>
           <p className="text-2xl font-semibold text-amber-800">
             {filteredRemainingCount}
           </p>
@@ -449,7 +477,7 @@ export const StockOpnamePage = () => {
               <PopoverContent
                 align="start"
                 sideOffset={4}
-                className="p-0 w-[--radix-popover-trigger-width]"
+                className="p-0 w-[var(--radix-popover-trigger-width)]"
                 style={{ zIndex: 9999 }}
               >
                 <Command shouldFilter={false}>
@@ -631,7 +659,7 @@ export const StockOpnamePage = () => {
                 <PopoverContent
                   align="start"
                   sideOffset={4}
-                  className="p-0 w-[--radix-popover-trigger-width]"
+                  className="p-0 w-[var(--radix-popover-trigger-width)]"
                   style={{ zIndex: 9999 }}
                 >
                   <Command shouldFilter={false}>
@@ -804,78 +832,164 @@ export const StockOpnamePage = () => {
               const isScanned = scannedImeis.has(item.imei.trim());
               const isLast = lastScanned === item.imei.trim();
               const cardClass = isLast
-                ? "border-amber-300 bg-amber-50"
+                ? "border-amber-300 bg-amber-50 ring-2 ring-amber-200"
                 : isScanned
-                  ? "border-emerald-300 bg-emerald-50"
-                  : "border-gray-200 bg-white";
+                  ? "border-emerald-200 bg-emerald-50/60"
+                  : "border-slate-200 bg-white";
 
               return (
                 <div
                   key={item.id}
-                  className={`rounded-md border p-2 sm:p-3 shadow-sm transition ${cardClass}`}
+                  className={`flex flex-col rounded-xl border p-3 shadow-sm transition ${cardClass}`}
                 >
                   <div className="flex items-start justify-between gap-2">
-                    <div>
-                      <p className="text-xs sm:text-sm font-semibold text-gray-900">
-                        {item.namaHP}
-                      </p>
-                      <div className="mt-1 flex flex-wrap items-center gap-2">
-                        <span
-                          className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-semibold text-white"
-                          style={{ backgroundColor: getBrandColor(item.brand) }}
-                        >
-                          {item.brand}
-                        </span>
-                        {item.warna && (
-                          <span className="text-[10px] sm:text-xs text-gray-500">
-                            {item.warna}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                    <div className="flex flex-shrink-0 items-center gap-1">
-                      {isScanned && (
-                        <label
-                          className="p-1 rounded hover:bg-emerald-100 cursor-pointer transition"
-                          title="Uncheck scan"
-                        >
-                          <input
-                            type="checkbox"
-                            checked
-                            onChange={() => handleUnscan(item.imei.trim())}
-                            className="w-4 h-4 rounded border-gray-300 accent-emerald-600 cursor-pointer align-middle"
-                          />
-                        </label>
-                      )}
-                      <button
-                        onClick={() => setDeleteConfirmId(item.id)}
-                        className="p-1 text-red-600 hover:bg-red-50 rounded transition"
-                        title="Hapus dari inventory"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
+                    <span
+                      className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-semibold text-white"
+                      style={{ backgroundColor: getBrandColor(item.brand) }}
+                    >
+                      {item.brand}
+                    </span>
+                    <button
+                      onClick={() => setDeleteConfirmId(item.id)}
+                      className="-mr-1 -mt-1 rounded-md p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-600 transition"
+                      title="Hapus dari inventory"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
                   </div>
 
-                  <div className="mt-2 space-y-0.5 text-[10px] sm:text-xs text-gray-600">
-                    <p>
-                      IMEI: <span className="font-medium">{item.imei}</span>
-                    </p>
-                    <p>
-                      {item.tanggalMasuk
+                  <p className="mt-1.5 text-sm font-semibold leading-snug text-slate-900 break-words">
+                    {item.namaHP}
+                  </p>
+                  <p className="mt-0.5 text-xs text-slate-500">
+                    {[
+                      item.warna,
+                      item.tanggalMasuk
                         ? item.tanggalMasuk
                             .slice(0, 10)
                             .split("-")
                             .reverse()
                             .join("/")
-                        : "-"}
-                    </p>
+                        : null,
+                    ]
+                      .filter(Boolean)
+                      .join(" · ") || "-"}
+                  </p>
+                  <p className="mt-1 font-mono text-xs text-slate-600 break-all">
+                    {item.imei}
+                  </p>
+
+                  <div className="mt-auto pt-3">
+                    {isScanned ? (
+                      <div
+                        className={`flex items-center justify-between gap-1 border-t pt-2 ${isLast ? "border-amber-200" : "border-emerald-100"}`}
+                      >
+                        <span className="inline-flex items-center gap-1 whitespace-nowrap text-xs font-semibold text-emerald-700">
+                          <CheckCircle2 className="w-4 h-4 shrink-0" />
+                          {isLast ? "Baru scan" : "Sudah scan"}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setScanConfirm({ item, mode: "unscan" })}
+                          className="inline-flex shrink-0 items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-slate-500 hover:bg-white hover:text-red-600 transition"
+                          title="Batalkan scan HP ini"
+                        >
+                          <Undo2 className="w-3.5 h-3.5" />
+                          Batal
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="border-t border-slate-100 pt-2">
+                        <button
+                          type="button"
+                          onClick={() => setScanConfirm({ item, mode: "scan" })}
+                          className="-ml-1 inline-flex items-center gap-1 rounded-md px-1 py-0.5 text-xs font-medium text-slate-400 hover:bg-emerald-50 hover:text-emerald-700 transition"
+                          title="Tandai sudah dicek tanpa scan"
+                        >
+                          <Circle className="w-4 h-4" />
+                          Belum scan
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
               );
             })}
           </div>
         </>
+      )}
+
+      {/* Scan / Unscan Confirmation */}
+      {scanConfirm && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+          onClick={() => setScanConfirm(null)}
+        >
+          <div
+            className="bg-white rounded-lg shadow-xl max-w-md w-full p-6 space-y-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start gap-3">
+              <div
+                className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center ${
+                  scanConfirm.mode === "scan" ? "bg-emerald-100" : "bg-red-100"
+                }`}
+              >
+                {scanConfirm.mode === "scan" ? (
+                  <CheckCircle2 className="w-5 h-5 text-emerald-600" />
+                ) : (
+                  <Undo2 className="w-5 h-5 text-red-600" />
+                )}
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="text-lg font-semibold text-gray-900">
+                  {scanConfirm.mode === "scan"
+                    ? "Tandai sudah dicek?"
+                    : "Batalkan scan?"}
+                </h3>
+                <p className="mt-1 text-sm text-gray-600">
+                  {scanConfirm.mode === "scan"
+                    ? "Pastikan HP ini benar-benar ada di toko."
+                    : "HP ini akan kembali ditandai belum scan."}
+                </p>
+                <div className="mt-3 rounded-lg border border-slate-200 bg-slate-50 p-3">
+                  <span
+                    className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-semibold text-white"
+                    style={{
+                      backgroundColor: getBrandColor(scanConfirm.item.brand),
+                    }}
+                  >
+                    {scanConfirm.item.brand}
+                  </span>
+                  <p className="mt-1 text-sm font-semibold text-slate-900 break-words">
+                    {scanConfirm.item.namaHP}
+                  </p>
+                  <p className="font-mono text-xs text-slate-600 break-all">
+                    {scanConfirm.item.imei}
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setScanConfirm(null)}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition"
+              >
+                Kembali
+              </button>
+              <button
+                onClick={handleConfirmScanChange}
+                className={`px-4 py-2 text-sm font-medium text-white rounded-md transition ${
+                  scanConfirm.mode === "scan"
+                    ? "bg-emerald-600 hover:bg-emerald-700"
+                    : "bg-red-600 hover:bg-red-700"
+                }`}
+              >
+                {scanConfirm.mode === "scan" ? "Ya, sudah dicek" : "Ya, batalkan"}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Reset Scan Modal */}
@@ -897,8 +1011,8 @@ export const StockOpnamePage = () => {
                   Reset Scan
                 </h3>
                 <p className="mt-2 text-sm text-gray-600">
-                  Pilih brand yang mau di-reset, atau reset semua. Untuk uncheck
-                  satu per satu, klik centang di kartu HP.
+                  Pilih brand yang mau di-reset, atau reset semua. Untuk batalkan
+                  satu per satu, klik "Batal" di kartu HP.
                 </p>
               </div>
             </div>

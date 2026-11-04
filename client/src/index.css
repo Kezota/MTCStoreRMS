@@ -127,3 +127,13 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Phones: 16px inputs stop iOS from zooming in on focus and are easier to read.
+   Unlayered on purpose so it wins over text-xs/text-sm utilities. */
+@media (max-width: 767px) {
+  input:not([type="checkbox"]):not([type="radio"]),
+  select,
+  textarea {
+    font-size: 16px;
+  }
+}

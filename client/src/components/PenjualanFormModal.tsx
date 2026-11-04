@@ -4,8 +4,9 @@ import {
   useMemo,
   useCallback,
   type FormEvent,
+  type KeyboardEvent,
 } from "react";
-import { ChevronsUpDown } from "lucide-react";
+import { ChevronsUpDown, Plus, X } from "lucide-react";
 import {
   useCreatePenjualanMutation,
   useUpdatePenjualanMutation,
@@ -14,6 +15,7 @@ import { useGetCustomers } from "@/hooks/queries/useCustomerQueries";
 import type { PenjualanItem, InventoryItem } from "@/lib/types";
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogHeader,
   DialogTitle,
@@ -31,7 +33,7 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import { cn, normalizeDateInput } from "@/lib/utils";
+import { cn, getBrandColor, normalizeDateInput } from "@/lib/utils";
 
 interface PenjualanFormModalProps {
   isOpen: boolean;
@@ -56,6 +58,40 @@ interface FormData {
 }
 
 const STORAGE_KEY = "penjualan-form-draft";
+
+const labelClass = "block text-sm font-medium text-slate-700 mb-1.5 md:mb-1";
+const fieldBase =
+  "w-full min-h-11 md:min-h-0 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500";
+const inputClass = `${fieldBase} px-3`;
+const moneyInputClass = `${fieldBase} pl-10 pr-3`;
+const triggerClass = `${inputClass} text-left flex items-center justify-between gap-2`;
+const commandItemClass = "py-3 md:py-1.5";
+const sectionTitleClass = "text-sm font-semibold text-slate-800";
+
+const METODE_BAYAR_CHOICES = [
+  { value: "CASH", label: "Cash" },
+  { value: "TRANSFER_BNI", label: "TF BNI" },
+  { value: "TRANSFER_BRI", label: "TF BRI" },
+  { value: "TRANSFER_MANDIRI", label: "TF Mandiri" },
+];
+
+// On phones the keyboard's "next" key sends Enter, which would submit the
+// form early. On touch devices move focus to the next field instead.
+const focusNextFieldOnEnter = (e: KeyboardEvent<HTMLInputElement>) => {
+  if (e.key !== "Enter" || e.nativeEvent.isComposing) return;
+  if (!window.matchMedia("(pointer: coarse)").matches) return;
+  const formEl = e.currentTarget.form;
+  if (!formEl) return;
+  e.preventDefault();
+  const fields = Array.from(
+    formEl.querySelectorAll<HTMLElement>("input, select, textarea"),
+  ).filter(
+    (el) => !(el as HTMLInputElement).disabled && el.offsetParent !== null,
+  );
+  const next = fields[fields.indexOf(e.currentTarget) + 1];
+  if (next) next.focus();
+  else e.currentTarget.blur();
+};
 
 export const PenjualanFormModal = ({
   isOpen,
@@ -83,6 +119,7 @@ export const PenjualanFormModal = ({
   const [customerMode, setCustomerMode] = useState<"existing" | "new">("new");
   const [customerOpen, setCustomerOpen] = useState(false);
   const [customerSearchInput, setCustomerSearchInput] = useState("");
+  const [diskonOpen, setDiskonOpen] = useState(false);
 
   const createMutation = useCreatePenjualanMutation();
   const updateMutation = useUpdatePenjualanMutation();
@@ -129,6 +166,7 @@ export const PenjualanFormModal = ({
       }
       setCustomerSearchInput("");
       setSearchInput("");
+      setDiskonOpen(false);
     }
   }, [isOpen, isEditMode]);
 
@@ -369,148 +407,158 @@ export const PenjualanFormModal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl sm:max-w-3xl max-h-[90vh] sm:max-h-[95vh] p-0 overflow-hidden flex flex-col sm:top-[50%] top-[5%] sm:translate-y-[-50%] translate-y-0">
-        <DialogHeader className="px-4 sm:px-6 pt-4 sm:pt-6 pb-3 sm:pb-4 border-b sticky top-0 bg-white z-10 flex-shrink-0">
+      <DialogContent className="flex w-[calc(100%-1.5rem)] max-h-[85dvh] sm:max-h-[90vh] flex-col gap-0 overflow-hidden rounded-xl border p-0 max-w-lg sm:max-w-3xl [&>button:last-child]:hidden">
+        <DialogHeader className="flex-row items-center justify-between gap-2 space-y-0 px-4 sm:px-6 py-2 sm:py-3 border-b bg-white text-left flex-shrink-0">
           <DialogTitle className="text-lg sm:text-xl">
             {isEditMode ? "Edit Penjualan" : "Tambah Penjualan"}
           </DialogTitle>
+          <DialogClose
+            aria-label="Tutup"
+            className="-mr-2 flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-900 active:bg-slate-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+          >
+            <X className="h-5 w-5" />
+          </DialogClose>
         </DialogHeader>
 
         <form
           onSubmit={handleSubmitForm}
-          className="flex flex-col h-full flex-1 overflow-hidden"
+          className="flex flex-col flex-1 min-h-0 overflow-hidden"
         >
-          <div className="px-4 sm:px-6 py-3 sm:py-4 overflow-y-auto flex-1">
-            <div className="space-y-4 sm:space-y-6">
-              {/* Date & Inventory */}
-              <div className="grid grid-cols-2 gap-3 sm:gap-4">
-                {/* Tanggal */}
-                <div>
-                  <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-1">
-                    Tanggal
-                  </label>
+          <div className="px-4 sm:px-6 py-4 overflow-y-auto overscroll-contain flex-1">
+            <div className="space-y-5">
+              {/* 1. HP yang dijual */}
+              <div>
+                <label className={labelClass}>HP yang dijual</label>
+                <Popover open={inventoryOpen} onOpenChange={setInventoryOpen}>
+                  <PopoverTrigger asChild>
+                    <button
+                      type="button"
+                      className={cn(
+                        triggerClass,
+                        !selectedInventory && "text-slate-500",
+                      )}
+                    >
+                      <span className="truncate">
+                        {selectedInventory
+                          ? "Ganti HP..."
+                          : "Ketik IMEI atau nama HP..."}
+                      </span>
+                      <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent
+                    side="bottom"
+                    className="w-[var(--radix-popover-trigger-width)] p-0"
+                    align="start"
+                  >
+                    <Command shouldFilter={false}>
+                      <CommandInput
+                        placeholder="Cari IMEI, Nama HP, atau Brand..."
+                        value={searchInput}
+                        onValueChange={setSearchInput}
+                        autoComplete="off"
+                      />
+                      <CommandList>
+                        <CommandEmpty>Tidak ada HP yang ditemukan.</CommandEmpty>
+                        <CommandGroup>
+                          {filteredInventory.map((inv) => (
+                            <CommandItem
+                              key={inv.id}
+                              value={String(inv.id)}
+                              onSelect={() => {
+                                setForm({ ...form, inventoryId: inv.id });
+                                setInventoryOpen(false);
+                                setSearchInput("");
+                              }}
+                              className={commandItemClass}
+                            >
+                              <div className="flex flex-col text-sm">
+                                <div className="font-medium">
+                                  {inv.imei} - {inv.namaHP}
+                                </div>
+                                <div className="text-slate-500 text-xs">
+                                  {inv.brand} • {inv.warna || "Tanpa warna"}
+                                </div>
+                              </div>
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
+                {selectedInventory && (
+                  <div className="mt-2 rounded-lg border border-blue-200 bg-blue-50/60 p-3">
+                    <div className="flex items-center gap-2">
+                      <span
+                        className="shrink-0 rounded px-2 py-0.5 text-xs font-semibold text-white"
+                        style={{
+                          backgroundColor: getBrandColor(selectedInventory.brand),
+                        }}
+                      >
+                        {selectedInventory.brand}
+                      </span>
+                      <span className="text-sm font-semibold text-slate-900 break-words">
+                        {selectedInventory.namaHP}
+                      </span>
+                    </div>
+                    <p className="mt-1 text-xs text-slate-600">
+                      IMEI{" "}
+                      <span className="font-mono">{selectedInventory.imei}</span>
+                      {selectedInventory.warna
+                        ? ` • ${selectedInventory.warna}`
+                        : ""}
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* 2. Harga */}
+              <div>
+                <label htmlFor="penjualan-harga-jual" className={labelClass}>
+                  Harga Jual
+                </label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-500 pointer-events-none">
+                    Rp
+                  </span>
                   <input
-                    type="date"
+                    id="penjualan-harga-jual"
+                    type="text"
+                    inputMode="numeric"
+                    autoComplete="off"
+                    enterKeyHint="next"
+                    onKeyDown={focusNextFieldOnEnter}
                     required
-                    placeholder="Pilih tanggal"
-                    value={form.tanggal}
+                    placeholder="contoh: 2.500.000"
+                    value={formatToRupiah(form.hargaJual)}
                     onChange={(e) =>
-                      setForm({ ...form, tanggal: e.target.value })
+                      setForm({
+                        ...form,
+                        hargaJual: e.target.value,
+                      })
                     }
-                    className="w-full px-2 sm:px-3 py-1 sm:py-1.5 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none"
+                    className={cn(moneyInputClass, "text-base font-semibold")}
                   />
                 </div>
 
-                {/* Inventory */}
-                <div>
-                  <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-1">
-                    HP (IMEI / Nama)
-                  </label>
-                  <Popover open={inventoryOpen} onOpenChange={setInventoryOpen}>
-                    <PopoverTrigger asChild>
-                      <button
-                        type="button"
-                        className={cn(
-                          "w-full px-2 sm:px-3 py-1.5 sm:py-2 border border-slate-300 rounded-md text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-left flex items-center justify-between",
-                          !selectedInventory && "text-slate-500",
-                        )}
-                      >
-                        <span className="truncate">
-                          {selectedInventory
-                            ? `${selectedInventory.imei} - ${selectedInventory.namaHP}`
-                            : "Pilih HP..."}
-                        </span>
-                        <ChevronsUpDown className="ml-2 h-3 w-3 sm:h-4 sm:w-4 shrink-0 opacity-50" />
-                      </button>
-                    </PopoverTrigger>
-                    <PopoverContent
-                      side="bottom"
-                      className="w-[--radix-popover-trigger-width] p-0"
-                      align="start"
-                    >
-                      <Command shouldFilter={false}>
-                        <CommandInput
-                          placeholder="Cari IMEI, Nama HP, atau Brand..."
-                          value={searchInput}
-                          onValueChange={setSearchInput}
-                        />
-                        <CommandList>
-                          <CommandEmpty>
-                            Tidak ada HP yang ditemukan.
-                          </CommandEmpty>
-                          <CommandGroup>
-                            {filteredInventory.map((inv) => (
-                              <CommandItem
-                                key={inv.id}
-                                value={String(inv.id)}
-                                onSelect={() => {
-                                  setForm({ ...form, inventoryId: inv.id });
-                                  setInventoryOpen(false);
-                                  setSearchInput("");
-                                }}
-                              >
-                                <div className="flex flex-col text-xs sm:text-sm">
-                                  <div className="font-medium">
-                                    {inv.imei} - {inv.namaHP}
-                                  </div>
-                                  <div className="text-slate-500 text-[10px] sm:text-xs">
-                                    {inv.brand} • {inv.warna || "Tanpa warna"}
-                                  </div>
-                                </div>
-                              </CommandItem>
-                            ))}
-                          </CommandGroup>
-                        </CommandList>
-                      </Command>
-                    </PopoverContent>
-                  </Popover>
-                  {selectedInventory && (
-                    <div className="mt-1 text-[10px] sm:text-xs text-slate-600 truncate">
-                      {selectedInventory.brand} {selectedInventory.namaHP} -{" "}
-                      {selectedInventory.warna || "-"}
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {
-                /* Price Fields */
-                <div className="grid grid-cols-2 gap-3 sm:gap-4">
-                  {/* Harga Jual */}
-                  <div>
-                    <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-1">
-                      Harga Jual
+                {diskonOpen || form.diskon ? (
+                  <div className="mt-3">
+                    <label htmlFor="penjualan-diskon" className={labelClass}>
+                      Diskon
                     </label>
                     <div className="relative">
-                      <span className="absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 text-xs sm:text-sm text-slate-500">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-500 pointer-events-none">
                         Rp
                       </span>
                       <input
+                        id="penjualan-diskon"
                         type="text"
-                        required
-                        value={formatToRupiah(form.hargaJual)}
-                        onChange={(e) =>
-                          setForm({
-                            ...form,
-                            hargaJual: e.target.value,
-                          })
-                        }
-                        className="w-full pl-8 sm:pl-9 pr-2 sm:pr-3 py-1.5 sm:py-2 border border-slate-300 rounded-md text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Diskon */}
-                  <div>
-                    <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-1">
-                      Diskon (Opsional)
-                    </label>
-                    <div className="relative">
-                      <span className="absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 text-xs sm:text-sm text-slate-500">
-                        Rp
-                      </span>
-                      <input
-                        type="text"
+                        inputMode="numeric"
+                        autoComplete="off"
+                        enterKeyHint="next"
+                        onKeyDown={focusNextFieldOnEnter}
+                        placeholder="0"
                         value={formatToRupiah(form.diskon)}
                         onChange={(e) =>
                           setForm({
@@ -518,107 +566,114 @@ export const PenjualanFormModal = ({
                             diskon: e.target.value,
                           })
                         }
-                        className="w-full pl-8 sm:pl-9 pr-2 sm:pr-3 py-1.5 sm:py-2 border border-slate-300 rounded-md text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className={moneyInputClass}
                       />
                     </div>
-                    {!hideProfit && selectedInventory && form.hargaJual && (
-                      <div
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setDiskonOpen(true)}
+                    className="mt-2 inline-flex min-h-9 items-center gap-1 rounded-lg px-1 text-sm font-medium text-blue-600 hover:text-blue-700"
+                  >
+                    <Plus className="h-4 w-4" />
+                    Tambah diskon
+                  </button>
+                )}
+
+                {!hideProfit && selectedInventory && form.hargaJual && (
+                  <div
+                    className={cn(
+                      "mt-2 text-sm font-semibold",
+                      calculatedProfit > 0 && "text-green-600",
+                      calculatedProfit < 0 && "text-red-600",
+                      calculatedProfit === 0 && "text-slate-600",
+                    )}
+                  >
+                    Profit: Rp {formatToRupiah(form.profit)}
+                  </div>
+                )}
+              </div>
+
+              {/* 3. Metode Bayar */}
+              <div>
+                <span className={labelClass}>Bayar pakai</span>
+                <div
+                  role="radiogroup"
+                  aria-label="Metode Bayar"
+                  className="grid grid-cols-2 sm:grid-cols-4 gap-2"
+                >
+                  {METODE_BAYAR_CHOICES.map((choice) => {
+                    const active = form.metodeBayar === choice.value;
+                    return (
+                      <button
+                        key={choice.value}
+                        type="button"
+                        role="radio"
+                        aria-checked={active}
+                        onClick={() =>
+                          setForm({ ...form, metodeBayar: choice.value })
+                        }
                         className={cn(
-                          "mt-1 text-[10px] sm:text-xs font-bold",
-                          calculatedProfit > 0 && "text-green-600",
-                          calculatedProfit < 0 && "text-red-600",
-                          calculatedProfit === 0 && "text-slate-600",
+                          "min-h-11 rounded-lg border text-sm font-semibold transition",
+                          active
+                            ? "border-blue-600 bg-blue-600 text-white shadow-sm"
+                            : "border-slate-300 bg-white text-slate-700 hover:bg-slate-50 active:bg-slate-100",
                         )}
                       >
-                        Profit: Rp {formatToRupiah(form.profit)}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              }
-              <div className="grid grid-cols-2 gap-3 sm:gap-4">
-                {/* Metode Bayar */}
-                <div>
-                  <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-1">
-                    Metode Bayar
-                  </label>
-                  <select
-                    required
-                    value={form.metodeBayar}
-                    onChange={(e) =>
-                      setForm({ ...form, metodeBayar: e.target.value })
-                    }
-                    className="w-full px-2 sm:px-3 py-1.5 sm:py-2 border border-slate-300 rounded-md text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="CASH">CASH</option>
-                    <option value="TRANSFER_BNI">Transfer BNI</option>
-                    <option value="TRANSFER_BRI">Transfer BRI</option>
-                    <option value="TRANSFER_MANDIRI">Transfer Mandiri</option>
-                  </select>
-                </div>
-
-                {/* Keterangan */}
-                <div>
-                  <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-1">
-                    Keterangan (Opsional)
-                  </label>
-                  <input
-                    type="text"
-                    value={form.keterangan}
-                    onChange={(e) =>
-                      setForm({ ...form, keterangan: e.target.value })
-                    }
-                    placeholder="Contoh: Cicilan 3x..."
-                    className="w-full px-2 sm:px-3 py-1.5 sm:py-2 border border-slate-300 rounded-md text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
+                        {choice.label}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
-              {/* Customer */}
+              {/* 4. Customer */}
               <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <label className="block text-xs sm:text-sm font-medium text-slate-700">
-                    Customer
-                  </label>
-                  <div className="flex items-center gap-1">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setCustomerMode("existing");
-                        setForm((prev) => ({
-                          ...prev,
-                          customerNama: "",
-                          customerNomorHP: "",
-                        }));
-                      }}
-                      className={cn(
-                        "px-2 py-0.5 text-[10px] sm:text-xs rounded border",
-                        customerMode === "existing"
-                          ? "bg-blue-50 text-blue-700 border-blue-200"
-                          : "bg-white text-slate-600 border-slate-200",
-                      )}
-                    >
-                      Existing
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setCustomerMode("new");
-                        setForm((prev) => ({
-                          ...prev,
-                          customerId: null,
-                        }));
-                      }}
-                      className={cn(
-                        "px-2 py-0.5 text-[10px] sm:text-xs rounded border",
-                        customerMode === "new"
-                          ? "bg-blue-50 text-blue-700 border-blue-200"
-                          : "bg-white text-slate-600 border-slate-200",
-                      )}
-                    >
-                      Baru
-                    </button>
-                  </div>
+                <div className="flex items-baseline justify-between gap-2">
+                  <span className={sectionTitleClass}>Customer</span>
+                  <span className="text-xs text-slate-500">boleh dikosongkan</span>
+                </div>
+                <div className="grid grid-cols-2 gap-1 rounded-lg bg-slate-100 p-1">
+                  <button
+                    type="button"
+                    aria-pressed={customerMode === "new"}
+                    onClick={() => {
+                      setCustomerMode("new");
+                      setForm((prev) => ({
+                        ...prev,
+                        customerId: null,
+                      }));
+                    }}
+                    className={cn(
+                      "min-h-10 rounded-md text-sm font-medium transition",
+                      customerMode === "new"
+                        ? "bg-white text-slate-900 shadow-sm"
+                        : "text-slate-600",
+                    )}
+                  >
+                    Customer baru
+                  </button>
+                  <button
+                    type="button"
+                    aria-pressed={customerMode === "existing"}
+                    onClick={() => {
+                      setCustomerMode("existing");
+                      setForm((prev) => ({
+                        ...prev,
+                        customerNama: "",
+                        customerNomorHP: "",
+                      }));
+                    }}
+                    className={cn(
+                      "min-h-10 rounded-md text-sm font-medium transition",
+                      customerMode === "existing"
+                        ? "bg-white text-slate-900 shadow-sm"
+                        : "text-slate-600",
+                    )}
+                  >
+                    Sudah pernah beli
+                  </button>
                 </div>
 
                 {customerMode === "existing" ? (
@@ -628,21 +683,21 @@ export const PenjualanFormModal = ({
                         <button
                           type="button"
                           className={cn(
-                            "w-full px-2 sm:px-3 py-1.5 sm:py-2 border border-slate-300 rounded-md text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-left flex items-center justify-between",
+                            triggerClass,
                             !selectedCustomer && "text-slate-500",
                           )}
                         >
                           <span className="truncate">
                             {selectedCustomer
-                              ? `${selectedCustomer.nama} - ${selectedCustomer.nomorHP}`
-                              : "Pilih customer..."}
+                              ? `${selectedCustomer.nama}${selectedCustomer.nomorHP ? ` - ${selectedCustomer.nomorHP}` : ""}`
+                              : "Cari nama atau nomor HP..."}
                           </span>
-                          <ChevronsUpDown className="ml-2 h-3 w-3 sm:h-4 sm:w-4 shrink-0 opacity-50" />
+                          <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
                         </button>
                       </PopoverTrigger>
                       <PopoverContent
                         side="bottom"
-                        className="w-[--radix-popover-trigger-width] p-0"
+                        className="w-[var(--radix-popover-trigger-width)] p-0"
                         align="start"
                       >
                         <Command shouldFilter={false}>
@@ -650,6 +705,7 @@ export const PenjualanFormModal = ({
                             placeholder="Cari nama atau nomor HP..."
                             value={customerSearchInput}
                             onValueChange={setCustomerSearchInput}
+                            autoComplete="off"
                           />
                           <CommandList>
                             <CommandEmpty>
@@ -670,12 +726,13 @@ export const PenjualanFormModal = ({
                                     setCustomerOpen(false);
                                     setCustomerSearchInput("");
                                   }}
+                                  className={commandItemClass}
                                 >
-                                  <div className="flex flex-col text-xs sm:text-sm">
+                                  <div className="flex flex-col text-sm">
                                     <div className="font-medium">
                                       {cust.nama}
                                     </div>
-                                    <div className="text-slate-500 text-[10px] sm:text-xs">
+                                    <div className="text-slate-500 text-xs">
                                       {cust.nomorHP}
                                     </div>
                                   </div>
@@ -686,20 +743,23 @@ export const PenjualanFormModal = ({
                         </Command>
                       </PopoverContent>
                     </Popover>
-                    {selectedCustomer && (
-                      <div className="mt-1 text-[10px] sm:text-xs text-slate-600">
-                        {selectedCustomer.nama} • {selectedCustomer.nomorHP}
-                      </div>
-                    )}
                   </div>
                 ) : (
-                  <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-1">
-                        Nama Customer (opsional)
+                      <label
+                        htmlFor="penjualan-customer-nama"
+                        className={labelClass}
+                      >
+                        Nama
                       </label>
                       <input
+                        id="penjualan-customer-nama"
                         type="text"
+                        autoComplete="off"
+                        autoCapitalize="words"
+                        enterKeyHint="next"
+                        onKeyDown={focusNextFieldOnEnter}
                         value={form.customerNama}
                         onChange={(e) =>
                           setForm((prev) => ({
@@ -708,15 +768,23 @@ export const PenjualanFormModal = ({
                           }))
                         }
                         placeholder="Nama customer"
-                        className="w-full px-2 sm:px-3 py-1.5 sm:py-2 border border-slate-300 rounded-md text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className={inputClass}
                       />
                     </div>
                     <div>
-                      <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-1">
-                        Nomor HP (opsional)
+                      <label
+                        htmlFor="penjualan-customer-nomor-hp"
+                        className={labelClass}
+                      >
+                        Nomor HP
                       </label>
                       <input
+                        id="penjualan-customer-nomor-hp"
                         type="tel"
+                        inputMode="tel"
+                        autoComplete="off"
+                        enterKeyHint="next"
+                        onKeyDown={focusNextFieldOnEnter}
                         value={form.customerNomorHP}
                         onChange={(e) =>
                           setForm((prev) => ({
@@ -724,29 +792,65 @@ export const PenjualanFormModal = ({
                             customerNomorHP: e.target.value,
                           }))
                         }
-                        placeholder="Nomor HP"
-                        className="w-full px-2 sm:px-3 py-1.5 sm:py-2 border border-slate-300 rounded-md text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="contoh: 081234567890"
+                        className={inputClass}
                       />
                     </div>
                   </div>
                 )}
               </div>
+
+              {/* 5. Lain-lain */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label htmlFor="penjualan-keterangan" className={labelClass}>
+                    Keterangan{" "}
+                    <span className="font-normal text-slate-500">(opsional)</span>
+                  </label>
+                  <input
+                    id="penjualan-keterangan"
+                    type="text"
+                    enterKeyHint="done"
+                    value={form.keterangan}
+                    onChange={(e) =>
+                      setForm({ ...form, keterangan: e.target.value })
+                    }
+                    placeholder="contoh: DP 500rb, sisa minggu depan"
+                    className={inputClass}
+                  />
+                </div>
+                <div>
+                  <label htmlFor="penjualan-tanggal" className={labelClass}>
+                    Tanggal
+                  </label>
+                  <input
+                    id="penjualan-tanggal"
+                    type="date"
+                    required
+                    value={form.tanggal}
+                    onChange={(e) =>
+                      setForm({ ...form, tanggal: e.target.value })
+                    }
+                    className={inputClass}
+                  />
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* Footer */}
-          <div className="flex flex-col-reverse sm:flex-row gap-2 sm:gap-3 justify-end px-4 sm:px-6 py-3 sm:py-4 border-t bg-slate-50 flex-shrink-0">
+          {/* Footer - stays visible at the bottom */}
+          <div className="grid grid-cols-2 gap-3 px-4 py-3 border-t bg-slate-50 flex-shrink-0 sm:flex sm:justify-end sm:px-6">
             <button
               type="button"
               onClick={onClose}
-              className="px-3 sm:px-4 py-1.5 sm:py-2 bg-white border border-slate-300 text-slate-700 rounded-md hover:bg-slate-50 text-xs sm:text-sm font-medium"
+              className="min-h-11 sm:min-h-0 px-4 py-2 bg-white border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 active:bg-slate-100 text-base sm:text-sm font-medium"
             >
               Batal
             </button>
             <button
               type="submit"
               disabled={isLoading}
-              className="px-3 sm:px-4 py-1.5 sm:py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-xs sm:text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              className="min-h-11 sm:min-h-0 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 active:bg-blue-800 text-base sm:text-sm font-semibold shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? "Menyimpan..." : "Simpan"}
             </button>

@@ -27,7 +27,7 @@ export const StaffDashboardLayout = () => {
     <div className="min-h-screen bg-gray-50">
       {/* Navbar */}
       <nav className="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
-        <div className="container mx-auto px-2 sm:px-4">
+        <div className="w-full mx-auto px-4 sm:px-8 lg:px-14 xl:px-20">
           <div className="flex items-center justify-between h-12 sm:h-16">
             {/* Logo */}
             <div className="flex items-center gap-1.5 sm:gap-2">
@@ -66,21 +66,25 @@ export const StaffDashboardLayout = () => {
               {/* Logout Button */}
               <button
                 onClick={handleLogout}
-                className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-1.5 sm:py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition font-medium text-xs sm:text-sm"
+                aria-label="Logout"
+                title="Logout"
+                className="flex h-9 items-center justify-center gap-1.5 px-2.5 rounded-lg border border-slate-200 text-slate-600 hover:border-red-200 hover:bg-red-50 hover:text-red-600 active:bg-red-100 transition font-medium text-sm"
               >
-                <LogOut className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                <LogOut className="w-4 h-4" />
                 <span className="hidden sm:inline">Logout</span>
               </button>
 
               {/* Mobile Menu Button */}
               <button
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="md:hidden p-1.5 rounded-lg hover:bg-gray-100 transition"
+                aria-label={isMobileMenuOpen ? "Tutup menu" : "Buka menu"}
+                aria-expanded={isMobileMenuOpen}
+                className="md:hidden -mr-1.5 flex min-h-11 min-w-11 items-center justify-center rounded-lg hover:bg-gray-100 active:bg-gray-200 transition"
               >
                 {isMobileMenuOpen ? (
-                  <X className="w-5 h-5 text-gray-700" />
+                  <X className="w-6 h-6 text-gray-700" />
                 ) : (
-                  <Menu className="w-5 h-5 text-gray-700" />
+                  <Menu className="w-6 h-6 text-gray-700" />
                 )}
               </button>
             </div>
@@ -88,8 +92,8 @@ export const StaffDashboardLayout = () => {
 
           {/* Mobile Navigation Menu */}
           {isMobileMenuOpen && (
-            <div className="md:hidden pb-2 border-t border-gray-200 pt-2">
-              <div className="flex flex-col gap-0.5">
+            <div className="md:hidden pb-3 border-t border-gray-200 pt-2">
+              <div className="flex flex-col gap-1">
                 {navLinks.map((link) => {
                   const isActive = location.pathname === link.path;
                   return (
@@ -97,10 +101,11 @@ export const StaffDashboardLayout = () => {
                       key={link.path}
                       to={link.path}
                       onClick={() => setIsMobileMenuOpen(false)}
-                      className={`px-3 py-2 rounded-lg text-xs transition font-medium ${
+                      aria-current={isActive ? "page" : undefined}
+                      className={`flex items-center min-h-12 px-4 py-3 rounded-lg text-base transition ${
                         isActive
-                          ? "bg-blue-50 text-blue-600 border border-blue-200"
-                          : "text-gray-700 hover:bg-gray-100 hover:text-blue-600"
+                          ? "bg-blue-600 text-white font-semibold shadow-sm"
+                          : "text-gray-700 font-medium hover:bg-gray-100 active:bg-gray-200"
                       }`}
                     >
                       {link.name}
@@ -114,7 +119,7 @@ export const StaffDashboardLayout = () => {
       </nav>
 
       {/* Main Content */}
-      <main className="container mx-auto px-4 py-8">
+      <main className="w-full mx-auto px-4 py-4 sm:px-8 sm:py-5 lg:px-14 xl:px-20">
         <Outlet />
       </main>
     </div>
