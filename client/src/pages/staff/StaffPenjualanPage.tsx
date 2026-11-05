@@ -69,7 +69,7 @@ const SORT_FIELD_OPTIONS = [
 
 export const StaffPenjualanPage = () => {
   const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(10);
+  const [limit, setLimit] = useState(500);
   const [filters, setFilters] = useState<FilterState>({
     search: "",
     metodeBayar: "",
@@ -94,7 +94,7 @@ export const StaffPenjualanPage = () => {
   const searchValue = filters.search.trim();
 
   const queryParams = useMemo(() => {
-    const params: Record<string, string | number> = { page, limit: 1000 };
+    const params: Record<string, string | number> = { page, limit };
 
     if (searchValue) {
       if (/^\d+$/.test(searchValue)) {
@@ -123,7 +123,7 @@ export const StaffPenjualanPage = () => {
     }
 
     return params;
-  }, [filters, sorts, page, searchValue]);
+  }, [filters, sorts, page, limit, searchValue]);
 
   const { data, isLoading, error, isPlaceholderData } = useGetPenjualan(queryParams);
   // Old rows stay on screen while a new sort/filter loads; show that it's working
@@ -251,7 +251,7 @@ export const StaffPenjualanPage = () => {
   const activeFilterCount = [filters.metodeBayar, filters.brands.length > 0, filters.tanggal].filter(Boolean).length;
 
   return (
-    <div className="w-full h-full flex flex-col overflow-hidden">
+    <div className="w-full flex h-[calc(100dvh-5.0625rem)] min-h-[26rem] flex-col sm:h-[calc(100dvh-6.5625rem)]">
       {/* View Modal */}
       {viewingItem && (
         <div
@@ -474,18 +474,18 @@ export const StaffPenjualanPage = () => {
         </div>
         <button
           onClick={handleOpenCreate}
-          className="flex min-h-11 items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 active:bg-blue-800 transition font-semibold text-sm shadow-sm"
+          className="flex min-h-9 sm:min-h-11 items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 active:bg-blue-800 transition font-semibold text-sm shadow-sm"
         >
-          <Plus className="w-5 h-5" />
+          <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
           Tambah Penjualan
         </button>
       </div>
 
       {/* Filter & Sort Panel */}
-      <div className="bg-white rounded-xl border border-slate-200 shadow-sm my-3 sm:my-4 p-2 sm:p-4 space-y-2 sm:space-y-3 md:flex md:items-center md:gap-3 md:space-y-0">
+      <div className="bg-white rounded-xl border border-slate-200 shadow-sm my-2 sm:my-3 p-2 sm:p-2.5 space-y-2 md:flex md:items-center md:gap-2 md:space-y-0">
         {/* Basic Filters - Compact on mobile */}
         <div
-          className={`md:flex-1 grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 ${filtersOpen ? "" : "max-sm:[&>*:not(:first-child)]:hidden"}`}
+          className={`md:flex-1 grid grid-cols-2 sm:grid-cols-4 gap-2 ${filtersOpen ? "" : "max-sm:[&>*:not(:first-child)]:hidden"}`}
         >
           <div className="col-span-2 sm:col-span-1 flex gap-2">
             <div className="flex-1 min-w-0">
@@ -493,7 +493,7 @@ export const StaffPenjualanPage = () => {
               <PopoverTrigger asChild>
                 <button
                   type="button"
-                  className={`w-full min-h-11 md:min-h-0 px-3 py-2 border border-slate-200 rounded-lg text-sm text-left focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white flex items-center justify-between ${
+                  className={`w-full min-h-9 md:min-h-0 px-2.5 py-1.5 border border-slate-200 rounded-lg text-sm text-left focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white flex items-center justify-between ${
                     filters.search ? "text-slate-900" : "text-slate-500"
                   }`}
                 >
@@ -579,7 +579,7 @@ export const StaffPenjualanPage = () => {
               type="button"
               onClick={() => setFiltersOpen((open) => !open)}
               aria-expanded={filtersOpen}
-              className={`sm:hidden flex min-h-11 shrink-0 items-center gap-1.5 rounded-lg border px-3 text-sm font-medium transition ${
+              className={`sm:hidden flex min-h-9 shrink-0 items-center gap-1.5 rounded-lg border px-2.5 text-sm font-medium transition ${
                 filtersOpen
                   ? "border-blue-300 bg-blue-50 text-blue-700"
                   : "border-slate-200 bg-white text-slate-700"
@@ -601,7 +601,7 @@ export const StaffPenjualanPage = () => {
               setFilters((prev) => ({ ...prev, metodeBayar: e.target.value }));
               setPage(1);
             }}
-            className="w-full min-h-11 md:min-h-0 px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full min-h-9 md:min-h-0 px-2.5 py-1.5 border border-slate-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="">Semua Metode</option>
             {METODE_BAYAR_OPTIONS.map((metode) => (
@@ -615,7 +615,7 @@ export const StaffPenjualanPage = () => {
           <div className="relative">
             <button
               onClick={() => setBrandDropdownOpen(!brandDropdownOpen)}
-              className="w-full min-h-11 md:min-h-0 px-3 py-2 border border-slate-200 rounded-lg text-sm text-left focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+              className="w-full min-h-9 md:min-h-0 px-2.5 py-1.5 border border-slate-200 rounded-lg text-sm text-left focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
             >
               {filters.brands.length === 0
                 ? "Semua Brand"
@@ -654,7 +654,7 @@ export const StaffPenjualanPage = () => {
               onChange={(e) =>
                 setFilters((prev) => ({ ...prev, tanggal: e.target.value }))
               }
-              className="w-full min-h-11 md:min-h-0 px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full min-h-9 md:min-h-0 px-2.5 py-1.5 border border-slate-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
         </div>
@@ -671,7 +671,7 @@ export const StaffPenjualanPage = () => {
                   onChange={(e) =>
                     handleUpdateSort(index, e.target.value, sort.order)
                   }
-                  className="flex-1 min-h-10 md:min-h-0 px-2 py-1.5 border border-slate-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="flex-1 min-h-9 md:min-h-0 px-2 py-1 border border-slate-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="">-- Urutkan --</option>
                   {SORT_FIELD_OPTIONS.map((opt) => (
@@ -690,7 +690,7 @@ export const StaffPenjualanPage = () => {
                         sort.order === "asc" ? "desc" : "asc",
                       )
                     }
-                    className="flex min-h-10 min-w-10 md:min-h-8 md:min-w-8 items-center justify-center bg-white border border-slate-200 hover:bg-slate-100 rounded-lg transition flex-shrink-0"
+                    className="flex min-h-9 min-w-9 md:min-h-8 md:min-w-8 items-center justify-center bg-white border border-slate-200 hover:bg-slate-100 rounded-lg transition flex-shrink-0"
                     title="Balik urutan (naik/turun)"
                   >
                     {sort.order === "asc" ? (
@@ -705,7 +705,7 @@ export const StaffPenjualanPage = () => {
 
             <button
               onClick={handleClearFilters}
-              className="shrink-0 min-h-10 md:min-h-0 text-sm px-3 py-2 bg-slate-200 text-slate-700 rounded-lg hover:bg-slate-300 transition"
+              className="shrink-0 min-h-9 md:min-h-0 text-sm px-3 py-1.5 bg-slate-200 text-slate-700 rounded-lg hover:bg-slate-300 transition"
             >
               Reset
             </button>
@@ -714,7 +714,7 @@ export const StaffPenjualanPage = () => {
       </div>
 
       {/* Table */}
-      <div className="flex-1 overflow-auto">
+      <div className="flex min-h-0 flex-1 flex-col">
         {isLoading ? (
           <div className="flex items-center justify-center h-full">
             <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
@@ -731,11 +731,11 @@ export const StaffPenjualanPage = () => {
         ) : (
           <>
           <div
-            className={`rounded-lg border border-slate-200/80 bg-white/90 overflow-hidden transition-opacity ${isRefreshing ? "opacity-60" : ""}`}
+            className={`flex min-h-0 flex-col rounded-lg border border-slate-200/80 bg-white/90 overflow-hidden transition-opacity ${isRefreshing ? "opacity-60" : ""}`}
             aria-busy={isRefreshing}
           >
-            <Table>
-              <TableHeader>
+            <Table fitScreen>
+              <TableHeader sticky>
                 <TableRow className="bg-slate-50">
                   <TableHead className="px-2 py-2 text-sm text-slate-600 w-12">
                     No.
@@ -919,7 +919,7 @@ export const StaffPenjualanPage = () => {
 
       {/* Pagination */}
       {data?.pagination && (
-        <div className="flex-shrink-0 sm:px-6 py-3 sm:py-4 border-t border-slate-200 bg-slate-50/50 flex flex-col sm:flex-row gap-2 sm:items-center sm:justify-between">
+        <div className="flex-shrink-0 px-1 sm:px-2 py-1.5 border-t border-slate-200 flex flex-col sm:flex-row gap-1.5 sm:items-center sm:justify-between">
           <div className="text-xs sm:text-sm text-slate-600 text-center sm:text-left">
             Menampilkan {(page - 1) * limit + 1}–
             {Math.min(page * limit, data.pagination.total)} dari{" "}
@@ -930,7 +930,7 @@ export const StaffPenjualanPage = () => {
             <button
               onClick={() => setPage(Math.max(1, page - 1))}
               disabled={page === 1}
-              className="min-h-11 md:min-h-0 px-3 py-1.5 border border-slate-200 bg-white rounded-lg text-sm disabled:opacity-50 hover:bg-slate-100 transition"
+              className="min-h-8 md:min-h-0 px-2.5 py-0.5 border border-slate-200 bg-white rounded-md text-xs sm:text-sm disabled:opacity-50 hover:bg-slate-100 transition"
             >
               Sebelumnya
             </button>
@@ -944,7 +944,7 @@ export const StaffPenjualanPage = () => {
                 setPage(Math.min(data.pagination.totalPages, page + 1))
               }
               disabled={page === data.pagination.totalPages}
-              className="min-h-11 md:min-h-0 px-3 py-1.5 border border-slate-200 bg-white rounded-lg text-sm disabled:opacity-50 hover:bg-slate-100 transition"
+              className="min-h-8 md:min-h-0 px-2.5 py-0.5 border border-slate-200 bg-white rounded-md text-xs sm:text-sm disabled:opacity-50 hover:bg-slate-100 transition"
             >
               Berikutnya
             </button>
@@ -955,12 +955,12 @@ export const StaffPenjualanPage = () => {
                 setLimit(parseInt(e.target.value));
                 setPage(1);
               }}
-              className="hidden sm:block px-2 py-1 border border-slate-200 rounded text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="hidden sm:block px-1.5 py-0.5 border border-slate-200 rounded text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              <option value="10">10</option>
-              <option value="20">20</option>
               <option value="50">50</option>
               <option value="100">100</option>
+              <option value="200">200</option>
+              <option value="500">500</option>
               <option value="1000">1000</option>
             </select>
           </div>

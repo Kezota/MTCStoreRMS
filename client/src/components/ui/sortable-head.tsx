@@ -27,7 +27,7 @@ export const SortableTableHead = ({
 
   return (
     <TableHead
-      className={cn("p-0", className)}
+      className={cn("p-0 max-sm:p-0", className)}
       aria-sort={
         index === 0
           ? active?.order === "asc"
@@ -41,26 +41,26 @@ export const SortableTableHead = ({
         onClick={() => onSort(field)}
         title="Klik untuk urutkan"
         className={cn(
-          "flex h-full w-full items-center gap-1 px-2 py-2 text-left font-medium transition hover:bg-slate-100 hover:text-slate-900",
+          "flex h-full w-full items-center gap-1 max-sm:gap-0.5 px-2 py-2 max-sm:px-1.5 max-sm:py-1 text-left font-medium transition hover:bg-slate-100 hover:text-slate-900",
           index === 0 && "text-blue-700",
         )}
       >
         <span>{children}</span>
         {loading && index === 0 ? (
-          <Loader2 className="h-3.5 w-3.5 animate-spin text-blue-600" />
+          <Loader2 className="h-3.5 w-3.5 max-sm:h-3 max-sm:w-3 animate-spin text-blue-600" />
         ) : active ? (
           <span className="inline-flex items-center text-blue-600">
             {active.order === "asc" ? (
-              <ArrowUp className="h-3.5 w-3.5" />
+              <ArrowUp className="h-3.5 w-3.5 max-sm:h-3 max-sm:w-3" />
             ) : (
-              <ArrowDown className="h-3.5 w-3.5" />
+              <ArrowDown className="h-3.5 w-3.5 max-sm:h-3 max-sm:w-3" />
             )}
             {sorts.length > 1 && (
               <span className="text-[10px] font-semibold">{index + 1}</span>
             )}
           </span>
         ) : (
-          <ChevronsUpDown className="h-3.5 w-3.5 opacity-40" />
+          <ChevronsUpDown className="h-3.5 w-3.5 max-sm:h-3 max-sm:w-3 opacity-40" />
         )}
       </button>
     </TableHead>

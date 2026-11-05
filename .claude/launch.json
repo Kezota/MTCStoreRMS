@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "client-mock",
+      "runtimeExecutable": "sh",
+      "runtimeArgs": ["-c", "cd client && VITE_API_URL=http://localhost:8787 npx vite --port 5179 --strictPort"],
+      "port": 5179
+    }
+  ]
+}

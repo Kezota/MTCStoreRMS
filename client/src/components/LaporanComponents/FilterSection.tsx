@@ -46,7 +46,7 @@ export const FilterSection = ({
               type="date"
                             value={startDate}
               onChange={(e) => onStartDateChange(e.target.value)}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-2.5 py-1.5 border border-slate-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
           <div>
@@ -57,7 +57,7 @@ export const FilterSection = ({
               type="date"
                             value={endDate}
               onChange={(e) => onEndDateChange(e.target.value)}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-2.5 py-1.5 border border-slate-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
           <div>
@@ -67,7 +67,7 @@ export const FilterSection = ({
             <select
               value={filterBrand}
               onChange={(e) => onFilterBrandChange(e.target.value)}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-2.5 py-1.5 border border-slate-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="all">Semua Brand</option>
               {brandOptions.map((brand) => (
@@ -84,7 +84,7 @@ export const FilterSection = ({
             <select
               value={filterMetode}
               onChange={(e) => onFilterMetodeChange(e.target.value)}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-2.5 py-1.5 border border-slate-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="all">Semua Metode</option>
               {metodeOptions.map((metode) => (
@@ -101,7 +101,7 @@ export const FilterSection = ({
             <select
               value={filterPreset}
               onChange={(e) => onFilterPresetChange(e.target.value)}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-2.5 py-1.5 border border-slate-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="all">Semua</option>
               <option value="custom">Custom</option>

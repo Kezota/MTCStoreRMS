@@ -180,7 +180,7 @@ export const StaffPage = () => {
         </div>
         <button
           onClick={openCreate}
-          className="inline-flex min-h-11 shrink-0 items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white rounded-lg transition font-semibold text-sm shadow-sm"
+          className="inline-flex min-h-9 sm:min-h-11 shrink-0 items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white rounded-lg transition font-semibold text-sm shadow-sm"
         >
           <UserPlus className="w-5 h-5" />
           <span>Tambah User</span>
@@ -318,7 +318,7 @@ export const StaffPage = () => {
                     onChange={(e) =>
                       setForm((prev) => ({ ...prev, username: e.target.value }))
                     }
-                    className="mt-1 w-full min-h-11 md:min-h-0 rounded-lg border border-gray-300 bg-white px-3 py-2 text-base md:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="mt-1 w-full min-h-9 md:min-h-0 rounded-lg border border-gray-300 bg-white px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                     required
                   />
                 </div>
@@ -332,7 +332,7 @@ export const StaffPage = () => {
                     onChange={(e) =>
                       setForm((prev) => ({ ...prev, nama: e.target.value }))
                     }
-                    className="mt-1 w-full min-h-11 md:min-h-0 rounded-lg border border-gray-300 bg-white px-3 py-2 text-base md:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="mt-1 w-full min-h-9 md:min-h-0 rounded-lg border border-gray-300 bg-white px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                     required
                   />
                 </div>
@@ -348,7 +348,7 @@ export const StaffPage = () => {
                         role: e.target.value as "ADMIN" | "STAFF",
                       }))
                     }
-                    className="mt-1 w-full min-h-11 md:min-h-0 rounded-lg border border-gray-300 bg-white px-3 py-2 text-base md:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="mt-1 w-full min-h-9 md:min-h-0 rounded-lg border border-gray-300 bg-white px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="ADMIN">ADMIN</option>
                     <option value="STAFF">STAFF</option>
@@ -368,7 +368,7 @@ export const StaffPage = () => {
                           password: e.target.value,
                         }))
                       }
-                      className="w-full min-h-11 md:min-h-0 rounded-lg border border-gray-300 px-3 py-2 pr-12 md:pr-10 text-base md:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full min-h-9 md:min-h-0 rounded-lg border border-gray-300 px-2.5 py-1.5 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                       required={!editingUser}
                     />
                     <button
@@ -392,14 +392,14 @@ export const StaffPage = () => {
                 <button
                   type="button"
                   onClick={closeForm}
-                  className="min-h-11 md:min-h-0 px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 text-sm font-medium"
+                  className="min-h-9 md:min-h-0 px-4 py-1.5 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 text-sm font-medium"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
                   disabled={createUser.isPending || updateUser.isPending}
-                  className="min-h-11 md:min-h-0 px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 active:bg-blue-800 text-sm font-semibold disabled:opacity-60"
+                  className="min-h-9 md:min-h-0 px-4 py-1.5 rounded-lg bg-blue-600 text-white hover:bg-blue-700 active:bg-blue-800 text-sm font-semibold disabled:opacity-60"
                 >
                   {editingUser ? "Simpan" : "Tambah"}
                 </button>

@@ -136,11 +136,12 @@ textarea::placeholder {
   opacity: 1;
 }
 
-/* Touch phones: 16px inputs stop iOS from zooming in on focus.
+/* Touch phones: 16px text boxes stop iOS from zooming in while typing.
+   Dropdowns and date pickers keep their small size so filters stay compact.
    Unlayered on purpose so it wins over text-xs/text-sm utilities. */
 @media (max-width: 767px) and (pointer: coarse) {
-  input:not([type="checkbox"]):not([type="radio"]),
-  select,
+  input:is([type="text"], [type="search"], [type="number"], [type="tel"],
+    [type="email"], [type="password"], :not([type])),
   textarea {
     font-size: 16px;
   }
